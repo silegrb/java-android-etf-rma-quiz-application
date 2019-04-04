@@ -1,5 +1,6 @@
 package ba.unsa.etf.rma.aktivnosti;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -78,6 +79,10 @@ public class DodajKvizAkt extends AppCompatActivity {
                 if( !odabrano.getNaziv().equals("Dodaj pitanje") ) {
                     alTrenutnaPitanja.remove(odabrano);
                     alMogucaPitanja.add(odabrano);
+                }
+                else{
+                    Intent dodajPitanjeAkt = new Intent( DodajKvizAkt.this, DodajPitanjeAkt.class );
+                    DodajKvizAkt.this.startActivity( dodajPitanjeAkt );
                 }
                 adapterZaListuMogucihPitanja.notifyDataSetChanged();
                 adapterZaListuTrenutnihPitanja.notifyDataSetChanged();

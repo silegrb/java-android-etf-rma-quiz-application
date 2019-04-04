@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".aktivnosti.DodajPitanjeAkt">
+
+    <EditText
+        android:id="@+id/etNaziv"
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:layout_marginTop="30dp"
+        android:ems="10"
+        android:inputType="textPersonName"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="match_parent"
+        android:layout_height="25dp"
+        android:text="Odgovori"
+        android:textAlignment="center"
+        android:textColor="@color/zelenaBoja"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp" />
+
+    <ListView
+        android:id="@+id/lvOdgovori"
+        android:layout_width="match_parent"
+        android:layout_height="230dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp" />
+
+    <EditText
+        android:id="@+id/etOdgovor"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:ems="10"
+        android:inputType="textPersonName" />
+
+    <Button
+    android:id="@+id/btnDodajOdgovor"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:text="Dodaj"
+    android:textColor="@color/plavaBoja"
+    android:layout_marginLeft="20dp"
+    android:layout_marginRight="20dp"/>
+
+    <Button
+        android:id="@+id/btnDodajTacan"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Dodaj tacan"
+        android:textColor="@color/zelenaBoja"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"/>
+
+    <Button
+        android:id="@+id/btnDodajPitanje"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Dodaj tacan"
+        android:textColor="@color/bijelaBoja"
+        android:background="@color/plavaBoja"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginTop="50dp"/>
+</LinearLayout>
