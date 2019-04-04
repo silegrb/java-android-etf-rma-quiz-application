@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".aktivnosti.DodajKvizAkt">
+
+    <Spinner
+        android:id="@+id/spKategorije"
+        android:layout_width="match_parent"
+        android:layout_height="56dp" />
+
+    <EditText
+        android:id="@+id/etNaziv"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:ems="10"
+        android:inputType="textPersonName"
+        android:text="Name" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="25dp"
+        android:text="Pitanja u kvizu"
+        android:textAlignment="center"
+        android:textColor="@color/zelenaBoja" />
+
+    <ListView
+        android:id="@+id/lvDodanaPitanja"
+        android:layout_width="match_parent"
+        android:layout_height="180dp" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="match_parent"
+        android:layout_height="25dp"
+        android:text="Moguca pitanja"
+        android:textAlignment="center"
+        android:textColor="@color/zutaBoja" />
+
+    <ListView
+        android:id="@+id/lvMogucaPitanja"
+        android:layout_width="match_parent"
+        android:layout_height="180dp" />
+
+    <Button
+        android:id="@+id/btnDodajKviz"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Dodaj kviz"
+        android:textColor="@color/plavaBoja" />
+
+</LinearLayout>

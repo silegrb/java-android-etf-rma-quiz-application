@@ -1,5 +1,6 @@
 package ba.unsa.etf.rma.aktivnosti;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -68,6 +69,18 @@ public class KvizoviAkt extends AppCompatActivity {
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
                 //Nista ne radi
+            }
+        });
+
+        listaKvizova.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent dodajKvizAkt = new Intent( KvizoviAkt.this, DodajKvizAkt.class );
+                //Pravimo dodavanje i azuriranje
+                dodajKvizAkt.putExtra( "sviKvizovi", kvizovi );
+                dodajKvizAkt.putExtra("trenutniKviz", (Kviz)parent.getItemAtPosition(position) );
+                dodajKvizAkt.putExtra( "sveKategorije", kategorije );
+                KvizoviAkt.this.startActivity( dodajKvizAkt );
             }
         });
     }
