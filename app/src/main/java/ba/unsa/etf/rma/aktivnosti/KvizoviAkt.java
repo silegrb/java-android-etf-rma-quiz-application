@@ -34,10 +34,10 @@ public class KvizoviAkt extends AppCompatActivity {
         listaKvizova = (ListView) findViewById(R.id.lvKvizovi);
         spinnerKategorije = (Spinner) findViewById(R.id.spPostojeceKategorije);
         adapterZaSpinner = new ArrayAdapter<Kategorija>(this, android.R.layout.simple_list_item_1, kategorije);
-//      adapterZaSpinner.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerKategorije.setAdapter(adapterZaSpinner);
         adapterZaListuKvizova = new AdapterZaListuKvizova(this,prikazaniKvizovi);
         listaKvizova.setAdapter(adapterZaListuKvizova);
+        napuniPodacima();
         spinnerKategorije.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -46,26 +46,22 @@ public class KvizoviAkt extends AppCompatActivity {
                 Toast.makeText( parent.getContext(), "Odabrano: " + text, Toast.LENGTH_SHORT ).show();
                 if( text.equals("Svi") ){
                     prikazaniKvizovi.clear();
-                    adapterZaListuKvizova.notifyDataSetChanged();
                     for( int i = 0; i < kvizovi.size(); i++ )
                     {
                         prikazaniKvizovi.add( kvizovi.get(i) );
-                        adapterZaListuKvizova.notifyDataSetChanged();
                     }
+                    adapterZaListuKvizova.notifyDataSetChanged();
                 }
                 else{
                     prikazaniKvizovi.clear();
-                    adapterZaListuKvizova.notifyDataSetChanged();
                     for( int i = 0; i < kvizovi.size(); i++ )
                         if( !kvizovi.get(i).getNaziv().equals("Dodaj kviz") && kvizovi.get(i).getKategorija().getNaziv().equals(text) ){
                             prikazaniKvizovi.add( kvizovi.get(i) );
-                            adapterZaListuKvizova.notifyDataSetChanged();
                         }
-                        Kviz k = new Kviz();
+                    Kviz k = new Kviz();
                         k.setNaziv("Dodaj kviz");
                      prikazaniKvizovi.add( k );
-                     adapterZaListuKvizova.notifyDataSetChanged();
-
+                    adapterZaListuKvizova.notifyDataSetChanged();
                 }
             }
 
@@ -74,18 +70,17 @@ public class KvizoviAkt extends AppCompatActivity {
                 //Nista ne radi
             }
         });
-        napuniPodacima();
     }
 
     private void napuniPodacima() {
         //Kreirajmo kategoriju
         Kategorija k1 = new Kategorija();
         k1.setNaziv("Lagana");
-        k1.setId("Nebitno");
+        k1.setId("0");
 
         Kategorija k2 = new Kategorija();
         k2.setNaziv("Srednja");
-        k2.setId("Nebitno");
+        k2.setId("1");
 
         //Dodajmo par pitanja
         ArrayList<String> odgovori1 = new ArrayList<>();
@@ -165,16 +160,14 @@ public class KvizoviAkt extends AppCompatActivity {
         kvizovi.add(kviz1);
         kvizovi.add(kviz2);
         kvizovi.add(apstraktniKviz);
+
         kategorije.add(apstraktnaKategorija);
-        adapterZaSpinner.notifyDataSetChanged();
         kategorije.add(k1);
-        adapterZaSpinner.notifyDataSetChanged();
         kategorije.add(k2);
         adapterZaSpinner.notifyDataSetChanged();
+
         prikazaniKvizovi.add( kviz1 );
-        adapterZaListuKvizova.notifyDataSetChanged();
         prikazaniKvizovi.add( kviz2 );
-        adapterZaListuKvizova.notifyDataSetChanged();
         prikazaniKvizovi.add( apstraktniKviz );
         adapterZaListuKvizova.notifyDataSetChanged();
     }

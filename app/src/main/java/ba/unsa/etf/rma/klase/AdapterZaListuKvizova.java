@@ -8,14 +8,17 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.maltaisn.icondialog.IconHelper;
+
 import java.util.ArrayList;
 
 import ba.unsa.etf.rma.R;
 
-public class AdapterZaListuKvizova extends BaseAdapter {
+public class AdapterZaListuKvizova extends BaseAdapter implements View.OnClickListener {
     Context context;
     ArrayList<Kviz> data;
     private static LayoutInflater inflater = null;
+    ImageView ikonaClanaListe;
 
     public AdapterZaListuKvizova(Context context, ArrayList<Kviz> data) {
         // TODO Auto-generated constructor stub
@@ -44,14 +47,34 @@ public class AdapterZaListuKvizova extends BaseAdapter {
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(final int position, View convertView, ViewGroup parent) {
         // TODO Auto-generated method stub
         View vi = convertView;
         if (vi == null)
             vi = inflater.inflate(R.layout.element_liste_kvizova, null);
-        TextView text = (TextView) vi.findViewById(R.id.Itemname);
-        ImageView imageView = (ImageView) vi.findViewById( R.id.icon );
+        TextView text = vi.findViewById(R.id.Itemname);
+        ikonaClanaListe = vi.findViewById( R.id.icon );
         text.setText( data.get(position).getNaziv() );
+        final IconHelper iconHelper = IconHelper.getInstance(vi.getContext());
+        final View finalVi = vi;
+        iconHelper.addLoadCallback(new IconHelper.LoadCallback() {
+            @Override
+            public void onDataLoaded() {
+                // This happens on UI thread, and is guaranteed to be called.
+                    if( !data.get(position).getNaziv().equals("Dodaj kviz") )
+                        ikonaClanaListe.setImageDrawable(iconHelper.getIcon(Integer.parseInt(data.get(position).getKategorija().getId())).getDrawable(context));
+                    else
+                        ikonaClanaListe.setImageDrawable( finalVi.getResources().getDrawable( R.drawable.add_icon ) );
+            }
+        });
+
+
         return vi;
+    }
+
+
+    @Override
+    public void onClick(View v) {
+        //mrs
     }
 }
