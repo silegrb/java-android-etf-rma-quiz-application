@@ -4,4 +4,16 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".aktivnosti.KvizoviAkt" />
+    tools:context=".aktivnosti.KvizoviAkt" >
+
+    <Spinner
+        android:id="@+id/spPostojeceKategorije"
+        android:layout_width="match_parent"
+        android:layout_height="70dp"/>
+
+    <ListView
+        android:id="@+id/lvKvizovi"
+        android:layout_width="match_parent"
+        android:layout_height="661dp" />
+
+</LinearLayout>

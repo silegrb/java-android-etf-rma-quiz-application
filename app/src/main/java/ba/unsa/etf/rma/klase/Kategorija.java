@@ -1,6 +1,6 @@
 package ba.unsa.etf.rma.klase;
 
-class Kategorija {
+public class Kategorija {
 
     private String naziv;
     private String id;
@@ -21,4 +21,8 @@ class Kategorija {
         this.id = id;
     }
 
+    @Override
+    public String toString() {
+        return naziv;
+    }
 }

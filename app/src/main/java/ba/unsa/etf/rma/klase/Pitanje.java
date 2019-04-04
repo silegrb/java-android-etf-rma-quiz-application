@@ -3,7 +3,7 @@ package ba.unsa.etf.rma.klase;
 import java.util.ArrayList;
 import java.util.Collections;
 
-class Pitanje {
+public class Pitanje {
     private String naziv;
     private String tekstPitanja;
     private ArrayList<String> odgovori;
