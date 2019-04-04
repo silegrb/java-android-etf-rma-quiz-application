@@ -14,13 +14,13 @@ import java.util.ArrayList;
 
 import ba.unsa.etf.rma.R;
 
-public class AdapterZaListuPitanja extends BaseAdapter implements View.OnClickListener {
+public class AdapterZaListuTrenutnihPitanja extends BaseAdapter implements View.OnClickListener {
     Context context;
     ArrayList<Pitanje> data;
     private static LayoutInflater inflater = null;
     ImageView ikonaClanaListe;
 
-    public AdapterZaListuPitanja(Context context, ArrayList<Pitanje> data) {
+    public AdapterZaListuTrenutnihPitanja(Context context, ArrayList<Pitanje> data) {
         // TODO Auto-generated constructor stub
         this.context = context;
         this.data = data;
@@ -51,9 +51,9 @@ public class AdapterZaListuPitanja extends BaseAdapter implements View.OnClickLi
         // TODO Auto-generated method stub
         View vi = convertView;
         if (vi == null)
-            vi = inflater.inflate(R.layout.element_liste_pitanja, null);
-        TextView text = vi.findViewById(R.id.itemnamePitanje);
-        ikonaClanaListe = vi.findViewById( R.id.iconPitanje );
+            vi = inflater.inflate(R.layout.element_liste_kvizova, null);
+        TextView text = vi.findViewById(R.id.Itemname);
+        ikonaClanaListe = vi.findViewById( R.id.icon );
         text.setText( data.get(position).getNaziv() );
         final IconHelper iconHelper = IconHelper.getInstance(vi.getContext());
         final View finalVi = vi;
