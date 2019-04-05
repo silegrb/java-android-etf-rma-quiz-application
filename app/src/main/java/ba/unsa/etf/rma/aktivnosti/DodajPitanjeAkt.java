@@ -3,6 +3,7 @@ package ba.unsa.etf.rma.aktivnosti;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -45,13 +46,20 @@ public class DodajPitanjeAkt extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if( !tacanDodan && !etOdgovor.getText().toString().equals("") ){
-                    trenutnoPitanje.setTacan( etOdgovor.getText().toString() );
-                    alOdgovori.add( etOdgovor.getText().toString() );
-                    tacanOdgovor = etOdgovor.getText().toString();
-                    trenutnoPitanje.setOdgovori( alOdgovori );
-                    etOdgovor.setText("");
-                    adapterZaListuOdgovora.notifyDataSetChanged();
-                    tacanDodan = true;
+                    boolean vecDodano = false;
+                    for ( String odg : alOdgovori ) {
+                        if( odg.equals( etOdgovor.getText().toString() ) )
+                            vecDodano = true;
+                    }
+                    if( !vecDodano ) {
+                        trenutnoPitanje.setTacan(etOdgovor.getText().toString());
+                        alOdgovori.add(etOdgovor.getText().toString());
+                        tacanOdgovor = etOdgovor.getText().toString();
+                        trenutnoPitanje.setOdgovori(alOdgovori);
+                        etOdgovor.setText("");
+                        adapterZaListuOdgovora.notifyDataSetChanged();
+                        tacanDodan = true;
+                    }
 
                 }
             }
@@ -60,12 +68,33 @@ public class DodajPitanjeAkt extends AppCompatActivity {
         dodajOdgovor.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 if( !etOdgovor.getText().toString().equals("") ){
-                    alOdgovori.add( etOdgovor.getText().toString() );
-                    trenutnoPitanje.setOdgovori( alOdgovori );
-                    etOdgovor.setText("");
+                    boolean vecDodano = false;
+                    for ( String odg : alOdgovori ) {
+                        if( odg.equals( etOdgovor.getText().toString() ) )
+                            vecDodano = true;
+                    }
+                    if( !vecDodano ) {
+                        alOdgovori.add(etOdgovor.getText().toString());
+                        trenutnoPitanje.setOdgovori(alOdgovori);
+                        etOdgovor.setText("");
+                    }
                     adapterZaListuOdgovora.notifyDataSetChanged();
                 }
+            }
+        });
+
+        lvOdgovori.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                String odabraniOdgovor = parent.getItemAtPosition( position ).toString();
+                if( odabraniOdgovor.equals( tacanOdgovor ) ){
+                    tacanOdgovor = null;
+                    tacanDodan = false;
+                }
+                alOdgovori.remove( odabraniOdgovor );
+                adapterZaListuOdgovora.notifyDataSetChanged();
             }
         });
     }

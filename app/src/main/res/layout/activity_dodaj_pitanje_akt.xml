@@ -65,10 +65,10 @@
         android:id="@+id/btnDodajPitanje"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Dodaj tacan"
+        android:text="Spasi pitanje"
         android:textColor="@color/bijelaBoja"
         android:background="@color/plavaBoja"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
-        android:layout_marginTop="50dp"/>
+        android:layout_marginTop="30dp"/>
 </LinearLayout>

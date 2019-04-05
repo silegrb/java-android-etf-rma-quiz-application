@@ -62,11 +62,17 @@ public class AdapterZaListuOdgovora extends BaseAdapter implements View.OnClickL
         iconHelper.addLoadCallback(new IconHelper.LoadCallback() {
             @Override
             public void onDataLoaded() {
+                text.setTextColor(Color.BLACK);
                 ikonaClanaListe.setImageDrawable( finalVi.getResources().getDrawable( R.drawable.blue_dot ) );
                 if(DodajPitanjeAkt.tacanOdgovor != null) {
                     if (data.get(position).equals(DodajPitanjeAkt.tacanOdgovor))
                         text.setTextColor(Color.GREEN);
+                    else{
+                        text.setTextColor(Color.BLACK);
+                    }
                 }
+
+                notifyDataSetChanged();
             }
         });
 
