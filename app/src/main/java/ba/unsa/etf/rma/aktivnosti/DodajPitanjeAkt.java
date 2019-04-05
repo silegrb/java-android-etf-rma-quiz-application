@@ -1,7 +1,10 @@
 package ba.unsa.etf.rma.aktivnosti;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -59,6 +62,7 @@ public class DodajPitanjeAkt extends AppCompatActivity {
                         etOdgovor.setText("");
                         adapterZaListuOdgovora.notifyDataSetChanged();
                         tacanDodan = true;
+                        lvOdgovori.setBackgroundColor(Color.parseColor("#fafafa"));
                     }
 
                 }
@@ -95,6 +99,43 @@ public class DodajPitanjeAkt extends AppCompatActivity {
                 }
                 alOdgovori.remove( odabraniOdgovor );
                 adapterZaListuOdgovora.notifyDataSetChanged();
+            }
+        });
+
+        dodajPitanje.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                boolean pokreni = true;
+                if( etNaziv.getText().toString().equals("") ){
+                    etNaziv.setBackgroundColor(Color.parseColor("#ff0006"));
+                    pokreni = false;
+                }
+                if( tacanOdgovor == null ){
+                    lvOdgovori.setBackgroundColor(Color.parseColor("#ff0006"));
+                    pokreni = false;
+                }
+                if( pokreni ){
+                    //Pokreni nesto
+                }
+            }
+        });
+
+        etNaziv.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                if( !etNaziv.getText().toString().equals("") ){
+                    etNaziv.setBackgroundColor(Color.parseColor("#fafafa"));
+                }
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
             }
         });
     }

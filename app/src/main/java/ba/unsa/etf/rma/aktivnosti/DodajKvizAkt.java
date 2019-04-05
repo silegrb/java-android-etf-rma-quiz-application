@@ -1,11 +1,16 @@
 package ba.unsa.etf.rma.aktivnosti;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Spinner;
 
@@ -20,6 +25,8 @@ import ba.unsa.etf.rma.klase.Pitanje;
 
 public class DodajKvizAkt extends AppCompatActivity {
 
+    Button btnDodajKviz;
+    EditText etNaziv;
     ArrayList<Kategorija> kategorije;
     ArrayList<Kviz> kvizovi;
     Kviz trenutniKviz;
@@ -37,6 +44,8 @@ public class DodajKvizAkt extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dodaj_kviz_akt);
 
+        etNaziv = ( EditText ) findViewById( R.id.etNaziv );
+        btnDodajKviz = (Button) findViewById( R.id.btnDodajKviz );
         kategorijeSpinner = (Spinner)findViewById(R.id.spKategorije );
         lvMogucihPitanja = (ListView) findViewById( R.id.lvMogucaPitanja );
         lvTrenutnihPitanja = (ListView) findViewById( R.id.lvDodanaPitanja );
@@ -59,10 +68,11 @@ public class DodajKvizAkt extends AppCompatActivity {
                     break;
                 }
             kategorijeSpinner.setSelection( position );
+            alTrenutnaPitanja.addAll(trenutniKviz.getPitanja());
+            etNaziv.setText( trenutniKviz.getNaziv() );
         }
         if( !trenutniKviz.getNaziv().equals("Dodaj kviz") ) {
-            alTrenutnaPitanja.addAll(trenutniKviz.getPitanja());
-
+            //Obrisi ovaj if
         }
         Pitanje dodajPitanje = new Pitanje();
         dodajPitanje.setNaziv("Dodaj pitanje");
@@ -98,6 +108,34 @@ public class DodajKvizAkt extends AppCompatActivity {
 
                 adapterZaListuMogucihPitanja.notifyDataSetChanged();
                 adapterZaListuTrenutnihPitanja.notifyDataSetChanged();
+            }
+        });
+
+        btnDodajKviz.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if( etNaziv.getText().toString().equals("") ){
+                    etNaziv.setBackgroundColor(Color.parseColor("#ff0006"));
+                }
+
+            }
+        });
+
+        etNaziv.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if( !s.equals("") )
+                    etNaziv.setBackgroundColor(Color.parseColor("#fafafa"));
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
             }
         });
 
