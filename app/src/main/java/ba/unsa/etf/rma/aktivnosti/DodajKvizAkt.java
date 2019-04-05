@@ -54,7 +54,7 @@ public class DodajKvizAkt extends AppCompatActivity {
         kategorije = (ArrayList<Kategorija>)getIntent().getSerializableExtra("sveKategorije");
         kvizovi = (ArrayList<Kviz>)getIntent().getSerializableExtra("sviKvizovi");
         trenutniKviz = (Kviz)getIntent().getSerializableExtra("trenutniKviz");
-        Kategorija kategorijaZaDodavanje = new Kategorija();
+        final Kategorija kategorijaZaDodavanje = new Kategorija();
         kategorijaZaDodavanje.setNaziv("Dodaj kategoriju");
         kategorije.add( kategorijaZaDodavanje );
         adapterZaSpinner = new ArrayAdapter<Kategorija>(this, android.R.layout.simple_list_item_1, kategorije);
@@ -119,6 +119,26 @@ public class DodajKvizAkt extends AppCompatActivity {
                 if( etNaziv.getText().toString().equals("") ){
                     etNaziv.setBackgroundColor(Color.parseColor("#ff0006"));
                     Toast.makeText(v.getContext(), "Unesi ime kviza!", Toast.LENGTH_SHORT ).show();
+                }
+                else{
+                    boolean dodajNoviKviz = false;
+                    if( trenutniKviz.getNaziv().equals("Dodaj kviz") )
+                        dodajNoviKviz = true;
+                    Kviz povratniKviz = new Kviz();
+                    for( int i = 0; i < alTrenutnaPitanja.size(); i++ )
+                        if( alTrenutnaPitanja.get(i).getNaziv().equals("Dodaj pitanje") ){
+                            alTrenutnaPitanja.remove(i);
+                            i--;
+                        }
+                    Kategorija kategorija = (Kategorija) kategorijeSpinner.getSelectedItem();
+                    povratniKviz.setKategorija( kategorija );
+                    povratniKviz.setNaziv( etNaziv.getText().toString() );
+                    povratniKviz.setPitanja( alTrenutnaPitanja );
+                    Intent resIntent = new Intent();
+                    resIntent.putExtra("noviKviz", povratniKviz );
+                    resIntent.putExtra("dodajNoviKviz", dodajNoviKviz);
+                    setResult(RESULT_OK,resIntent);
+                    finish();
                 }
 
             }

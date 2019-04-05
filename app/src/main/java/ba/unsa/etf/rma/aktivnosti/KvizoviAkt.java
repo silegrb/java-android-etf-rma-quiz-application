@@ -2,6 +2,7 @@ package ba.unsa.etf.rma.aktivnosti;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AdapterView;
@@ -27,6 +28,9 @@ public class KvizoviAkt extends AppCompatActivity {
     ArrayList<Kategorija> kategorije = new ArrayList<>();
     ArrayAdapter<Kategorija> adapterZaSpinner;
     AdapterZaListuKvizova adapterZaListuKvizova;
+    String spinnerOdabir;
+    static int pozicijaKviza;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +48,7 @@ public class KvizoviAkt extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 adapterZaSpinner.notifyDataSetChanged();
                 String text = parent.getItemAtPosition( position ).toString();
+                spinnerOdabir = text;
                 Toast.makeText( parent.getContext(), "Odabrano: " + text, Toast.LENGTH_SHORT ).show();
                 if( text.equals("Svi") ){
                     prikazaniKvizovi.clear();
@@ -80,7 +85,8 @@ public class KvizoviAkt extends AppCompatActivity {
                 dodajKvizAkt.putExtra( "sviKvizovi", kvizovi );
                 dodajKvizAkt.putExtra("trenutniKviz", (Kviz)parent.getItemAtPosition(position) );
                 dodajKvizAkt.putExtra( "sveKategorije", kategorije );
-                KvizoviAkt.this.startActivity( dodajKvizAkt );
+                pozicijaKviza = position;
+                KvizoviAkt.this.startActivityForResult( dodajKvizAkt, pozicijaKviza );
             }
         });
     }
@@ -167,6 +173,7 @@ public class KvizoviAkt extends AppCompatActivity {
 
         Kategorija apstraktnaKategorija = new Kategorija();
         apstraktnaKategorija.setNaziv("Svi");
+        apstraktnaKategorija.setId("69");
         Kviz apstraktniKviz = new Kviz();
         apstraktniKviz.setNaziv("Dodaj kviz");
 
@@ -185,4 +192,37 @@ public class KvizoviAkt extends AppCompatActivity {
         adapterZaListuKvizova.notifyDataSetChanged();
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if( requestCode == pozicijaKviza ){
+            System.out.println(pozicijaKviza);
+            if( resultCode == RESULT_OK ){
+                Kviz kvizZaDodati = (Kviz)data.getExtras().get("noviKviz");
+                boolean dodajNovi = (boolean)data.getExtras().get("dodajNoviKviz");
+                if( dodajNovi ) {
+                    kvizovi.add(kvizovi.size() - 1, kvizZaDodati);
+                    System.out.println("DA");
+                }
+                else {
+                    for (int i = 0; i < kvizovi.size(); i++)
+                        if (i == pozicijaKviza) {
+                            kvizovi.get(i).setNaziv(kvizZaDodati.getNaziv());
+                            kvizovi.get(i).setKategorija(kvizZaDodati.getKategorija());
+                            kvizovi.get(i).setPitanja(kvizZaDodati.getPitanja());
+                        }
+                }
+                prikazaniKvizovi.clear();
+
+                for(int i = 0; i < kvizovi.size();i++)
+                    if( !kvizovi.get(i).getNaziv().equals("Dodaj kviz") )
+                        prikazaniKvizovi.add( kvizovi.get(i) );
+
+                Kviz k = new Kviz();
+                k.setNaziv("Dodaj kviz");
+                prikazaniKvizovi.add( k );
+                adapterZaListuKvizova.notifyDataSetChanged();
+            }
+        }
+    }
 }
