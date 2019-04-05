@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/linearLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".aktivnosti.DodajKategorijuAkt">
+
+
+    <EditText
+        android:id="@+id/etNaziv"
+        android:layout_width="360dp"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="textPersonName"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginRight="20dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="50dp"/>
+
+    <EditText
+        android:id="@+id/etIkona"
+        android:layout_width="195dp"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="textPersonName"
+        app:layout_constraintStart_toStartOf="@+id/etNaziv"
+        app:layout_constraintTop_toBottomOf="@+id/etNaziv" />
+
+    <Button
+        android:id="@+id/btnDodajIkonu"
+        android:layout_width="165dp"
+        android:layout_height="wrap_content"
+        android:text="Dodaj ikonu"
+        tools:layout_editor_absoluteX="203dp"
+        tools:layout_editor_absoluteY="45dp"
+        app:layout_constraintBottom_toBottomOf="@id/etIkona"
+        app:layout_constraintStart_toEndOf="@id/etIkona"
+        app:layout_constraintRight_toRightOf="@id/etIkona"
+        android:layout_marginRight="20dp"
+        android:background="@color/plavaBoja"
+        android:textColor="@color/bijelaBoja"/>
+
+    <Button
+        android:id="@+id/btnDodajKategoriju"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Spasi Kategoriju"
+        app:layout_constraintStart_toStartOf="@+id/etIkona"
+        app:layout_constraintTop_toBottomOf="@+id/etIkona"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginTop="20dp"
+        android:background="@color/plavaBoja"
+        android:textColor="@color/bijelaBoja"/>
+
+</android.support.constraint.ConstraintLayout>

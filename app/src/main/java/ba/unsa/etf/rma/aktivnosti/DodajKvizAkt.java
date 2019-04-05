@@ -139,5 +139,20 @@ public class DodajKvizAkt extends AppCompatActivity {
             }
         });
 
+       kategorijeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+           @Override
+           public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+               if( parent.getItemAtPosition(position).toString().equals("Dodaj kategoriju") ){
+                   Intent dodajKategorijuAkt = new Intent( DodajKvizAkt.this, DodajKategorijuAkt.class );
+                   dodajKategorijuAkt.putExtra("sveKategorije", kategorije );
+                   DodajKvizAkt.this.startActivity( dodajKategorijuAkt );
+               }
+           }
+
+           @Override
+           public void onNothingSelected(AdapterView<?> parent) {
+                //Do nothing
+           }
+       });
     }
 }
