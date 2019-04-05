@@ -13,6 +13,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -92,6 +93,7 @@ public class DodajKvizAkt extends AppCompatActivity {
                 }
                 else{
                     Intent dodajPitanjeAkt = new Intent( DodajKvizAkt.this, DodajPitanjeAkt.class );
+                    dodajPitanjeAkt.putExtra("trenutniKviz", trenutniKviz);
                     DodajKvizAkt.this.startActivity( dodajPitanjeAkt );
                 }
                 adapterZaListuMogucihPitanja.notifyDataSetChanged();
@@ -116,6 +118,7 @@ public class DodajKvizAkt extends AppCompatActivity {
             public void onClick(View v) {
                 if( etNaziv.getText().toString().equals("") ){
                     etNaziv.setBackgroundColor(Color.parseColor("#ff0006"));
+                    Toast.makeText(v.getContext(), "Unesi ime kviza!", Toast.LENGTH_SHORT ).show();
                 }
 
             }
