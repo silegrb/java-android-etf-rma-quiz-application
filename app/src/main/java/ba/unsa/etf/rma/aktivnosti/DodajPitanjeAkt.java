@@ -1,5 +1,6 @@
 package ba.unsa.etf.rma.aktivnosti;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -143,7 +144,17 @@ public class DodajPitanjeAkt extends AppCompatActivity {
                     Toast.makeText(v.getContext(), s, Toast.LENGTH_SHORT ).show();
                 }
                 else{
-                    //Pokreni nesto
+                    Pitanje pitanje = new Pitanje();
+                    pitanje.setNaziv( etNaziv.getText().toString() );
+                    pitanje.setOdgovori( alOdgovori );
+                    pitanje.setTekstPitanja( etNaziv.getText().toString() );
+                    pitanje.setTacan( tacanOdgovor );
+                    tacanOdgovor = null;
+                    tacanDodan = false;
+                    Intent resIntent = new Intent();
+                    resIntent.putExtra("novoPitanje", pitanje );
+                    setResult( RESULT_OK, resIntent );
+                    finish();
                 }
             }
         });

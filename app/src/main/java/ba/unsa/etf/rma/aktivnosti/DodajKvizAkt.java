@@ -3,6 +3,7 @@ package ba.unsa.etf.rma.aktivnosti;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -94,7 +95,7 @@ public class DodajKvizAkt extends AppCompatActivity {
                 else{
                     Intent dodajPitanjeAkt = new Intent( DodajKvizAkt.this, DodajPitanjeAkt.class );
                     dodajPitanjeAkt.putExtra("trenutniKviz", trenutniKviz);
-                    DodajKvizAkt.this.startActivity( dodajPitanjeAkt );
+                    DodajKvizAkt.this.startActivityForResult( dodajPitanjeAkt, 777 );
                 }
                 adapterZaListuMogucihPitanja.notifyDataSetChanged();
                 adapterZaListuTrenutnihPitanja.notifyDataSetChanged();
@@ -177,5 +178,18 @@ public class DodajKvizAkt extends AppCompatActivity {
                 //Do nothing
            }
        });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if( requestCode == 777 ){
+            if( resultCode == RESULT_OK ){
+                Pitanje pitanje = (Pitanje) data.getExtras().get("novoPitanje");
+                alTrenutnaPitanja.add( alTrenutnaPitanja.size() - 1, pitanje );
+                adapterZaListuMogucihPitanja.notifyDataSetChanged();
+                adapterZaListuTrenutnihPitanja.notifyDataSetChanged();
+            }
+        }
     }
 }

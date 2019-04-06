@@ -173,7 +173,7 @@ public class KvizoviAkt extends AppCompatActivity {
 
         Kategorija apstraktnaKategorija = new Kategorija();
         apstraktnaKategorija.setNaziv("Svi");
-        apstraktnaKategorija.setId("69");
+        apstraktnaKategorija.setId("10");
         Kviz apstraktniKviz = new Kviz();
         apstraktniKviz.setNaziv("Dodaj kviz");
 
