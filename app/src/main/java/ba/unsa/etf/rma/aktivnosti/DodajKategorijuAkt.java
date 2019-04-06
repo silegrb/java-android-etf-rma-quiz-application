@@ -1,5 +1,6 @@
 package ba.unsa.etf.rma.aktivnosti;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -25,6 +26,7 @@ public class DodajKategorijuAkt extends AppCompatActivity implements IconDialog.
     private Button dodajKategoriju;
     private ArrayList<Kategorija> kategorije;
     private Icon[] selectedIcons;
+    //public boolean pritisnutnoSpasiKategoriju = false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -81,6 +83,19 @@ public class DodajKategorijuAkt extends AppCompatActivity implements IconDialog.
                         dodajKat = false;
                 if( !dodajKat )   {
                     etNaziv.setBackgroundColor( Color.parseColor("#ff0006") );
+                }
+                else{
+                    //pritisnutnoSpasiKategoriju = true;
+                    Kategorija k = new Kategorija();
+                    k.setNaziv( etNaziv.getText().toString() );
+                    etIkona.setEnabled(true);
+                    k.setId( etIkona.getText().toString() );
+                    etIkona.setEnabled(false);
+                    KvizoviAkt.kategorije.add( kategorije.size() - 1, k );
+                    Intent resIntent = new Intent();
+                    resIntent.putExtra("novaKategorija", k );
+                    setResult(RESULT_OK, resIntent);
+                    finish();
                 }
             }
         });

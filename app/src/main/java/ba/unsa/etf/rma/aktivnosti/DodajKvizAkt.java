@@ -169,7 +169,7 @@ public class DodajKvizAkt extends AppCompatActivity {
                if( parent.getItemAtPosition(position).toString().equals("Dodaj kategoriju") ){
                    Intent dodajKategorijuAkt = new Intent( DodajKvizAkt.this, DodajKategorijuAkt.class );
                    dodajKategorijuAkt.putExtra("sveKategorije", kategorije );
-                   DodajKvizAkt.this.startActivity( dodajKategorijuAkt );
+                   DodajKvizAkt.this.startActivityForResult( dodajKategorijuAkt, 69 );
                }
            }
 
@@ -189,6 +189,18 @@ public class DodajKvizAkt extends AppCompatActivity {
                 alTrenutnaPitanja.add( alTrenutnaPitanja.size() - 1, pitanje );
                 adapterZaListuMogucihPitanja.notifyDataSetChanged();
                 adapterZaListuTrenutnihPitanja.notifyDataSetChanged();
+            }
+        }
+        if( requestCode == 69 ){
+            if( resultCode == RESULT_OK ){
+                Kategorija k = (Kategorija) data.getExtras().get("novaKategorija");
+                kategorije.add( kategorije.size() - 1, k );
+                kategorijeSpinner.setSelection( kategorije.size() - 2 );
+                adapterZaSpinner.notifyDataSetChanged();
+            }
+            else{
+                kategorijeSpinner.setSelection( kategorije.size() - 2 );
+                adapterZaSpinner.notifyDataSetChanged();
             }
         }
     }

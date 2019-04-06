@@ -25,7 +25,7 @@ public class KvizoviAkt extends AppCompatActivity {
     Spinner spinnerKategorije;
     ArrayList<Kviz> kvizovi = new ArrayList<>();
     ArrayList<Kviz> prikazaniKvizovi = new ArrayList<>();
-    ArrayList<Kategorija> kategorije = new ArrayList<>();
+    public static ArrayList<Kategorija> kategorije = new ArrayList<>();
     ArrayAdapter<Kategorija> adapterZaSpinner;
     AdapterZaListuKvizova adapterZaListuKvizova;
     String spinnerOdabir;
@@ -42,7 +42,7 @@ public class KvizoviAkt extends AppCompatActivity {
         spinnerKategorije.setAdapter(adapterZaSpinner);
         adapterZaListuKvizova = new AdapterZaListuKvizova(this,prikazaniKvizovi);
         listaKvizova.setAdapter(adapterZaListuKvizova);
-        napuniPodacima();
+        inicijalizirajApp();
         spinnerKategorije.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -190,6 +190,19 @@ public class KvizoviAkt extends AppCompatActivity {
         prikazaniKvizovi.add( kviz2 );
         prikazaniKvizovi.add( apstraktniKviz );
         adapterZaListuKvizova.notifyDataSetChanged();
+    }
+
+    private void inicijalizirajApp(){
+        Kviz dodajKviz = new Kviz();
+        dodajKviz.setNaziv("Dodaj kviz");
+        kvizovi.add( dodajKviz );
+        prikazaniKvizovi.add( dodajKviz );
+        Kategorija kategorijaSvi = new Kategorija();
+        kategorijaSvi.setNaziv("Svi");
+        kategorijaSvi.setId("10");
+        kategorije.add( kategorijaSvi );
+        adapterZaListuKvizova.notifyDataSetChanged();
+        adapterZaSpinner.notifyDataSetChanged();
     }
 
     @Override
