@@ -199,7 +199,7 @@ public class KvizoviAkt extends AppCompatActivity {
         prikazaniKvizovi.add( dodajKviz );
         Kategorija kategorijaSvi = new Kategorija();
         kategorijaSvi.setNaziv("Svi");
-        kategorijaSvi.setId("10");
+        kategorijaSvi.setId("5");
         kategorije.add( kategorijaSvi );
         adapterZaListuKvizova.notifyDataSetChanged();
         adapterZaSpinner.notifyDataSetChanged();
@@ -209,13 +209,12 @@ public class KvizoviAkt extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if( requestCode == pozicijaKviza ){
-            System.out.println(pozicijaKviza);
             if( resultCode == RESULT_OK ){
+                spinnerKategorije.setSelection(0);
                 Kviz kvizZaDodati = (Kviz)data.getExtras().get("noviKviz");
                 boolean dodajNovi = (boolean)data.getExtras().get("dodajNoviKviz");
                 if( dodajNovi ) {
                     kvizovi.add(kvizovi.size() - 1, kvizZaDodati);
-                    System.out.println("DA");
                 }
                 else {
                     for (int i = 0; i < kvizovi.size(); i++)
@@ -235,6 +234,11 @@ public class KvizoviAkt extends AppCompatActivity {
                 k.setNaziv("Dodaj kviz");
                 prikazaniKvizovi.add( k );
                 adapterZaListuKvizova.notifyDataSetChanged();
+                adapterZaSpinner.notifyDataSetChanged();
+            }
+            else{
+                spinnerKategorije.setSelection(0);
+                adapterZaSpinner.notifyDataSetChanged();
             }
         }
     }

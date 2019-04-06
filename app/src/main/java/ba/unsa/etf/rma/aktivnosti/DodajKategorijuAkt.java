@@ -9,6 +9,7 @@ import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.maltaisn.icondialog.Icon;
 import com.maltaisn.icondialog.IconDialog;
@@ -74,23 +75,39 @@ public class DodajKategorijuAkt extends AppCompatActivity implements IconDialog.
             @Override
             public void onClick(View v) {
                 boolean dodajKat = true;
-
-                if( etNaziv.getText().toString().equals("") )
+                String s1 = "", s2 = "";
+                if( etNaziv.getText().toString().equals("") ) {
                     dodajKat = false;
+                    s1 += "Unesite kategoriju!";
+                }
 
                 for( Kategorija k: kategorije )
-                    if( k.getNaziv().equals( etNaziv.getText().toString() ) )
+                    if( k.getNaziv().equals( etNaziv.getText().toString() ) ) {
                         dodajKat = false;
+                        s2 += "Kategorija vec postoji!";
+                    }
                 if( !dodajKat )   {
+                    String konacni = "";
+                    if( !s1.equals("") ) konacni += s1;
+                    int trenutnaDuzina = konacni.length();
+                    if( !konacni.equals("") ) konacni += "\n";
+                    if( !s2.equals("") ) konacni += s2;
+                    int novaDuzina = konacni.length();
+                    if( trenutnaDuzina + 1 == novaDuzina ) konacni = s1;
                     etNaziv.setBackgroundColor( Color.parseColor("#ff0006") );
+                    Toast.makeText( v.getContext(), konacni, Toast.LENGTH_SHORT).show();
+
                 }
                 else{
                     //pritisnutnoSpasiKategoriju = true;
                     Kategorija k = new Kategorija();
                     k.setNaziv( etNaziv.getText().toString() );
                     etIkona.setEnabled(true);
-                    k.setId( etIkona.getText().toString() );
+                    String ikona = etIkona.getText().toString();
                     etIkona.setEnabled(false);
+                    if( ikona.equals("") ) ikona = "958";
+                    k.setId( ikona );
+
                     KvizoviAkt.kategorije.add( kategorije.size() - 1, k );
                     Intent resIntent = new Intent();
                     resIntent.putExtra("novaKategorija", k );
