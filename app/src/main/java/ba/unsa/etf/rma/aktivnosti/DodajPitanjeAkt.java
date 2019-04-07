@@ -62,6 +62,7 @@ public class DodajPitanjeAkt extends AppCompatActivity {
         tempPitanja = (ArrayList<Pitanje>)getIntent().getSerializableExtra("mogucaPitanja");
         trenutnoPrisutnaPitanja.addAll( tempPitanja );
         tempPitanja.clear();
+        System.out.println( trenutnoPrisutnaPitanja.size() );
 
 
         //Pritiskom na dugme vrsi se dodavanje tacnog odgovora pitanja nakon cega
@@ -142,15 +143,16 @@ public class DodajPitanjeAkt extends AppCompatActivity {
                     nemaTacnogOdgovora = true;
                     pokreni = false;
                 }
+
+                for( Pitanje p: trenutnoPrisutnaPitanja )
+                    if( p.getNaziv().equals( etNaziv.getText().toString() ) ) {
+                        pitanjeVecPostoji = true;
+                        pokreni = false;
+                        etNaziv.setBackgroundColor(Color.parseColor("#ff0006"));
+                    }
+
                 if( !trenutniKviz.getNaziv().equals("Dodaj kviz") ) {
                     for (Pitanje p : trenutniKviz.getPitanja())
-                        if( p.getNaziv().equals( etNaziv.getText().toString() ) ) {
-                            pitanjeVecPostoji = true;
-                            pokreni = false;
-                            etNaziv.setBackgroundColor(Color.parseColor("#ff0006"));
-                        }
-
-                    for( Pitanje p: trenutnoPrisutnaPitanja )
                         if( p.getNaziv().equals( etNaziv.getText().toString() ) ) {
                             pitanjeVecPostoji = true;
                             pokreni = false;
