@@ -52,7 +52,8 @@
         android:textColor="@color/plavaBoja"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
-        android:layout_gravity="center"/>
+        android:layout_gravity="center"
+        android:textAllCaps="false"/>
 
     <Button
         android:id="@+id/btnDodajTacan"
@@ -62,7 +63,8 @@
         android:textColor="@color/zelenaBoja"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
-        android:layout_gravity="center"/>
+        android:layout_gravity="center"
+        android:textAllCaps="false"/>
 
     <Button
         android:id="@+id/btnDodajPitanje"
@@ -74,5 +76,6 @@
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
         android:layout_marginTop="30dp"
-        android:layout_gravity="center"/>
+        android:layout_gravity="center"
+        android:textAllCaps="false"/>
 </LinearLayout>
