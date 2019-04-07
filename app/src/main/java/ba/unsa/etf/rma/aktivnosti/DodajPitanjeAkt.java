@@ -34,6 +34,7 @@ public class DodajPitanjeAkt extends AppCompatActivity {
     public static boolean tacanDodan = false;
     public static String tacanOdgovor = null;
     private Kviz trenutniKviz;
+    private ArrayList<Pitanje> trenutnoPrisutnaPitanja = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,8 +53,16 @@ public class DodajPitanjeAkt extends AppCompatActivity {
         adapterZaListuOdgovora = new AdapterZaListuOdgovora(this, alOdgovori);
         lvOdgovori.setAdapter(adapterZaListuOdgovora);
 
+        ArrayList<Pitanje> tempPitanja = new ArrayList<>();
         //Kupljenje podataka iz intenta.
         trenutniKviz = (Kviz)getIntent().getSerializableExtra("trenutniKviz");
+        tempPitanja = (ArrayList<Pitanje>)getIntent().getSerializableExtra("trenutnaPitanja");
+        trenutnoPrisutnaPitanja.addAll( tempPitanja );
+        tempPitanja.clear();
+        tempPitanja = (ArrayList<Pitanje>)getIntent().getSerializableExtra("mogucaPitanja");
+        trenutnoPrisutnaPitanja.addAll( tempPitanja );
+        tempPitanja.clear();
+
 
         //Pritiskom na dugme vrsi se dodavanje tacnog odgovora pitanja nakon cega
         //ne mozemo dodati jos jedan tacan odgovor, osim ako ga ne uklonimo iz liste odgovora (element
@@ -140,6 +149,14 @@ public class DodajPitanjeAkt extends AppCompatActivity {
                             pokreni = false;
                             etNaziv.setBackgroundColor(Color.parseColor("#ff0006"));
                         }
+
+                    for( Pitanje p: trenutnoPrisutnaPitanja )
+                        if( p.getNaziv().equals( etNaziv.getText().toString() ) ) {
+                            pitanjeVecPostoji = true;
+                            pokreni = false;
+                            etNaziv.setBackgroundColor(Color.parseColor("#ff0006"));
+                        }
+
                 }
                 if (!pokreni) {
                     String s = "";

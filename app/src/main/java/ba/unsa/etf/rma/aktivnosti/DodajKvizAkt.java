@@ -88,7 +88,7 @@ public class DodajKvizAkt extends AppCompatActivity {
         }
 
         //Dodajmo u listu trenutnih pitanja i apstraktni element pomocu kojeg mozemo dodati i novo pitanje.
-        Pitanje dodajPitanje = new Pitanje();
+        final Pitanje dodajPitanje = new Pitanje();
         dodajPitanje.setNaziv("Dodaj pitanje");
         alTrenutnaPitanja.add( dodajPitanje );
         adapterZaListuTrenutnihPitanja.notifyDataSetChanged();
@@ -105,6 +105,8 @@ public class DodajKvizAkt extends AppCompatActivity {
                 else{
                     Intent dodajPitanjeAkt = new Intent( DodajKvizAkt.this, DodajPitanjeAkt.class );
                     dodajPitanjeAkt.putExtra("trenutniKviz", trenutniKviz);
+                    dodajPitanjeAkt.putExtra("trenutnaPitanja", alTrenutnaPitanja);
+                    dodajPitanjeAkt.putExtra("mogucaPitanja", alMogucaPitanja);
                     DodajKvizAkt.this.startActivityForResult( dodajPitanjeAkt, 777 );
                 }
                 adapterZaListuMogucihPitanja.notifyDataSetChanged();
