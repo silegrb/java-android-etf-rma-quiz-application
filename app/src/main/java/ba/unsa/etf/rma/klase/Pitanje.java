@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 public class Pitanje implements Serializable {
+
     private String naziv;
     private String tekstPitanja;
     private ArrayList<String> odgovori;

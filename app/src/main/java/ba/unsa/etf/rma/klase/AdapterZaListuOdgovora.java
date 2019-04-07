@@ -17,17 +17,17 @@ import ba.unsa.etf.rma.R;
 import ba.unsa.etf.rma.aktivnosti.DodajPitanjeAkt;
 
 public class AdapterZaListuOdgovora extends BaseAdapter implements View.OnClickListener {
-    Context context;
-    ArrayList<String> data;
+
+    private Context context;
+    private ArrayList<String> data;
     private static LayoutInflater inflater = null;
-    ImageView ikonaClanaListe;
+    private ImageView ikonaClanaListe;
 
     public AdapterZaListuOdgovora(Context context, ArrayList<String> data) {
         // TODO Auto-generated constructor stub
         this.context = context;
         this.data = data;
-        inflater = (LayoutInflater) context
-                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
     @Override
@@ -67,22 +67,17 @@ public class AdapterZaListuOdgovora extends BaseAdapter implements View.OnClickL
                 if(DodajPitanjeAkt.tacanOdgovor != null) {
                     if (data.get(position).equals(DodajPitanjeAkt.tacanOdgovor))
                         text.setTextColor(Color.GREEN);
-                    else{
+                    else
                         text.setTextColor(Color.BLACK);
-                    }
                 }
-
                 notifyDataSetChanged();
             }
         });
-
-
         return vi;
     }
 
-
     @Override
     public void onClick(View v) {
-        //mrs
+        //Do nothing
     }
 }

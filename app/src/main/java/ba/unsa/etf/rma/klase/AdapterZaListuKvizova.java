@@ -15,17 +15,17 @@ import java.util.ArrayList;
 import ba.unsa.etf.rma.R;
 
 public class AdapterZaListuKvizova extends BaseAdapter implements View.OnClickListener {
-    Context context;
-    ArrayList<Kviz> data;
+
+    private Context context;
+    private ArrayList<Kviz> data;
     private static LayoutInflater inflater = null;
-    ImageView ikonaClanaListe;
+    private ImageView ikonaClanaListe;
 
     public AdapterZaListuKvizova(Context context, ArrayList<Kviz> data) {
         // TODO Auto-generated constructor stub
         this.context = context;
         this.data = data;
-        inflater = (LayoutInflater) context
-                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
     @Override
@@ -68,14 +68,11 @@ public class AdapterZaListuKvizova extends BaseAdapter implements View.OnClickLi
                     notifyDataSetChanged();
             }
         });
-
-
         return vi;
     }
 
-
     @Override
     public void onClick(View v) {
-        //mrs
+        //Do nothing
     }
 }

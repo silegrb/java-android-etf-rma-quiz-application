@@ -3,6 +3,7 @@ package ba.unsa.etf.rma.klase;
 import java.io.Serializable;
 
 public class Kategorija implements Serializable {
+
     private String naziv;
     private String id;
 
@@ -26,4 +27,5 @@ public class Kategorija implements Serializable {
     public String toString() {
         return naziv;
     }
+
 }

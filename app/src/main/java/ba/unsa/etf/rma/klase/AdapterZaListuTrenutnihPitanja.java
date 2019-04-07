@@ -15,17 +15,17 @@ import java.util.ArrayList;
 import ba.unsa.etf.rma.R;
 
 public class AdapterZaListuTrenutnihPitanja extends BaseAdapter implements View.OnClickListener {
-    Context context;
-    ArrayList<Pitanje> data;
+
+    private Context context;
+    private ArrayList<Pitanje> data;
     private static LayoutInflater inflater = null;
-    ImageView ikonaClanaListe;
+    private ImageView ikonaClanaListe;
 
     public AdapterZaListuTrenutnihPitanja(Context context, ArrayList<Pitanje> data) {
         // TODO Auto-generated constructor stub
         this.context = context;
         this.data = data;
-        inflater = (LayoutInflater) context
-                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
     @Override
@@ -64,17 +64,13 @@ public class AdapterZaListuTrenutnihPitanja extends BaseAdapter implements View.
                     ikonaClanaListe.setImageDrawable( finalVi.getResources().getDrawable( R.drawable.blue_dot ) );
                 else
                     ikonaClanaListe.setImageDrawable( finalVi.getResources().getDrawable( R.drawable.add_icon ) );
-
             }
         });
-
-
         return vi;
     }
 
-
     @Override
     public void onClick(View v) {
-        //mrs
+        //Do nothing
     }
 }

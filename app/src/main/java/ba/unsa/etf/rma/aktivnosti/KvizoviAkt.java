@@ -21,67 +21,88 @@ import ba.unsa.etf.rma.klase.Pitanje;
 
 public class KvizoviAkt extends AppCompatActivity {
 
-    ListView listaKvizova;
-    Spinner spinnerKategorije;
-    ArrayList<Kviz> kvizovi = new ArrayList<>();
-    ArrayList<Kviz> prikazaniKvizovi = new ArrayList<>();
+    private ListView listaKvizova;
+    private Spinner spinnerKategorije;
+
+    //Lista 'kvizovi' se koristi za cuvanje svih postojecih kvizova,
+    //dok se lista 'prikazaniKvizovi' koristi za prikazivanje svih/filtriranih kvizova.
+    private ArrayList<Kviz> kvizovi = new ArrayList<>();
+    private ArrayList<Kviz> prikazaniKvizovi = new ArrayList<>();
+
     public static ArrayList<Kategorija> kategorije = new ArrayList<>();
-    ArrayAdapter<Kategorija> adapterZaSpinner;
-    AdapterZaListuKvizova adapterZaListuKvizova;
+    private ArrayAdapter<Kategorija> adapterZaSpinner;
+    private AdapterZaListuKvizova adapterZaListuKvizova;
     String spinnerOdabir;
-    static int pozicijaKviza;
+    private static int pozicijaKviza;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //Potrebno je dodijeliti sve vrijednosti pomocu id-a.
         listaKvizova = (ListView) findViewById(R.id.lvKvizovi);
         spinnerKategorije = (Spinner) findViewById(R.id.spPostojeceKategorije);
+
+        //Postavljanje adaptera.
         adapterZaSpinner = new ArrayAdapter<Kategorija>(this, android.R.layout.simple_list_item_1, kategorije);
         spinnerKategorije.setAdapter(adapterZaSpinner);
         adapterZaListuKvizova = new AdapterZaListuKvizova(this,prikazaniKvizovi);
         listaKvizova.setAdapter(adapterZaListuKvizova);
+
+        //Aplikacija se na pocetku ne puni nikakvim podacima, osim onim potrebnim za sam rad aplikacije.
         inicijalizirajApp();
+
+        //Slusac koji vrsi filtriranje listView-a svih kvizova na osnovu odabrane kategorije
+        //u spinneru, prikazivanje Toast poruke za korisnika, npr. "Odabrano: Svi".
         spinnerKategorije.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 adapterZaSpinner.notifyDataSetChanged();
+
+                //Stvaranje string vrijednosti za Toast poruku.
                 String text = parent.getItemAtPosition( position ).toString();
                 spinnerOdabir = text;
                 Toast.makeText( parent.getContext(), "Odabrano: " + text, Toast.LENGTH_SHORT ).show();
+
+                //Odabaremo li element (koji je uvijek prisutan) u spinneru kategorija, prikazat ce se
+                //svi kreirani kvizovi unutar aplikacije.
                 if( text.equals("Svi") ){
                     prikazaniKvizovi.clear();
                     for( int i = 0; i < kvizovi.size(); i++ )
-                    {
                         prikazaniKvizovi.add( kvizovi.get(i) );
-                    }
-                    adapterZaListuKvizova.notifyDataSetChanged();
                 }
+                //Odaberemo li bilo koji drugi element, prikazat ce se svi kvizovi koji pripadaju kategoriji
+                //odabranoj u spinneru kategorija.
                 else{
                     prikazaniKvizovi.clear();
                     for( int i = 0; i < kvizovi.size(); i++ )
-                        if( !kvizovi.get(i).getNaziv().equals("Dodaj kviz") && kvizovi.get(i).getKategorija().getNaziv().equals(text) ){
+                        if( !kvizovi.get(i).getNaziv().equals("Dodaj kviz") && kvizovi.get(i).getKategorija().getNaziv().equals(text) )
                             prikazaniKvizovi.add( kvizovi.get(i) );
-                        }
-                    Kviz k = new Kviz();
-                        k.setNaziv("Dodaj kviz");
-                     prikazaniKvizovi.add( k );
-                    adapterZaListuKvizova.notifyDataSetChanged();
+
+                    //Filtrirali smo sve potrebne kvizove, potrebno je i dodati element "Dodaj kviz"
+                    //pomocu kojeg dodajemo novi kviz.
+
                 }
+                Kviz k = new Kviz();
+                k.setNaziv("Dodaj kviz");
+                prikazaniKvizovi.add( k );
+                adapterZaListuKvizova.notifyDataSetChanged();
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-                //Nista ne radi
+                //Ukoliko ne selektujemo nista, nista se nece desiti.
             }
         });
 
+        //Ukoliko kliknemo na neki od elemenata kviza, otvara se nova aktivnost za kreiranje novog kviza
+        //ukoliko je odabran element "Dodaj kviz", odnosno za uredjivanje ukoliko je odabran bilo koji drugi element.
         listaKvizova.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent dodajKvizAkt = new Intent( KvizoviAkt.this, DodajKvizAkt.class );
-                //Pravimo dodavanje i azuriranje
                 dodajKvizAkt.putExtra( "sviKvizovi", kvizovi );
                 dodajKvizAkt.putExtra("trenutniKviz", (Kviz)parent.getItemAtPosition(position) );
                 dodajKvizAkt.putExtra( "sveKategorije", kategorije );
@@ -92,6 +113,10 @@ public class KvizoviAkt extends AppCompatActivity {
     }
 
     private void napuniPodacima() {
+        //FUNKCIJU MOZEMO KORISTITI UKOLIKO ZELIMO NAPUNITI APLIKACIJU RANDOM PODACIMA ODMAH NAKON
+        //POKRETANJA APLIKACIJE I TO TAKO STO LINIJU KODA 55 'inicijalizirajApp();' ZAMIJENIMO SA
+        // 'napuniPodacima();'.
+
         //Kreirajmo kategoriju
         Kategorija k1 = new Kategorija();
         k1.setNaziv("Lagana");
@@ -179,7 +204,7 @@ public class KvizoviAkt extends AppCompatActivity {
 
         kvizovi.add(kviz1);
         kvizovi.add(kviz2);
-        kvizovi.add(apstraktniKviz);
+       // kvizovi.add(apstraktniKviz);
 
         kategorije.add(apstraktnaKategorija);
         kategorije.add(k1);
@@ -193,10 +218,7 @@ public class KvizoviAkt extends AppCompatActivity {
     }
 
     private void inicijalizirajApp(){
-        Kviz dodajKviz = new Kviz();
-        dodajKviz.setNaziv("Dodaj kviz");
-        kvizovi.add( dodajKviz );
-        prikazaniKvizovi.add( dodajKviz );
+        //Podaci za inicijalizaciju aplikacije.
         Kategorija kategorijaSvi = new Kategorija();
         kategorijaSvi.setNaziv("Svi");
         kategorijaSvi.setId("5");
@@ -214,13 +236,14 @@ public class KvizoviAkt extends AppCompatActivity {
                 Kviz kvizZaDodati = (Kviz)data.getExtras().get("noviKviz");
                 boolean dodajNovi = (boolean)data.getExtras().get("dodajNoviKviz");
                 if( dodajNovi ) {
-                    kvizovi.add(kvizovi.size() - 1, kvizZaDodati);
+                    kvizovi.add(kvizovi.size(), kvizZaDodati);
                 }
                 else {
                     for (int i = 0; i < kvizovi.size(); i++)
                         if (i == pozicijaKviza) {
                             kvizovi.get(i).setNaziv(kvizZaDodati.getNaziv());
                             kvizovi.get(i).setKategorija(kvizZaDodati.getKategorija());
+                            System.out.println( kvizZaDodati.getKategorija().getNaziv() );
                             kvizovi.get(i).setPitanja(kvizZaDodati.getPitanja());
                         }
                 }

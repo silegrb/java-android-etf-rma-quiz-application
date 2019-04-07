@@ -22,33 +22,42 @@ import ba.unsa.etf.rma.klase.Pitanje;
 
 public class DodajPitanjeAkt extends AppCompatActivity {
 
-    Button dodajTacan;
-    Button dodajOdgovor;
-    Button dodajPitanje;
-    ListView lvOdgovori;
-    EditText etNaziv;
-    EditText etOdgovor;
-    ArrayList<String> alOdgovori = new ArrayList<>();
-    AdapterZaListuOdgovora adapterZaListuOdgovora;
-    Pitanje trenutnoPitanje = new Pitanje();
+    private Button dodajTacan;
+    private Button dodajOdgovor;
+    private Button dodajPitanje;
+    private ListView lvOdgovori;
+    private EditText etNaziv;
+    private EditText etOdgovor;
+    private ArrayList<String> alOdgovori = new ArrayList<>();
+    private AdapterZaListuOdgovora adapterZaListuOdgovora;
+    private Pitanje trenutnoPitanje = new Pitanje();
     public static boolean tacanDodan = false;
     public static String tacanOdgovor = null;
-    Kviz trenutniKviz;
+    private Kviz trenutniKviz;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dodaj_pitanje_akt);
 
+        //Potrebno je dodijeliti sve vrijednosti pomocu id-a.
         dodajTacan = (Button) findViewById(R.id.btnDodajTacan);
         dodajOdgovor = (Button) findViewById(R.id.btnDodajOdgovor);
         dodajPitanje = (Button) findViewById(R.id.btnDodajPitanje);
         lvOdgovori = (ListView) findViewById(R.id.lvOdgovori);
         etNaziv = (EditText) findViewById(R.id.etNaziv);
         etOdgovor = (EditText) findViewById(R.id.etOdgovor);
+
+        //Postavljanje adaptera.
         adapterZaListuOdgovora = new AdapterZaListuOdgovora(this, alOdgovori);
         lvOdgovori.setAdapter(adapterZaListuOdgovora);
+
+        //Kupljenje podataka iz intenta.
         trenutniKviz = (Kviz)getIntent().getSerializableExtra("trenutniKviz");
+
+        //Pritiskom na dugme vrsi se dodavanje tacnog odgovora pitanja nakon cega
+        //ne mozemo dodati jos jedan tacan odgovor, osim ako ga ne uklonimo iz liste odgovora (element
+        //liste tacnog odgovora se boji u zeleno).
         dodajTacan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -73,16 +82,15 @@ public class DodajPitanjeAkt extends AppCompatActivity {
             }
         });
 
+        //Dugme za dodavanje netacnog odgovora, validira podatke uz to.
         dodajOdgovor.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 if (!etOdgovor.getText().toString().equals("")) {
                     boolean vecDodano = false;
-                    for (String odg : alOdgovori) {
+                    for (String odg : alOdgovori)
                         if (odg.equals(etOdgovor.getText().toString()))
                             vecDodano = true;
-                    }
                     if (!vecDodano) {
                         alOdgovori.add(etOdgovor.getText().toString());
                         trenutnoPitanje.setOdgovori(alOdgovori);
@@ -93,6 +101,7 @@ public class DodajPitanjeAkt extends AppCompatActivity {
             }
         });
 
+        //Pritiskom na jedan od elemenata listView-a koji sadrzi odgovore, odabrani element se uklanja iz liste.
         lvOdgovori.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -106,6 +115,7 @@ public class DodajPitanjeAkt extends AppCompatActivity {
             }
         });
 
+        //Dugme vrsi validaciju i dodaje pitanje u kviz koji se dodaje/azurira u prethodnoj aktivnosti.
         dodajPitanje.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -159,22 +169,25 @@ public class DodajPitanjeAkt extends AppCompatActivity {
             }
         });
 
+        //Slusac editText elementa etNaziv koji boju pozadine mijenja u default boju androida ukoliko editText
+        //nije prazan. Ovaj slusac ne mijenja pozadinsku boju editText elementa u crveno ako je prazan, nego dugme dodajPitanje
+        //tokom validacije podataka.
         etNaziv.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
+                //Do nothing
             }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (!etNaziv.getText().toString().equals("")) {
+                if (!etNaziv.getText().toString().equals(""))
                     etNaziv.setBackgroundColor(Color.parseColor("#fafafa"));
-                }
+
             }
 
             @Override
             public void afterTextChanged(Editable s) {
-
+                //Do nothing
             }
         });
     }
