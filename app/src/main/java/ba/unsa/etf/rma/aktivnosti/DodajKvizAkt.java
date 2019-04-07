@@ -53,6 +53,11 @@ public class DodajKvizAkt extends AppCompatActivity {
         lvMogucihPitanja = (ListView) findViewById( R.id.lvMogucaPitanja );
         lvTrenutnihPitanja = (ListView) findViewById( R.id.lvDodanaPitanja );
 
+        //Kupljenje podataka iz intenta.
+        trenutniKviz = (Kviz)getIntent().getSerializableExtra("trenutniKviz");
+        kategorije = (ArrayList<Kategorija>)getIntent().getSerializableExtra("sveKategorije");
+        kvizovi = (ArrayList<Kviz>)getIntent().getSerializableExtra("sviKvizovi");
+
         //Postavljanje adaptera.
         adapterZaSpinner = new ArrayAdapter<Kategorija>(this, android.R.layout.simple_list_item_1, kategorije);
         kategorijeSpinner.setAdapter( adapterZaSpinner );
@@ -60,11 +65,6 @@ public class DodajKvizAkt extends AppCompatActivity {
         lvTrenutnihPitanja.setAdapter( adapterZaListuTrenutnihPitanja );
         adapterZaListuMogucihPitanja = new AdapterZaListuMogucihPitanja( this, alMogucaPitanja );
         lvMogucihPitanja.setAdapter( adapterZaListuMogucihPitanja );
-
-        //Kupljenje podataka iz intenta.
-        trenutniKviz = (Kviz)getIntent().getSerializableExtra("trenutniKviz");
-        kategorije = (ArrayList<Kategorija>)getIntent().getSerializableExtra("sveKategorije");
-        kvizovi = (ArrayList<Kviz>)getIntent().getSerializableExtra("sviKvizovi");
 
         //Dodavanje imaginarne kategorije, pomocu kojeg mozemo dodati novu kategoriju.
         final Kategorija kategorijaZaDodavanje = new Kategorija();

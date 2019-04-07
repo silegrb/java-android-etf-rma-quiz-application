@@ -29,9 +29,10 @@
     <ListView
         android:id="@+id/lvOdgovori"
         android:layout_width="match_parent"
-        android:layout_height="230dp"
+        android:layout_height="wrap_content"
         android:layout_marginLeft="20dp"
-        android:layout_marginRight="20dp" />
+        android:layout_marginRight="20dp"
+        android:layout_weight="1"/>
 
     <EditText
         android:id="@+id/etOdgovor"
@@ -44,13 +45,14 @@
         android:inputType="textPersonName" />
 
     <Button
-    android:id="@+id/btnDodajOdgovor"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:text="Dodaj"
-    android:textColor="@color/plavaBoja"
-    android:layout_marginLeft="20dp"
-    android:layout_marginRight="20dp"/>
+        android:id="@+id/btnDodajOdgovor"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Dodaj"
+        android:textColor="@color/plavaBoja"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_gravity="center"/>
 
     <Button
         android:id="@+id/btnDodajTacan"
@@ -59,7 +61,8 @@
         android:text="Dodaj tacan"
         android:textColor="@color/zelenaBoja"
         android:layout_marginLeft="20dp"
-        android:layout_marginRight="20dp"/>
+        android:layout_marginRight="20dp"
+        android:layout_gravity="center"/>
 
     <Button
         android:id="@+id/btnDodajPitanje"
@@ -70,5 +73,6 @@
         android:background="@color/plavaBoja"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
-        android:layout_marginTop="30dp"/>
+        android:layout_marginTop="30dp"
+        android:layout_gravity="center"/>
 </LinearLayout>
