@@ -14,7 +14,8 @@
         android:ems="10"
         android:inputType="textPersonName"
         android:layout_marginLeft="20dp"
-        android:layout_marginRight="20dp" />
+        android:layout_marginRight="20dp"
+        android:hint="Naziv pitanja"/>
 
     <TextView
         android:id="@+id/textView2"
@@ -42,7 +43,8 @@
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
         android:ems="10"
-        android:inputType="textPersonName" />
+        android:inputType="textPersonName"
+        android:hint="Upisite odgovor"/>
 
     <Button
         android:id="@+id/btnDodajOdgovor"

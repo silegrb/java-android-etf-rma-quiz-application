@@ -20,7 +20,8 @@
         android:ems="10"
         android:inputType="textPersonName"
         android:layout_marginLeft="20dp"
-        android:layout_marginRight="20dp"/>
+        android:layout_marginRight="20dp"
+        android:hint="Naziv kviza"/>
 
     <TextView
         android:id="@+id/textView"
