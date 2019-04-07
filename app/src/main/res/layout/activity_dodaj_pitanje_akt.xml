@@ -76,7 +76,7 @@
 
     <Button
         android:id="@+id/btnDodajPitanje"
-        android:layout_width="match_parent"
+        android:layout_width="250dp"
         android:layout_height="wrap_content"
         android:text="Spasi pitanje"
         android:textColor="@color/bijelaBoja"
@@ -85,5 +85,6 @@
         android:layout_marginRight="20dp"
         android:layout_marginTop="30dp"
         android:layout_gravity="center"
-        android:textAllCaps="false"/>
+        android:textAllCaps="false"
+        android:layout_marginBottom="10dp"/>
 </LinearLayout>
