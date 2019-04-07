@@ -6,7 +6,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.maltaisn.icondialog.IconHelper;
@@ -21,7 +20,6 @@ public class AdapterZaListuOdgovora extends BaseAdapter implements View.OnClickL
     private Context context;
     private ArrayList<String> data;
     private static LayoutInflater inflater = null;
-    private ImageView ikonaClanaListe;
 
     public AdapterZaListuOdgovora(Context context, ArrayList<String> data) {
         // TODO Auto-generated constructor stub
@@ -53,22 +51,20 @@ public class AdapterZaListuOdgovora extends BaseAdapter implements View.OnClickL
         // TODO Auto-generated method stub
         View vi = convertView;
         if (vi == null)
-            vi = inflater.inflate(R.layout.element_liste_kvizova, null);
+            vi = inflater.inflate(R.layout.element_liste_odgovora, null);
         final TextView text = vi.findViewById(R.id.Itemname);
-        ikonaClanaListe = vi.findViewById( R.id.icon );
         text.setText( data.get(position) );
         final IconHelper iconHelper = IconHelper.getInstance(vi.getContext());
         final View finalVi = vi;
         iconHelper.addLoadCallback(new IconHelper.LoadCallback() {
             @Override
             public void onDataLoaded() {
-                text.setTextColor(Color.BLACK);
-                ikonaClanaListe.setImageDrawable( finalVi.getResources().getDrawable( R.drawable.blue_dot ) );
+                text.setBackgroundColor(Color.parseColor("#fafafa"));
                 if(DodajPitanjeAkt.tacanOdgovor != null) {
                     if (data.get(position).equals(DodajPitanjeAkt.tacanOdgovor))
-                        text.setTextColor(Color.GREEN);
+                        text.setBackgroundColor(Color.parseColor("#94b233"));
                     else
-                        text.setTextColor(Color.BLACK);
+                        text.setBackgroundColor(Color.parseColor("#fafafa"));
                 }
                 notifyDataSetChanged();
             }

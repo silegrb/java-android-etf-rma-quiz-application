@@ -27,39 +27,52 @@ import ba.unsa.etf.rma.klase.Pitanje;
 
 public class DodajKvizAkt extends AppCompatActivity {
 
-    Button btnDodajKviz;
-    EditText etNaziv;
-    ArrayList<Kategorija> kategorije;
-    ArrayList<Kviz> kvizovi;
-    Kviz trenutniKviz;
-    ArrayAdapter<Kategorija> adapterZaSpinner;
-    Spinner kategorijeSpinner;
-    ListView lvTrenutnihPitanja;
-    ListView lvMogucihPitanja;
-    ArrayList<Pitanje>  alTrenutnaPitanja = new ArrayList<>();
-    ArrayList<Pitanje>  alMogucaPitanja = new ArrayList<>();
-    AdapterZaListuTrenutnihPitanja adapterZaListuTrenutnihPitanja;
-    AdapterZaListuMogucihPitanja adapterZaListuMogucihPitanja;
+    private Button btnDodajKviz;
+    private EditText etNaziv;
+    private ArrayList<Kategorija> kategorije;
+    private ArrayList<Kviz> kvizovi;
+    private Kviz trenutniKviz;
+    private ArrayAdapter<Kategorija> adapterZaSpinner;
+    private Spinner kategorijeSpinner;
+    private ListView lvTrenutnihPitanja;
+    private ListView lvMogucihPitanja;
+    private ArrayList<Pitanje>  alTrenutnaPitanja = new ArrayList<>();
+    private ArrayList<Pitanje>  alMogucaPitanja = new ArrayList<>();
+    private AdapterZaListuTrenutnihPitanja adapterZaListuTrenutnihPitanja;
+    private AdapterZaListuMogucihPitanja adapterZaListuMogucihPitanja;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dodaj_kviz_akt);
 
+        //Dodajmo sve vrijednosti koristeci id.
         etNaziv = ( EditText ) findViewById( R.id.etNaziv );
         btnDodajKviz = (Button) findViewById( R.id.btnDodajKviz );
         kategorijeSpinner = (Spinner)findViewById(R.id.spKategorije );
         lvMogucihPitanja = (ListView) findViewById( R.id.lvMogucaPitanja );
         lvTrenutnihPitanja = (ListView) findViewById( R.id.lvDodanaPitanja );
 
+        //Postavljanje adaptera.
+        adapterZaSpinner = new ArrayAdapter<Kategorija>(this, android.R.layout.simple_list_item_1, kategorije);
+        kategorijeSpinner.setAdapter( adapterZaSpinner );
+        adapterZaListuTrenutnihPitanja = new AdapterZaListuTrenutnihPitanja( this, alTrenutnaPitanja );
+        lvTrenutnihPitanja.setAdapter( adapterZaListuTrenutnihPitanja );
+        adapterZaListuMogucihPitanja = new AdapterZaListuMogucihPitanja( this, alMogucaPitanja );
+        lvMogucihPitanja.setAdapter( adapterZaListuMogucihPitanja );
+
+        //Kupljenje podataka iz intenta.
+        trenutniKviz = (Kviz)getIntent().getSerializableExtra("trenutniKviz");
         kategorije = (ArrayList<Kategorija>)getIntent().getSerializableExtra("sveKategorije");
         kvizovi = (ArrayList<Kviz>)getIntent().getSerializableExtra("sviKvizovi");
-        trenutniKviz = (Kviz)getIntent().getSerializableExtra("trenutniKviz");
+
+        //Dodavanje imaginarne kategorije, pomocu kojeg mozemo dodati novu kategoriju.
         final Kategorija kategorijaZaDodavanje = new Kategorija();
         kategorijaZaDodavanje.setNaziv("Dodaj kategoriju");
         kategorije.add( kategorijaZaDodavanje );
-        adapterZaSpinner = new ArrayAdapter<Kategorija>(this, android.R.layout.simple_list_item_1, kategorije);
-        kategorijeSpinner.setAdapter( adapterZaSpinner );
+
+        //Ukoliko je trenutniKviz apstraktni kviz za dodavanje, samo spinner kategorija postavljamo na svi, a
+        //ako nije (else dio) onda cemo sve vrijednosti postaviti na podatke odabranog kviza.
         if( trenutniKviz.getNaziv().equals("Dodaj kviz") )
             kategorijeSpinner.setSelection(0);
         else {
@@ -73,17 +86,14 @@ public class DodajKvizAkt extends AppCompatActivity {
             alTrenutnaPitanja.addAll(trenutniKviz.getPitanja());
             etNaziv.setText( trenutniKviz.getNaziv() );
         }
-        if( !trenutniKviz.getNaziv().equals("Dodaj kviz") ) {
-            //Obrisi ovaj if
-        }
+
+        //Dodajmo u listu trenutnih pitanja i apstraktni element pomocu kojeg mozemo dodati i novo pitanje.
         Pitanje dodajPitanje = new Pitanje();
         dodajPitanje.setNaziv("Dodaj pitanje");
         alTrenutnaPitanja.add( dodajPitanje );
-        adapterZaListuTrenutnihPitanja = new AdapterZaListuTrenutnihPitanja( this, alTrenutnaPitanja );
-        adapterZaListuMogucihPitanja = new AdapterZaListuMogucihPitanja( this, alMogucaPitanja );
-        lvTrenutnihPitanja.setAdapter( adapterZaListuTrenutnihPitanja );
-        lvMogucihPitanja.setAdapter( adapterZaListuMogucihPitanja );
         adapterZaListuTrenutnihPitanja.notifyDataSetChanged();
+
+        //Akcija pritiska elementa lvTrenutnihPitanja prebacuje pritisnuti element u listu mogucih pitanja.
         lvTrenutnihPitanja.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -102,6 +112,7 @@ public class DodajKvizAkt extends AppCompatActivity {
             }
         });
 
+        //Akcija pritiska elementa lvMogucihPitanja prebacuje pritisnuti element u listu trenutnih pitanja.
         lvMogucihPitanja.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -114,6 +125,8 @@ public class DodajKvizAkt extends AppCompatActivity {
             }
         });
 
+        //Dugme ispod vrsi validaciju unesenih podataka za novi kviz, te ukoliko je validacija zadovoljena
+        //dodajemo novi kviz u listu svih kvizova.
         btnDodajKviz.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -159,6 +172,7 @@ public class DodajKvizAkt extends AppCompatActivity {
             }
         });
 
+        //Listener na etNaziv vraca pozadinsku boju na defaultnu boju ukoliko korisnik unese bilo sto (potrebno je samo da etNaziv ne bude prazan)
         etNaziv.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -177,6 +191,7 @@ public class DodajKvizAkt extends AppCompatActivity {
             }
         });
 
+        //Ukoliko pritisnemo na kategoriju 'Dodaj kategoriju' pokrece se nova aktivnost za dodavanje nove kategorije.
        kategorijeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
            @Override
            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -218,4 +233,5 @@ public class DodajKvizAkt extends AppCompatActivity {
             }
         }
     }
+
 }

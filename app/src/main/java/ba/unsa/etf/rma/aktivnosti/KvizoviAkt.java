@@ -106,7 +106,9 @@ public class KvizoviAkt extends AppCompatActivity {
                 dodajKvizAkt.putExtra( "sviKvizovi", kvizovi );
                 dodajKvizAkt.putExtra("trenutniKviz", (Kviz)parent.getItemAtPosition(position) );
                 dodajKvizAkt.putExtra( "sveKategorije", kategorije );
-                pozicijaKviza = position;
+                for( int i = 0; i < kvizovi.size(); i++ )
+                    if( kvizovi.get(i).getNaziv().equals( ((Kviz) parent.getItemAtPosition(position)).getNaziv() ) )
+                        pozicijaKviza = i;
                 KvizoviAkt.this.startActivityForResult( dodajKvizAkt, pozicijaKviza );
             }
         });
@@ -239,19 +241,28 @@ public class KvizoviAkt extends AppCompatActivity {
                     kvizovi.add(kvizovi.size(), kvizZaDodati);
                 }
                 else {
-                    for (int i = 0; i < kvizovi.size(); i++)
-                        if (i == pozicijaKviza) {
-                            kvizovi.get(i).setNaziv(kvizZaDodati.getNaziv());
-                            kvizovi.get(i).setKategorija(kvizZaDodati.getKategorija());
-                            System.out.println( kvizZaDodati.getKategorija().getNaziv() );
-                            kvizovi.get(i).setPitanja(kvizZaDodati.getPitanja());
+//                    for (int i = 0; i < kvizovi.size(); i++)
+//                        if (i == pozicijaKviza) {
+//                            kvizovi.get(i).setNaziv(kvizZaDodati.getNaziv());
+//                            kvizovi.get(i).setKategorija(kvizZaDodati.getKategorija());
+//                            kvizovi.get(i).setPitanja(kvizZaDodati.getPitanja());
+//                            System.out.println( kvizovi.get(i).getKategorija().getId() );
+//                        }
+                    ArrayList<Kviz> tempKvizovi = new ArrayList<>();
+                    tempKvizovi.addAll( kvizovi );
+                    kvizovi.clear();
+                    for( int i = 0; i < tempKvizovi.size(); i++ ){
+                        if( pozicijaKviza == i ) {
+                            kvizovi.add(kvizZaDodati);
+                           System.out.println( kvizZaDodati.getKategorija().getId() );
                         }
+                        else
+                            kvizovi.add( tempKvizovi.get(i) );
+                    }
+                    tempKvizovi.clear();
                 }
                 prikazaniKvizovi.clear();
-
-                for(int i = 0; i < kvizovi.size();i++)
-                    if( !kvizovi.get(i).getNaziv().equals("Dodaj kviz") )
-                        prikazaniKvizovi.add( kvizovi.get(i) );
+                prikazaniKvizovi.addAll( kvizovi );
 
                 Kviz k = new Kviz();
                 k.setNaziv("Dodaj kviz");
