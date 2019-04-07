@@ -11,7 +11,7 @@
     <EditText
         android:id="@+id/etNaziv"
         android:layout_width="360dp"
-        android:layout_height="wrap_content"
+        android:layout_height="33dp"
         android:ems="10"
         android:inputType="textPersonName"
         app:layout_constraintEnd_toEndOf="parent"
@@ -20,32 +20,36 @@
         android:layout_marginRight="20dp"
         android:layout_marginLeft="20dp"
         android:layout_marginTop="50dp"
-        android:hint="Naziv kategorije"/>
+        android:hint="Naziv Kategorije"
+        android:background="@drawable/button_border"
+        android:layout_marginBottom="10dp"/>
 
     <EditText
         android:id="@+id/etIkona"
         android:layout_width="195dp"
-        android:layout_height="wrap_content"
+        android:layout_height="33dp"
+        android:background="@drawable/button_border"
         android:ems="10"
+        android:hint="Ikona"
         android:inputType="textPersonName"
         app:layout_constraintStart_toStartOf="@+id/etNaziv"
-        app:layout_constraintTop_toBottomOf="@+id/etNaziv" />
+        app:layout_constraintTop_toBottomOf="@+id/etNaziv"
+        android:layout_marginTop="10dp"
+        android:layout_marginRight="10dp"/>
 
     <Button
         android:id="@+id/btnDodajIkonu"
-        android:layout_width="165dp"
-        android:layout_height="wrap_content"
-        android:text="Dodaj ikonu"
-        tools:layout_editor_absoluteX="203dp"
-        tools:layout_editor_absoluteY="45dp"
-        app:layout_constraintBottom_toBottomOf="@id/etIkona"
-        app:layout_constraintStart_toEndOf="@id/etIkona"
-        app:layout_constraintRight_toRightOf="@id/etIkona"
+        android:layout_width="164dp"
+        android:layout_height="32dp"
+        android:layout_gravity="center"
         android:layout_marginRight="20dp"
         android:background="@color/plavaBoja"
+        android:text="Dodaj ikonu"
+        android:textAllCaps="false"
         android:textColor="@color/bijelaBoja"
-        android:layout_gravity="center"
-        android:textAllCaps="false"/>
+        app:layout_constraintBottom_toBottomOf="@id/etIkona"
+        app:layout_constraintRight_toRightOf="@id/etIkona"
+        app:layout_constraintStart_toEndOf="@id/etIkona" />
 
     <Button
         android:id="@+id/btnDodajKategoriju"

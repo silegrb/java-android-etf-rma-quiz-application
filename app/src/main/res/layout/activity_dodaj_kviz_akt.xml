@@ -11,17 +11,19 @@
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:layout_marginLeft="20dp"
-        android:layout_marginRight="20dp"/>
+        android:layout_marginRight="20dp"
+        android:layout_marginTop="10dp"/>
 
     <EditText
         android:id="@+id/etNaziv"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
+        android:layout_height="50dp"
         android:ems="10"
         android:inputType="textPersonName"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
-        android:hint="Naziv kviza"/>
+        android:hint="Naziv kviza - INPUT"
+        android:background="@drawable/button_border"/>
 
     <TextView
         android:id="@+id/textView"
@@ -69,6 +71,8 @@
         android:layout_marginRight="20dp"
         android:layout_marginTop="30dp"
         android:layout_gravity="center"
-        android:textAllCaps="false"/>
+        android:textAllCaps="false"
+        android:background="@drawable/button_border"
+        android:layout_marginBottom="10dp"/>
 
 </LinearLayout>

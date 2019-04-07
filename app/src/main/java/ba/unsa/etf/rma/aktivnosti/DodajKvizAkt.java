@@ -184,7 +184,7 @@ public class DodajKvizAkt extends AppCompatActivity {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 if( !s.equals("") )
-                    etNaziv.setBackgroundColor(Color.parseColor("#fafafa"));
+                    etNaziv.setBackgroundResource(R.drawable.button_border);
             }
 
             @Override

@@ -54,7 +54,7 @@ public class DodajKategorijuAkt extends AppCompatActivity implements IconDialog.
                         postoji = true;
 
                 if( !postoji && !etNaziv.getText().toString().equals("") )
-                    etNaziv.setBackgroundColor(Color.parseColor("#fafafa") );
+                    etNaziv.setBackgroundResource( R.drawable.button_border );
             }
 
             @Override

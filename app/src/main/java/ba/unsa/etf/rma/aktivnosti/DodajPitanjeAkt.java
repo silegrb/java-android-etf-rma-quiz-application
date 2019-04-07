@@ -200,7 +200,7 @@ public class DodajPitanjeAkt extends AppCompatActivity {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 if (!etNaziv.getText().toString().equals(""))
-                    etNaziv.setBackgroundColor(Color.parseColor("#fafafa"));
+                    etNaziv.setBackgroundResource( R.drawable.button_border );
 
             }
 
