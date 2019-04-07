@@ -61,9 +61,9 @@ public class AdapterZaListuTrenutnihPitanja extends BaseAdapter implements View.
             @Override
             public void onDataLoaded() {
                 if( !data.get(position).getNaziv().equals("Dodaj pitanje") )
-                    ikonaClanaListe.setImageDrawable( finalVi.getResources().getDrawable( R.drawable.blue_dot ) );
+                    ikonaClanaListe.setImageDrawable( finalVi.getResources().getDrawable( R.drawable.bluedot ) );
                 else
-                    ikonaClanaListe.setImageDrawable( finalVi.getResources().getDrawable( R.drawable.add_icon ) );
+                    ikonaClanaListe.setImageDrawable( finalVi.getResources().getDrawable( R.drawable.addicon ) );
             }
         });
         return vi;

@@ -60,7 +60,7 @@ public class AdapterZaListuMogucihPitanja extends BaseAdapter implements View.On
         iconHelper.addLoadCallback(new IconHelper.LoadCallback() {
             @Override
             public void onDataLoaded() {
-                    ikonaClanaListe.setImageDrawable( finalVi.getResources().getDrawable( R.drawable.add_icon ) );
+                    ikonaClanaListe.setImageDrawable( finalVi.getResources().getDrawable( R.drawable.addicon ) );
             }
         });
         return vi;

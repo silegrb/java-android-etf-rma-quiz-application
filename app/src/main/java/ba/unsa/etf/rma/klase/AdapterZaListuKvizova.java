@@ -64,7 +64,7 @@ public class AdapterZaListuKvizova extends BaseAdapter implements View.OnClickLi
                     if( !data.get(position).getNaziv().equals("Dodaj kviz") )
                         ikonaClanaListe.setImageDrawable(iconHelper.getIcon(Integer.parseInt(data.get(position).getKategorija().getId())).getDrawable(context));
                     else
-                        ikonaClanaListe.setImageDrawable( finalVi.getResources().getDrawable( R.drawable.add_icon ) );
+                        ikonaClanaListe.setImageDrawable( finalVi.getResources().getDrawable( R.drawable.addicon ) );
                     notifyDataSetChanged();
             }
         });
