@@ -133,6 +133,8 @@ public class DodajKvizAkt extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
+                String uredjivaniKviz = "";
+
                 if( etNaziv.getText().toString().equals("") ){
                     etNaziv.setBackgroundColor(Color.parseColor("#ff0006"));
                     Toast.makeText(v.getContext(), "Unesi ime kviza!", Toast.LENGTH_SHORT ).show();
@@ -145,6 +147,12 @@ public class DodajKvizAkt extends AppCompatActivity {
                     if( dodajNoviKviz ){
                         for( Kviz k: kvizovi )
                             if( k.getNaziv().equals( etNaziv.getText().toString() ) )
+                                vecPostoji = true;
+                    }
+                    else {
+                        uredjivaniKviz = trenutniKviz.getNaziv();
+                        for( Kviz k: kvizovi )
+                            if( !k.getNaziv().equals( uredjivaniKviz ) && k.getNaziv().equals( etNaziv.getText().toString() ) )
                                 vecPostoji = true;
                     }
 
