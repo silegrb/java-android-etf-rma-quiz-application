@@ -25,6 +25,20 @@
         android:hint="Naziv kviza - INPUT"
         android:background="@drawable/button_border"/>
 
+    <Button
+        android:id="@+id/btnImportKviz"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Importuj kviz"
+        android:textColor="@color/plavaBoja"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginTop="30dp"
+        android:layout_gravity="center"
+        android:textAllCaps="false"
+        android:background="@drawable/button_border"
+        android:layout_marginBottom="10dp"/>
+
     <TextView
         android:id="@+id/textView"
         android:layout_width="match_parent"

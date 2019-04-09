@@ -2,6 +2,7 @@ package ba.unsa.etf.rma.aktivnosti;
 
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -16,6 +17,10 @@ import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 import ba.unsa.etf.rma.R;
@@ -27,7 +32,9 @@ import ba.unsa.etf.rma.klase.Pitanje;
 
 public class DodajKvizAkt extends AppCompatActivity {
 
+    private static final int READ_REQUEST_CODE = 42;
     private Button btnDodajKviz;
+    private Button btnImportKviz;
     private EditText etNaziv;
     private ArrayList<Kategorija> kategorije;
     private ArrayList<Kviz> kvizovi;
@@ -49,6 +56,7 @@ public class DodajKvizAkt extends AppCompatActivity {
         //Dodajmo sve vrijednosti koristeci id.
         etNaziv = ( EditText ) findViewById( R.id.etNaziv );
         btnDodajKviz = (Button) findViewById( R.id.btnDodajKviz );
+        btnImportKviz = (Button) findViewById( R.id.btnImportKviz );
         kategorijeSpinner = (Spinner)findViewById(R.id.spKategorije );
         lvMogucihPitanja = (ListView) findViewById( R.id.lvMogucaPitanja );
         lvTrenutnihPitanja = (ListView) findViewById( R.id.lvDodanaPitanja );
@@ -182,6 +190,16 @@ public class DodajKvizAkt extends AppCompatActivity {
             }
         });
 
+        btnImportKviz.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent( Intent.ACTION_OPEN_DOCUMENT );
+                intent.addCategory( Intent.CATEGORY_OPENABLE );
+                intent.setType( "text/*" );
+                startActivityForResult( intent, READ_REQUEST_CODE );
+            }
+        });
+
         //Listener na etNaziv vraca pozadinsku boju na defaultnu boju ukoliko korisnik unese bilo sto (potrebno je samo da etNaziv ne bude prazan)
         etNaziv.addTextChangedListener(new TextWatcher() {
             @Override
@@ -242,6 +260,35 @@ public class DodajKvizAkt extends AppCompatActivity {
                 adapterZaSpinner.notifyDataSetChanged();
             }
         }
+        if( requestCode == READ_REQUEST_CODE ){
+            if( resultCode == RESULT_OK ){
+                Uri uri = null;
+                if (data != null) {
+                    uri = data.getData();
+                    try {
+                        //Ovdje ide provjera validnosti.
+                        String textFileString = readTextFromUri(uri);
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+    }
+
+    private String readTextFromUri(Uri uri) throws IOException {
+        InputStream inputStream = getContentResolver().openInputStream(uri);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(
+                inputStream));
+        StringBuilder stringBuilder = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            stringBuilder.append(line);
+        }
+        inputStream.close();
+        reader.close();
+        return stringBuilder.toString();
     }
 
 }
