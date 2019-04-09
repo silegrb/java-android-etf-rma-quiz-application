@@ -97,11 +97,11 @@ public class KvizoviAkt extends AppCompatActivity {
             }
         });
 
-        //Ukoliko kliknemo na neki od elemenata kviza, otvara se nova aktivnost za kreiranje novog kviza
+        //Ukoliko kliknemo DUGO na neki od elemenata kviza, otvara se nova aktivnost za kreiranje novog kviza
         //ukoliko je odabran element "Dodaj kviz", odnosno za uredjivanje ukoliko je odabran bilo koji drugi element.
-        listaKvizova.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        listaKvizova.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent dodajKvizAkt = new Intent( KvizoviAkt.this, DodajKvizAkt.class );
                 dodajKvizAkt.putExtra( "sviKvizovi", kvizovi );
                 dodajKvizAkt.putExtra("trenutniKviz", (Kviz)parent.getItemAtPosition(position) );
@@ -110,6 +110,25 @@ public class KvizoviAkt extends AppCompatActivity {
                     if( kvizovi.get(i).getNaziv().equals( ((Kviz) parent.getItemAtPosition(position)).getNaziv() ) )
                         pozicijaKviza = i;
                 KvizoviAkt.this.startActivityForResult( dodajKvizAkt, pozicijaKviza );
+                return true;
+            }
+        });
+
+        //Ukoliko kliknemo kratko na dodaj kviz desava se isto sto i iznad u listeneru za dugi klik.
+        listaKvizova.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                if( ((Kviz)parent.getItemAtPosition(position)).getNaziv().equals( "Dodaj kviz" ) ) {
+                    Intent dodajKvizAkt = new Intent(KvizoviAkt.this, DodajKvizAkt.class);
+                    dodajKvizAkt.putExtra("sviKvizovi", kvizovi);
+                    dodajKvizAkt.putExtra("trenutniKviz", (Kviz) parent.getItemAtPosition(position));
+                    dodajKvizAkt.putExtra("sveKategorije", kategorije);
+                    for (int i = 0; i < kvizovi.size(); i++)
+                        if (kvizovi.get(i).getNaziv().equals(((Kviz) parent.getItemAtPosition(position)).getNaziv()))
+                            pozicijaKviza = i;
+                    KvizoviAkt.this.startActivityForResult(dodajKvizAkt, pozicijaKviza);
+                }
             }
         });
     }
