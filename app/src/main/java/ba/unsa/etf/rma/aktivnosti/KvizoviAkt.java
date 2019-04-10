@@ -273,7 +273,6 @@ public class KvizoviAkt extends AppCompatActivity {
                     for( int i = 0; i < tempKvizovi.size(); i++ ){
                         if( pozicijaKviza == i ) {
                             kvizovi.add(kvizZaDodati);
-                           System.out.println( kvizZaDodati.getKategorija().getId() );
                         }
                         else
                             kvizovi.add( tempKvizovi.get(i) );

@@ -164,6 +164,9 @@ public class DodajKvizAkt extends AppCompatActivity {
                                 vecPostoji = true;
                     }
 
+                    if( etNaziv.getText().toString().equals("Dodaj kviz") )
+                        vecPostoji = true;
+
                     if( vecPostoji ){
                         etNaziv.setBackgroundColor(Color.parseColor("#ff0006"));
                         Toast.makeText(v.getContext(), "Kviz vec postoji!", Toast.LENGTH_SHORT ).show();
