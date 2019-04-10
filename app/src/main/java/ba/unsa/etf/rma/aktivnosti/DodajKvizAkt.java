@@ -1,10 +1,12 @@
 package ba.unsa.etf.rma.aktivnosti;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -271,6 +273,130 @@ public class DodajKvizAkt extends AppCompatActivity {
                     try {
                         //Ovdje ide provjera validnosti.
                         String textFileString = readTextFromUri(uri);
+                        String[] nizStringova = textFileString.split(",");
+                        boolean importuj = true;
+
+                        if( textFileString.equals("") ){
+                            importuj = false;
+                            AlertDialog alertDialog = new AlertDialog.Builder(DodajKvizAkt.this).create();
+                            alertDialog.setTitle("Upozorenje");
+                            alertDialog.setMessage("Datoteka je prazna");
+                            alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
+                                    new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            dialog.dismiss();
+                                        }
+                                    });
+
+                            alertDialog.show();
+                        }
+                        else if( nizStringova.length < 5 ){
+                            importuj = false;
+                            AlertDialog alertDialog = new AlertDialog.Builder(DodajKvizAkt.this).create();
+                            alertDialog.setTitle("Upozorenje");
+                            alertDialog.setMessage("Datoteka nije ispravnog formata");
+                            alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
+                                    new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            dialog.dismiss();
+                                        }
+                                    });
+
+                            alertDialog.show();
+                        }
+                        else {
+                            boolean kvizVecPostoji = false;
+                            if( nizStringova[0].equals("Dodaj kviz") ) kvizVecPostoji = true;
+                            for( Kviz k: kvizovi )
+                                if( k.getNaziv().equals( nizStringova[0] ) )
+                                    kvizVecPostoji = true;
+
+                            if( kvizVecPostoji ) {
+                                importuj = false;
+                                AlertDialog alertDialog = new AlertDialog.Builder(DodajKvizAkt.this).create();
+                                alertDialog.setTitle("Upozorenje");
+                                alertDialog.setMessage("Kviz kojeg importujete već postoji!");
+                                alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
+                                        new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                dialog.dismiss();
+                                            }
+                                        });
+                                alertDialog.show();
+                            }
+                            int brojOdgovora = Integer.parseInt( nizStringova[2] );
+                            int indeksTacnogOdgovora = Integer.parseInt( nizStringova[3] );
+                            if( brojOdgovora + 4 != nizStringova.length ){
+                                importuj = false;
+                                AlertDialog alertDialog = new AlertDialog.Builder(DodajKvizAkt.this).create();
+                                alertDialog.setTitle("Upozorenje");
+                                alertDialog.setMessage("Kviz kojeg importujete ima neispravan broj odgovora!");
+                                alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
+                                        new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                dialog.dismiss();
+                                            }
+                                        });
+                                alertDialog.show();
+                            }
+                            if( indeksTacnogOdgovora < 0 || indeksTacnogOdgovora > brojOdgovora - 1 ){
+                                importuj = false;
+                                AlertDialog alertDialog = new AlertDialog.Builder(DodajKvizAkt.this).create();
+                                alertDialog.setTitle("Upozorenje");
+                                alertDialog.setMessage("Kviz kojeg importujete ima neispravan index tačnog odgovora!");
+                                alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
+                                        new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                dialog.dismiss();
+                                            }
+                                        });
+                                alertDialog.show();
+                            }
+
+                            if( importuj ){
+                                //Prvo provjeravamo da li kategorija postoji, te ako ne postoji dodajemo je.
+                                boolean kategorijaVecPostoji = false;
+                                for( Kategorija k: KvizoviAkt.kategorije )
+                                    if( k.getNaziv().equals( nizStringova[1] ) )
+                                        kategorijaVecPostoji = true;
+
+                                if( !kategorijaVecPostoji ) {
+                                    Kategorija kategorija = new Kategorija();
+                                    kategorija.setNaziv( nizStringova[1] );
+                                    kategorija.setId("958");
+                                    KvizoviAkt.kategorije.add( kategorije.size() - 1, kategorija );
+                                    kategorije.add( kategorije.size() - 1, kategorija );
+                                    kategorijeSpinner.setSelection( kategorije.size() - 2 );
+                                }
+                                else{
+                                    for( int i = 0; i < kategorije.size(); i++ )
+                                        if( kategorije.get(i).getNaziv().equals( nizStringova[1] ) ) {
+                                            kategorijeSpinner.setSelection(i);
+                                            break;
+                                        }
+                                }
+                               // adapterZaSpinner.notifyDataSetChanged();
+                                etNaziv.getText().clear();
+                                etNaziv.setText( nizStringova[0] );
+                                alTrenutnaPitanja.clear();
+                                alMogucaPitanja.clear();
+                                Pitanje p = new Pitanje();
+                                p.setNaziv("TestPitanje");
+                                ArrayList<String> odgovori = new ArrayList<>();
+                                for( int i = 4; i < nizStringova.length; i++ )
+                                    odgovori.add( nizStringova[i] );
+                                p.setOdgovori( odgovori );
+                                p.setTacan( odgovori.get( indeksTacnogOdgovora ) );
+                                alTrenutnaPitanja.add( p );
+                                Pitanje pDp = new Pitanje();
+                                pDp.setNaziv("Dodaj pitanje");
+                                alTrenutnaPitanja.add( pDp );
+                                adapterZaSpinner.notifyDataSetChanged();
+                                adapterZaListuTrenutnihPitanja.notifyDataSetChanged();
+                                adapterZaListuMogucihPitanja.notifyDataSetChanged();
+                            }
+
+                        }
 
                     } catch (IOException e) {
                         e.printStackTrace();
