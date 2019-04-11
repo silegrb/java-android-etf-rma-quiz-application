@@ -115,6 +115,7 @@ public class KvizoviAkt extends AppCompatActivity {
         });
 
 
+
     }
 
     private void napuniPodacima() {
@@ -240,9 +241,9 @@ public class KvizoviAkt extends AppCompatActivity {
                 spinnerKategorije.setSelection(0);
                 Kviz kvizZaDodati = (Kviz)data.getExtras().get("noviKviz");
                 boolean dodajNovi = (boolean)data.getExtras().get("dodajNoviKviz");
-                if( dodajNovi ) {
+                if( dodajNovi )
                     kvizovi.add(kvizovi.size(), kvizZaDodati);
-
+                else {
                     ArrayList<Kviz> tempKvizovi = new ArrayList<>();
                     tempKvizovi.addAll( kvizovi );
                     kvizovi.clear();
