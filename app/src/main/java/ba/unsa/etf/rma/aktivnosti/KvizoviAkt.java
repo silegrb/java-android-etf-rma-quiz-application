@@ -114,23 +114,7 @@ public class KvizoviAkt extends AppCompatActivity {
             }
         });
 
-        //Ukoliko kliknemo kratko na dodaj kviz desava se isto sto i iznad u listeneru za dugi klik.
-        listaKvizova.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-                if( ((Kviz)parent.getItemAtPosition(position)).getNaziv().equals( "Dodaj kviz" ) ) {
-                    Intent dodajKvizAkt = new Intent(KvizoviAkt.this, DodajKvizAkt.class);
-                    dodajKvizAkt.putExtra("sviKvizovi", kvizovi);
-                    dodajKvizAkt.putExtra("trenutniKviz", (Kviz) parent.getItemAtPosition(position));
-                    dodajKvizAkt.putExtra("sveKategorije", kategorije);
-                    for (int i = 0; i < kvizovi.size(); i++)
-                        if (kvizovi.get(i).getNaziv().equals(((Kviz) parent.getItemAtPosition(position)).getNaziv()))
-                            pozicijaKviza = i;
-                    KvizoviAkt.this.startActivityForResult(dodajKvizAkt, pozicijaKviza);
-                }
-            }
-        });
     }
 
     private void napuniPodacima() {
@@ -258,15 +242,7 @@ public class KvizoviAkt extends AppCompatActivity {
                 boolean dodajNovi = (boolean)data.getExtras().get("dodajNoviKviz");
                 if( dodajNovi ) {
                     kvizovi.add(kvizovi.size(), kvizZaDodati);
-                }
-                else {
-//                    for (int i = 0; i < kvizovi.size(); i++)
-//                        if (i == pozicijaKviza) {
-//                            kvizovi.get(i).setNaziv(kvizZaDodati.getNaziv());
-//                            kvizovi.get(i).setKategorija(kvizZaDodati.getKategorija());
-//                            kvizovi.get(i).setPitanja(kvizZaDodati.getPitanja());
-//                            System.out.println( kvizovi.get(i).getKategorija().getId() );
-//                        }
+
                     ArrayList<Kviz> tempKvizovi = new ArrayList<>();
                     tempKvizovi.addAll( kvizovi );
                     kvizovi.clear();
