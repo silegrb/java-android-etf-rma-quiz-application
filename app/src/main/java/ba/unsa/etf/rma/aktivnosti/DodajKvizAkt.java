@@ -19,15 +19,14 @@ import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import java.io.BufferedReader;
-import java.io.IOException;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 import ba.unsa.etf.rma.R;
 import ba.unsa.etf.rma.klase.AdapterZaListuMogucihPitanja;
 import ba.unsa.etf.rma.klase.AdapterZaListuTrenutnihPitanja;
+import ba.unsa.etf.rma.klase.CSVReader;
 import ba.unsa.etf.rma.klase.Kategorija;
 import ba.unsa.etf.rma.klase.Kviz;
 import ba.unsa.etf.rma.klase.Pitanje;
@@ -272,12 +271,16 @@ public class DodajKvizAkt extends AppCompatActivity {
                     uri = data.getData();
                     try {
                         //Ovdje ide provjera validnosti.
-                        String textFileString = readTextFromUri(uri);
-                        String[] nizStringova = textFileString.split(",");
+                        InputStream inputStream = getContentResolver().openInputStream(uri);
+                        CSVReader csvReader = new CSVReader(inputStream);
+                        ArrayList<String[]> procitaniCsvFajl = csvReader.read();
+                        String[] prviRed = {""};
+                        ArrayList<Pitanje> pitanja = new ArrayList<>();
                         boolean importuj = true;
-
-                        if( textFileString.equals("") ){
+                        boolean greskaSeVecDesila = false;
+                        if( procitaniCsvFajl.size() == 0 ){
                             importuj = false;
+                            greskaSeVecDesila = true;
                             AlertDialog alertDialog = new AlertDialog.Builder(DodajKvizAkt.this).create();
                             alertDialog.setTitle("Upozorenje");
                             alertDialog.setMessage("Datoteka je prazna");
@@ -290,29 +293,15 @@ public class DodajKvizAkt extends AppCompatActivity {
 
                             alertDialog.show();
                         }
-                        else if( nizStringova.length < 5 ){
-                            importuj = false;
-                            AlertDialog alertDialog = new AlertDialog.Builder(DodajKvizAkt.this).create();
-                            alertDialog.setTitle("Upozorenje");
-                            alertDialog.setMessage("Datoteka nije ispravnog formata");
-                            alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
-                                    new DialogInterface.OnClickListener() {
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            dialog.dismiss();
-                                        }
-                                    });
-
-                            alertDialog.show();
-                        }
                         else {
-                            boolean kvizVecPostoji = false;
-                            if( nizStringova[0].equals("Dodaj kviz") ) kvizVecPostoji = true;
-                            for( Kviz k: kvizovi )
-                                if( k.getNaziv().equals( nizStringova[0] ) )
-                                    kvizVecPostoji = true;
-
-                            if( kvizVecPostoji ) {
+                            prviRed = procitaniCsvFajl.get(0);
+                            boolean vecPostoji = false;
+                            for (int i = 0; i < kvizovi.size(); i++)
+                                if (kvizovi.get(i).getNaziv().equals(prviRed[0]))
+                                    vecPostoji = true;
+                            if (!greskaSeVecDesila && vecPostoji) {
                                 importuj = false;
+                                greskaSeVecDesila = true;
                                 AlertDialog alertDialog = new AlertDialog.Builder(DodajKvizAkt.this).create();
                                 alertDialog.setTitle("Upozorenje");
                                 alertDialog.setMessage("Kviz kojeg importujete već postoji!");
@@ -324,10 +313,69 @@ public class DodajKvizAkt extends AppCompatActivity {
                                         });
                                 alertDialog.show();
                             }
-                            int brojOdgovora = Integer.parseInt( nizStringova[2] );
-                            int indeksTacnogOdgovora = Integer.parseInt( nizStringova[3] );
-                            if( brojOdgovora + 4 != nizStringova.length ){
+                            if (!greskaSeVecDesila && Integer.parseInt(prviRed[2]) != procitaniCsvFajl.size() - 1) {
+                                //Broj pitanja nije ispravan.
                                 importuj = false;
+                                greskaSeVecDesila = true;
+                                AlertDialog alertDialog = new AlertDialog.Builder(DodajKvizAkt.this).create();
+                                alertDialog.setTitle("Upozorenje");
+                                alertDialog.setMessage("Kviz kojeg imporujete ima neispravan broj pitanja!");
+                                alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
+                                        new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                dialog.dismiss();
+                                            }
+                                        });
+                                alertDialog.show();
+                            }
+
+                            boolean neispravanFormatPitanja = false;
+                            for (int i  = 1; i < procitaniCsvFajl.size(); i++ )
+                                if (procitaniCsvFajl.get(i).length < 4 ) neispravanFormatPitanja = true;
+
+                            if (!greskaSeVecDesila && neispravanFormatPitanja) {
+                                importuj = false;
+                                greskaSeVecDesila = true;
+                                AlertDialog alertDialog = new AlertDialog.Builder(DodajKvizAkt.this).create();
+                                alertDialog.setTitle("Upozorenje");
+                                alertDialog.setMessage("Neispravan format nekog od pitanja");
+                                alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
+                                        new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                dialog.dismiss();
+                                            }
+                                        });
+                                alertDialog.show();
+                            }
+
+                            boolean neispravanBrojOdgovora = false;
+                            boolean neispravanIndeksTacnogOdgovora = false;
+                            if (!greskaSeVecDesila) {
+                                for (int i = 1; i < procitaniCsvFajl.size(); i++) {
+                                    String[] tempStringNiz = procitaniCsvFajl.get(i);
+                                    Pitanje p = new Pitanje();
+                                    p.setNaziv(tempStringNiz[0]);
+                                    int brojOdgovora = Integer.parseInt(tempStringNiz[1]);
+                                    int indeksTacnogOdgovora = Integer.parseInt(tempStringNiz[2]);
+                                    if( brojOdgovora != tempStringNiz.length - 3 )
+                                        neispravanBrojOdgovora = true;
+                                    if( indeksTacnogOdgovora < 0 || indeksTacnogOdgovora > brojOdgovora - 1 )
+                                        neispravanIndeksTacnogOdgovora = true;
+                                    ArrayList<String> odgovori = new ArrayList<>();
+                                    for( int j = 3; j < tempStringNiz.length; j++ )
+                                        odgovori.add( tempStringNiz[j] );
+                                    if( !neispravanBrojOdgovora && !neispravanIndeksTacnogOdgovora  ){
+                                        p.setTekstPitanja( tempStringNiz[0] );
+                                        p.setOdgovori( odgovori );
+                                        p.setTacan( odgovori.get(indeksTacnogOdgovora) );
+                                        pitanja.add( p );
+                                    }
+                                }
+                            }
+
+                            if( !greskaSeVecDesila && neispravanBrojOdgovora ){
+                                importuj = false;
+                                greskaSeVecDesila = true;
                                 AlertDialog alertDialog = new AlertDialog.Builder(DodajKvizAkt.this).create();
                                 alertDialog.setTitle("Upozorenje");
                                 alertDialog.setMessage("Kviz kojeg importujete ima neispravan broj odgovora!");
@@ -339,8 +387,10 @@ public class DodajKvizAkt extends AppCompatActivity {
                                         });
                                 alertDialog.show();
                             }
-                            if( indeksTacnogOdgovora < 0 || indeksTacnogOdgovora > brojOdgovora - 1 ){
+
+                            if( !greskaSeVecDesila && neispravanIndeksTacnogOdgovora ){
                                 importuj = false;
+                                greskaSeVecDesila = true;
                                 AlertDialog alertDialog = new AlertDialog.Builder(DodajKvizAkt.this).create();
                                 alertDialog.setTitle("Upozorenje");
                                 alertDialog.setMessage("Kviz kojeg importujete ima neispravan index tačnog odgovora!");
@@ -352,17 +402,18 @@ public class DodajKvizAkt extends AppCompatActivity {
                                         });
                                 alertDialog.show();
                             }
+                        }
 
-                            if( importuj ){
-                                //Prvo provjeravamo da li kategorija postoji, te ako ne postoji dodajemo je.
+                        if( importuj ){
+                            //Prvo provjeravamo da li kategorija postoji, te ako ne postoji dodajemo je.
                                 boolean kategorijaVecPostoji = false;
                                 for( Kategorija k: KvizoviAkt.kategorije )
-                                    if( k.getNaziv().equals( nizStringova[1] ) )
+                                    if( k.getNaziv().equals( prviRed[1] ) )
                                         kategorijaVecPostoji = true;
 
                                 if( !kategorijaVecPostoji ) {
                                     Kategorija kategorija = new Kategorija();
-                                    kategorija.setNaziv( nizStringova[1] );
+                                    kategorija.setNaziv( prviRed[1] );
                                     kategorija.setId("958");
                                     KvizoviAkt.kategorije.add( kategorije.size() - 1, kategorija );
                                     kategorije.add( kategorije.size() - 1, kategorija );
@@ -370,54 +421,44 @@ public class DodajKvizAkt extends AppCompatActivity {
                                 }
                                 else{
                                     for( int i = 0; i < kategorije.size(); i++ )
-                                        if( kategorije.get(i).getNaziv().equals( nizStringova[1] ) ) {
+                                        if( kategorije.get(i).getNaziv().equals( prviRed[1] ) ) {
                                             kategorijeSpinner.setSelection(i);
                                             break;
                                         }
                                 }
-                               // adapterZaSpinner.notifyDataSetChanged();
+
                                 etNaziv.getText().clear();
-                                etNaziv.setText( nizStringova[0] );
+                                etNaziv.setText( prviRed[0] );
                                 alTrenutnaPitanja.clear();
-                                alMogucaPitanja.clear();
-                                Pitanje p = new Pitanje();
-                                p.setNaziv("TestPitanje");
-                                ArrayList<String> odgovori = new ArrayList<>();
-                                for( int i = 4; i < nizStringova.length; i++ )
-                                    odgovori.add( nizStringova[i] );
-                                p.setOdgovori( odgovori );
-                                p.setTacan( odgovori.get( indeksTacnogOdgovora ) );
-                                alTrenutnaPitanja.add( p );
+                                alTrenutnaPitanja.addAll( pitanja );
                                 Pitanje pDp = new Pitanje();
                                 pDp.setNaziv("Dodaj pitanje");
                                 alTrenutnaPitanja.add( pDp );
-                                adapterZaSpinner.notifyDataSetChanged();
+                                alMogucaPitanja.clear();
                                 adapterZaListuTrenutnihPitanja.notifyDataSetChanged();
                                 adapterZaListuMogucihPitanja.notifyDataSetChanged();
-                            }
-
+                                adapterZaSpinner.notifyDataSetChanged();
                         }
-
-                    } catch (IOException e) {
+                            } catch (FileNotFoundException e) {
                         e.printStackTrace();
                     }
+                }
                 }
             }
         }
     }
 
-    private String readTextFromUri(Uri uri) throws IOException {
-        InputStream inputStream = getContentResolver().openInputStream(uri);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(
-                inputStream));
-        StringBuilder stringBuilder = new StringBuilder();
-        String line;
-        while ((line = reader.readLine()) != null) {
-            stringBuilder.append(line);
-        }
-        inputStream.close();
-        reader.close();
-        return stringBuilder.toString();
-    }
+//    private String readTextFromUri(Uri uri) throws IOException {
+//        InputStream inputStream = getContentResolver().openInputStream(uri);
+//        BufferedReader reader = new BufferedReader(new InputStreamReader(
+//                inputStream));
+//        StringBuilder stringBuilder = new StringBuilder();
+//        String line;
+//        while ((line = reader.readLine()) != null) {
+//            stringBuilder.append(line);
+//        }
+//        inputStream.close();
+//        reader.close();
+//        return stringBuilder.toString();
+//    }
 
-}
