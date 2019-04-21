@@ -75,10 +75,10 @@ public class PitanjeFrag extends Fragment {
                         } else {
 
                             if (!parent.getItemAtPosition(position).toString().equals(trenutnoPitanje.getTacan()))
-                                view.setBackgroundColor(Color.RED);
+                                view.setBackgroundColor(Color.parseColor("#FF3030"));
                             for (int i = 0; i < parent.getChildCount(); i++) {
                                 if (trenutnoPitanje.getTacan().equals(parent.getItemAtPosition(i).toString())) {
-                                    parent.getChildAt(i).setBackgroundColor(Color.GREEN);
+                                    parent.getChildAt(i).setBackgroundColor(Color.parseColor("#7FFF00"));
                                     if (i == position) brTacnihOdgovora++;
                                 }
                             }

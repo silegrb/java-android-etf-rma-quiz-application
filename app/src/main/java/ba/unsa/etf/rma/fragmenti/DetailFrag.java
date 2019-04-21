@@ -123,6 +123,11 @@ public class DetailFrag extends Fragment {
                 callback.msg1();
             }
             else{
+                KvizoviAkt.prikazaniKvizovi.clear();
+                KvizoviAkt.prikazaniKvizovi.addAll( KvizoviAkt.kvizovi );
+                Kviz k = new Kviz();
+                k.setNaziv("Dodaj kviz");
+                KvizoviAkt.prikazaniKvizovi.add( k );
                 adapterZaListuKvizovaW550.notifyDataSetChanged();
                 callback.msg1();
             }
