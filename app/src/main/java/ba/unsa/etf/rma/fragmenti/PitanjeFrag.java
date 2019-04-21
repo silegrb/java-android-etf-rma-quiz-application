@@ -74,17 +74,21 @@ public class PitanjeFrag extends Fragment {
                             callback.messageFromGreenFragment(alPitanja.size(), alPitanja.size() - brPreostalihPitanja, brTacnihOdgovora);
                         } else {
 
-                            if (!parent.getItemAtPosition(position).toString().equals(trenutnoPitanje.getTacan()))
+                            int pozicijaTacnog = -1;
+                            for( int i = 0; i < trenutnoPitanje.getOdgovori().size(); i++ )
+                                if( trenutnoPitanje.getOdgovori().get(i).equals( trenutnoPitanje.getTacan() ) )
+                                    pozicijaTacnog = i;
+                            if( position != pozicijaTacnog )
                                 view.setBackgroundResource( R.color.crvena );
-                                int prvaVidljiva = odgovoriPitanja.getFirstVisiblePosition();
-                                int zadnjaVidljiva = odgovoriPitanja.getChildCount();
-                                System.out.println(  prvaVidljiva + " " + zadnjaVidljiva );
-                            for (int i = 0; i < parent.getChildCount(); i++) {
-                                if (trenutnoPitanje.getTacan().equals(parent.getItemAtPosition(i).toString())) {
-                                    parent.getChildAt(i).setBackgroundResource( R.color.zelena );
-                                    if (i == position) brTacnihOdgovora++;
-                                }
+                            else {
+                                view.setBackgroundResource(R.color.zelena);
+                                brTacnihOdgovora++;
                             }
+                            //Provjera vidljivost
+                            if( (TextView)odgovoriPitanja.getChildAt( pozicijaTacnog - odgovoriPitanja.getFirstVisiblePosition() ) != null )
+                                odgovoriPitanja.getChildAt(pozicijaTacnog - odgovoriPitanja.getFirstVisiblePosition()).setBackgroundResource( R.color.zelena );
+
+                            odgovoriPitanja.setEnabled(false);
                             alPitanja.remove(trenutnoPitanje);
                             brPreostalihPitanja--;
                             (new Handler()).postDelayed(() -> {
@@ -104,6 +108,7 @@ public class PitanjeFrag extends Fragment {
                                 }
                                 pitanjeOdgovoreno = false;
                                 callback.messageFromGreenFragment(alPitanja.size() - 1, trenutniKviz.getPitanja().size() - brPreostalihPitanja, brTacnihOdgovora);
+                                odgovoriPitanja.setEnabled(true);
                             }, 2000);
 
                         }
