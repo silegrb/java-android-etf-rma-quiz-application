@@ -350,6 +350,7 @@ public class DodajKvizAkt extends AppCompatActivity {
 
                             boolean neispravanBrojOdgovora = false;
                             boolean neispravanIndeksTacnogOdgovora = false;
+                            boolean odgovorSePonovio = false;
                             if (!greskaSeVecDesila) {
                                 for (int i = 1; i < procitaniCsvFajl.size(); i++) {
                                     String[] tempStringNiz = procitaniCsvFajl.get(i);
@@ -371,6 +372,20 @@ public class DodajKvizAkt extends AppCompatActivity {
                                         pitanja.add( p );
                                     }
                                 }
+
+                                if( !neispravanBrojOdgovora && !neispravanIndeksTacnogOdgovora ){
+                                    for( int i = 0; i < pitanja.size(); i++ ){
+                                        ArrayList<String> odgovori = pitanja.get(i).getOdgovori();
+                                        ArrayList<String> odgovoriKojiSeNePonavljaju = new ArrayList<>();
+                                        for( int j = 0; j < odgovori.size(); j++ )
+                                            if( !odgovoriKojiSeNePonavljaju.contains( odgovori.get(j) ) )
+                                                odgovoriKojiSeNePonavljaju.add( odgovori.get(j) );
+
+                                        if( odgovori.size() != odgovoriKojiSeNePonavljaju.size() )
+                                            odgovorSePonovio = true;
+                                    }
+                                }
+
                             }
 
                             if( !greskaSeVecDesila && neispravanBrojOdgovora ){
@@ -402,7 +417,24 @@ public class DodajKvizAkt extends AppCompatActivity {
                                         });
                                 alertDialog.show();
                             }
+
+                            if( !greskaSeVecDesila && odgovorSePonovio ){
+                                importuj = false;
+                                greskaSeVecDesila = true;
+                                AlertDialog alertDialog = new AlertDialog.Builder(DodajKvizAkt.this).create();
+                                alertDialog.setTitle("Upozorenje");
+                                alertDialog.setMessage("Kviz kojeg importujete nije ispravan postoji ponavljanje odgovora!");
+                                alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
+                                        new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                dialog.dismiss();
+                                            }
+                                        });
+                                alertDialog.show();
+                            }
                         }
+
+
 
                         if( importuj ){
                             //Prvo provjeravamo da li kategorija postoji, te ako ne postoji dodajemo je.

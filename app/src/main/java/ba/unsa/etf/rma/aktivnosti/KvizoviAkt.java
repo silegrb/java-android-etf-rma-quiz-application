@@ -3,10 +3,13 @@ package ba.unsa.etf.rma.aktivnosti;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -14,6 +17,8 @@ import android.widget.Toast;
 import java.util.ArrayList;
 
 import ba.unsa.etf.rma.R;
+import ba.unsa.etf.rma.fragmenti.DetailFrag;
+import ba.unsa.etf.rma.fragmenti.ListaFrag;
 import ba.unsa.etf.rma.klase.AdapterZaListuKvizova;
 import ba.unsa.etf.rma.klase.Kategorija;
 import ba.unsa.etf.rma.klase.Kviz;
@@ -28,23 +33,40 @@ public class KvizoviAkt extends AppCompatActivity {
     //dok se lista 'prikazaniKvizovi' koristi za prikazivanje svih/filtriranih kvizova.
     private ArrayList<Kviz> kvizovi = new ArrayList<>();
     private ArrayList<Kviz> prikazaniKvizovi = new ArrayList<>();
-
     public static ArrayList<Kategorija> kategorije = new ArrayList<>();
     private ArrayAdapter<Kategorija> adapterZaSpinner;
     private AdapterZaListuKvizova adapterZaListuKvizova;
     private String spinnerOdabir;
     private static int pozicijaKviza;
 
+    DetailFrag detailFrag;
+    ListaFrag listaFrag;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        //Prvo svima skinemo vrijednosti!
+        kategorije.clear();
+        kategorije.clear();
+        Kategorija kategorijaSvi = new Kategorija();
+        kategorijaSvi.setNaziv("Svi");
+        kategorijaSvi.setId("5");
+        kategorije.add( kategorijaSvi );
+        boolean sirokiLayout = false;
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        FrameLayout layoutDetalji = (FrameLayout) findViewById( R.id.detailPlace);
+        if( layoutDetalji != null ){
+            listaFrag = new ListaFrag();
+            detailFrag = new DetailFrag();
+            FragmentManager fragmentManagerFinal = getSupportFragmentManager();
+            FragmentTransaction fragmentTransaction = fragmentManagerFinal.beginTransaction();
+            fragmentTransaction.add( R.id.listPlace, listaFrag );
+            fragmentTransaction.add( R.id.detailPlace, detailFrag );
+            fragmentTransaction.commit();
+        }
+        else{//Prvo svima skinemo vrijednosti!
         kvizovi.clear();
         prikazaniKvizovi.clear();
-        kategorije.clear();
         adapterZaSpinner = null;
         adapterZaListuKvizova = null;
         spinnerOdabir = null;
@@ -135,6 +157,9 @@ public class KvizoviAkt extends AppCompatActivity {
                 }
             }
         });
+        }
+
+
 
     }
 
@@ -245,10 +270,6 @@ public class KvizoviAkt extends AppCompatActivity {
 
     private void inicijalizirajApp(){
         //Podaci za inicijalizaciju aplikacije.
-        Kategorija kategorijaSvi = new Kategorija();
-        kategorijaSvi.setNaziv("Svi");
-        kategorijaSvi.setId("5");
-        kategorije.add( kategorijaSvi );
         adapterZaListuKvizova.notifyDataSetChanged();
         adapterZaSpinner.notifyDataSetChanged();
     }
