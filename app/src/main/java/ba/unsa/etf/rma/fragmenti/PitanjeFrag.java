@@ -89,7 +89,6 @@ public class PitanjeFrag extends Fragment {
                                 odgovoriPitanja.getChildAt(pozicijaTacnog - odgovoriPitanja.getFirstVisiblePosition()).setBackgroundResource( R.color.zelena );
 
                             odgovoriPitanja.setEnabled(false);
-                            callback.msg2();
                             alPitanja.remove(trenutnoPitanje);
                             brPreostalihPitanja--;
                             (new Handler()).postDelayed(() -> {
@@ -109,7 +108,6 @@ public class PitanjeFrag extends Fragment {
                                 }
                                 pitanjeOdgovoreno = false;
                                 try {
-                                    callback.msg2();
                                     callback.messageFromGreenFragment(alPitanja.size() - 1, trenutniKviz.getPitanja().size() - brPreostalihPitanja, brTacnihOdgovora);
                                 }
                                 catch (Exception e){
@@ -128,7 +126,6 @@ public class PitanjeFrag extends Fragment {
 
     public interface OnPitanjeFragmentListener {
         void messageFromGreenFragment(int brojPreostalih, int brojOdgovorenih, int brojTacnih);
-        void msg2();
     }
 
     @Override
