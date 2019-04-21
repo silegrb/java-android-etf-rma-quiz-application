@@ -10,8 +10,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
-import java.text.DecimalFormat;
-
 import ba.unsa.etf.rma.R;
 import ba.unsa.etf.rma.klase.Kviz;
 
@@ -58,8 +56,8 @@ public class InformacijeFrag extends Fragment {
         infBrojTacnihPitanja.setText( String.valueOf( brojTacnih ) );
         double pomoc = (double)brojTacnih/brojOdgovorenih;
         pomoc *= 100;
-        DecimalFormat twoDForm = new DecimalFormat("#.##");
-        pomoc =  Double.valueOf(twoDForm.format(pomoc));
-        infProcenatTacni.setText( String.valueOf( pomoc ) + "%" );
+        pomoc = Math.round( pomoc*100.0 )/100.0;
+        String brojNaDvijeDecimale = String.valueOf(pomoc);
+        infProcenatTacni.setText( brojNaDvijeDecimale + "%" );
     }
 }

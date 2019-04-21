@@ -75,10 +75,13 @@ public class PitanjeFrag extends Fragment {
                         } else {
 
                             if (!parent.getItemAtPosition(position).toString().equals(trenutnoPitanje.getTacan()))
-                                view.setBackgroundColor(Color.parseColor("#FF3030"));
+                                view.setBackgroundResource( R.color.crvena );
+                                int prvaVidljiva = odgovoriPitanja.getFirstVisiblePosition();
+                                int zadnjaVidljiva = odgovoriPitanja.getChildCount();
+                                System.out.println(  prvaVidljiva + " " + zadnjaVidljiva );
                             for (int i = 0; i < parent.getChildCount(); i++) {
                                 if (trenutnoPitanje.getTacan().equals(parent.getItemAtPosition(i).toString())) {
-                                    parent.getChildAt(i).setBackgroundColor(Color.parseColor("#7FFF00"));
+                                    parent.getChildAt(i).setBackgroundResource( R.color.zelena );
                                     if (i == position) brTacnihOdgovora++;
                                 }
                             }

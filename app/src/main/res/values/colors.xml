@@ -8,4 +8,6 @@
     <color name="plavaBoja">#003366</color>
     <color name="bijelaBoja">#FAFAFA</color>
     <color name="crnaBoja">#111</color>
+    <color name="crvena">#FF3030</color>
+    <color name="zelena">#7FFF00</color>
 </resources>

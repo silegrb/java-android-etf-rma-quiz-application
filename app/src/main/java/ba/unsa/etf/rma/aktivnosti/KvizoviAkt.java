@@ -65,8 +65,8 @@ public class KvizoviAkt extends AppCompatActivity implements ListaFrag.OnListaFr
             detailFrag = new DetailFrag();
             FragmentManager fragmentManagerFinal = getSupportFragmentManager();
             FragmentTransaction fragmentTransaction = fragmentManagerFinal.beginTransaction();
-            fragmentTransaction.add( R.id.listPlace, listaFrag );
-            fragmentTransaction.add( R.id.detailPlace, detailFrag );
+            fragmentTransaction.replace( R.id.listPlace, listaFrag );
+            fragmentTransaction.replace( R.id.detailPlace, detailFrag );
             fragmentTransaction.commit();
         }
         else{
