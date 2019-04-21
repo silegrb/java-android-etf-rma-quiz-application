@@ -60,4 +60,12 @@ public class InformacijeFrag extends Fragment {
         String brojNaDvijeDecimale = String.valueOf(pomoc);
         infProcenatTacni.setText( brojNaDvijeDecimale + "%" );
     }
+
+    public void paliGasiDugme(){
+        if( btnKraj.isEnabled() ){
+            btnKraj.setEnabled( false );
+        }
+        else
+            btnKraj.setEnabled(true);
+    }
 }

@@ -380,7 +380,7 @@ public class KvizoviAkt extends AppCompatActivity implements ListaFrag.OnListaFr
         super.onActivityResult(requestCode, resultCode, data);
         FragmentManager fragmentManager = getSupportFragmentManager();
         FrameLayout layoutDetalji = (FrameLayout) findViewById(R.id.detailPlace);
-        if( detailFrag != null ) {
+        if( layoutDetalji != null ) {
             detailFrag.onActivityResult(requestCode, resultCode, data);
             return;
         }
