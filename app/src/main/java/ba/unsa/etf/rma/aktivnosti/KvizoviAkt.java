@@ -32,7 +32,7 @@ public class KvizoviAkt extends AppCompatActivity {
     public static ArrayList<Kategorija> kategorije = new ArrayList<>();
     private ArrayAdapter<Kategorija> adapterZaSpinner;
     private AdapterZaListuKvizova adapterZaListuKvizova;
-    String spinnerOdabir;
+    private String spinnerOdabir;
     private static int pozicijaKviza;
 
 
@@ -40,6 +40,16 @@ public class KvizoviAkt extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //Prvo svima skinemo vrijednosti!
+        kvizovi.clear();
+        prikazaniKvizovi.clear();
+        kategorije.clear();
+        adapterZaSpinner = null;
+        adapterZaListuKvizova = null;
+        spinnerOdabir = null;
+      //  pozicijaKviza = -1;
+
 
         //Potrebno je dodijeliti sve vrijednosti pomocu id-a.
         listaKvizova = (ListView) findViewById(R.id.lvKvizovi);
@@ -281,4 +291,5 @@ public class KvizoviAkt extends AppCompatActivity {
             }
         }
     }
+
 }

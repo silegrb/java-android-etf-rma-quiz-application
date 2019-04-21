@@ -35,7 +35,7 @@ public class InformacijeFrag extends Fragment {
         btnKraj = (Button)rootView.findViewById(R.id.btnKraj);
         trenutniKviz = (Kviz)getArguments().getSerializable("trenutniKviz");
         infNazivKviza.setText( trenutniKviz.getNaziv() );
-        infBrojPreostalihPitanja.setText( String.valueOf( trenutniKviz.getPitanja().size() ) );
+        infBrojPreostalihPitanja.setText( String.valueOf( trenutniKviz.getPitanja().size() - 1 ) );
         infBrojTacnihPitanja.setText( "0" );
         infProcenatTacni.setText("0.0%");
         btnKraj.setOnClickListener(new View.OnClickListener() {
@@ -48,7 +48,10 @@ public class InformacijeFrag extends Fragment {
     }
 
     public void primiNotifikaciju(int brojPreostalih, int brojOdgovorenih, int brojTacnih) {
-        infBrojPreostalihPitanja.setText( String.valueOf( brojPreostalih ) );
+        if( brojPreostalih == -1 )
+            infBrojPreostalihPitanja.setText( "0" );
+        else
+            infBrojPreostalihPitanja.setText( String.valueOf( brojPreostalih ) );
         infBrojTacnihPitanja.setText( String.valueOf( brojTacnih ) );
         double pomoc = (double)brojTacnih/brojOdgovorenih;
         pomoc *= 100;

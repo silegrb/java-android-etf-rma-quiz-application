@@ -84,7 +84,6 @@ public class PitanjeFrag extends Fragment {
                             }
                             alPitanja.remove(trenutnoPitanje);
                             brPreostalihPitanja--;
-                            callback.messageFromGreenFragment(alPitanja.size(), trenutniKviz.getPitanja().size() - brPreostalihPitanja, brTacnihOdgovora);
                             (new Handler()).postDelayed(() -> {
                                 for (int i = 0; i < parent.getChildCount(); i++)
                                     parent.getChildAt(i).setBackgroundColor(Color.WHITE);
@@ -99,8 +98,9 @@ public class PitanjeFrag extends Fragment {
                                     alOdgovori.clear();
                                     alOdgovori.addAll(trenutnoPitanje.dajRandomOdgovore());
                                     adapter.notifyDataSetChanged();
-                                    pitanjeOdgovoreno = false;
                                 }
+                                pitanjeOdgovoreno = false;
+                                callback.messageFromGreenFragment(alPitanja.size() - 1, trenutniKviz.getPitanja().size() - brPreostalihPitanja, brTacnihOdgovora);
                             }, 2000);
 
                         }
