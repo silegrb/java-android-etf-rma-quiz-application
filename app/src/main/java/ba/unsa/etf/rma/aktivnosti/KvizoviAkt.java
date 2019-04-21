@@ -378,6 +378,13 @@ public class KvizoviAkt extends AppCompatActivity implements ListaFrag.OnListaFr
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        FrameLayout layoutDetalji = (FrameLayout) findViewById(R.id.detailPlace);
+        if( detailFrag != null ) {
+            detailFrag.onActivityResult(requestCode, resultCode, data);
+            return;
+        }
+
         if( requestCode == pozicijaKviza ){
             if( resultCode == RESULT_OK ){
                 spinnerKategorije.setSelection(0);
