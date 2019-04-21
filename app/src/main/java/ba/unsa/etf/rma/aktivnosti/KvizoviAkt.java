@@ -114,7 +114,17 @@ public class KvizoviAkt extends AppCompatActivity {
             }
         });
 
-
+        listaKvizova.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Kviz k = (Kviz)parent.getItemAtPosition(position);
+                if( !k.getNaziv().equals("Dodaj kviz") ){
+                    Intent intent = new Intent(KvizoviAkt.this, IgrajKvizAkt.class);
+                    intent.putExtra("odabraniKviz", k );
+                    startActivity(intent);
+                }
+            }
+        });
 
     }
 

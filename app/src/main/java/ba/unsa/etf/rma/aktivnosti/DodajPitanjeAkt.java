@@ -49,6 +49,7 @@ public class DodajPitanjeAkt extends AppCompatActivity {
         etNaziv = (EditText) findViewById(R.id.etNaziv);
         etOdgovor = (EditText) findViewById(R.id.etOdgovor);
 
+
         //Postavljanje adaptera.
         adapterZaListuOdgovora = new AdapterZaListuOdgovora(this, alOdgovori);
         lvOdgovori.setAdapter(adapterZaListuOdgovora);
