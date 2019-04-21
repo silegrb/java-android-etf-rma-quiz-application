@@ -108,9 +108,13 @@ public class PitanjeFrag extends Fragment {
                                     adapter.notifyDataSetChanged();
                                 }
                                 pitanjeOdgovoreno = false;
-
-                                callback.msg2();
-                                callback.messageFromGreenFragment(alPitanja.size() - 1, trenutniKviz.getPitanja().size() - brPreostalihPitanja, brTacnihOdgovora);
+                                try {
+                                    callback.msg2();
+                                    callback.messageFromGreenFragment(alPitanja.size() - 1, trenutniKviz.getPitanja().size() - brPreostalihPitanja, brTacnihOdgovora);
+                                }
+                                catch (Exception e){
+                                    e.printStackTrace();
+                                }
                                 odgovoriPitanja.setEnabled(true);
                             }, 2000);
 
