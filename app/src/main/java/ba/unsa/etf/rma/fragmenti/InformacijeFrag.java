@@ -35,7 +35,10 @@ public class InformacijeFrag extends Fragment {
         btnKraj = (Button)rootView.findViewById(R.id.btnKraj);
         trenutniKviz = (Kviz)getArguments().getSerializable("trenutniKviz");
         infNazivKviza.setText( trenutniKviz.getNaziv() );
-        infBrojPreostalihPitanja.setText( String.valueOf( trenutniKviz.getPitanja().size() - 1 ) );
+        if( trenutniKviz.getPitanja().size() == 0 )
+            infBrojPreostalihPitanja.setText( "0" );
+        else
+            infBrojPreostalihPitanja.setText( String.valueOf( trenutniKviz.getPitanja().size() - 1 ) );
         infBrojTacnihPitanja.setText( "0" );
         infProcenatTacni.setText("0.0%");
         btnKraj.setOnClickListener(new View.OnClickListener() {

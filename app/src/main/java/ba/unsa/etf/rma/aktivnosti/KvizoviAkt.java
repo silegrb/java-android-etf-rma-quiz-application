@@ -24,20 +24,20 @@ import ba.unsa.etf.rma.klase.Kategorija;
 import ba.unsa.etf.rma.klase.Kviz;
 import ba.unsa.etf.rma.klase.Pitanje;
 
-public class KvizoviAkt extends AppCompatActivity {
+public class KvizoviAkt extends AppCompatActivity implements ListaFrag.OnListaFragmentListener, DetailFrag.OnDetailFragmentListener {
 
     private ListView listaKvizova;
     private Spinner spinnerKategorije;
 
     //Lista 'kvizovi' se koristi za cuvanje svih postojecih kvizova,
     //dok se lista 'prikazaniKvizovi' koristi za prikazivanje svih/filtriranih kvizova.
-    private ArrayList<Kviz> kvizovi = new ArrayList<>();
-    private ArrayList<Kviz> prikazaniKvizovi = new ArrayList<>();
+    public static ArrayList<Kviz> kvizovi = new ArrayList<>();
+    public static ArrayList<Kviz> prikazaniKvizovi = new ArrayList<>();
     public static ArrayList<Kategorija> kategorije = new ArrayList<>();
     private ArrayAdapter<Kategorija> adapterZaSpinner;
     private AdapterZaListuKvizova adapterZaListuKvizova;
     private String spinnerOdabir;
-    private static int pozicijaKviza;
+    public static int pozicijaKviza;
 
     DetailFrag detailFrag;
     ListaFrag listaFrag;
@@ -56,6 +56,11 @@ public class KvizoviAkt extends AppCompatActivity {
         FragmentManager fragmentManager = getSupportFragmentManager();
         FrameLayout layoutDetalji = (FrameLayout) findViewById( R.id.detailPlace);
         if( layoutDetalji != null ){
+            kvizovi.clear();
+            prikazaniKvizovi.clear();
+            Kviz k = new Kviz();
+            k.setNaziv("Dodaj kviz");
+            prikazaniKvizovi.add(k);
             listaFrag = new ListaFrag();
             detailFrag = new DetailFrag();
             FragmentManager fragmentManagerFinal = getSupportFragmentManager();
@@ -64,7 +69,8 @@ public class KvizoviAkt extends AppCompatActivity {
             fragmentTransaction.add( R.id.detailPlace, detailFrag );
             fragmentTransaction.commit();
         }
-        else{//Prvo svima skinemo vrijednosti!
+        else{
+            //Prvo svima skinemo vrijednosti!
         kvizovi.clear();
         prikazaniKvizovi.clear();
         adapterZaSpinner = null;
@@ -313,4 +319,13 @@ public class KvizoviAkt extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void msg(String odabir) {
+        detailFrag.primiNotifikaciju( odabir );
+    }
+
+    @Override
+    public void msg1() {
+        listaFrag.primiNotifikaciju();
+    }
 }

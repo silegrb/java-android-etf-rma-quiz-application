@@ -295,6 +295,22 @@ public class DodajKvizAkt extends AppCompatActivity {
                         }
                         else {
                             prviRed = procitaniCsvFajl.get(0);
+                            if( prviRed.length < 3 ) {
+                                greskaSeVecDesila = true;
+                                importuj = false;
+                                greskaSeVecDesila = true;
+                                AlertDialog alertDialog = new AlertDialog.Builder(DodajKvizAkt.this).create();
+                                alertDialog.setTitle("Upozorenje");
+                                alertDialog.setMessage("Neispravan format prvog reda!");
+                                alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
+                                        new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                dialog.dismiss();
+                                            }
+                                        });
+                                alertDialog.show();
+                            }
+                            if( !greskaSeVecDesila ){
                             boolean vecPostoji = false;
                             for (int i = 0; i < kvizovi.size(); i++)
                                 if (kvizovi.get(i).getNaziv().equals(prviRed[0]))
@@ -312,6 +328,7 @@ public class DodajKvizAkt extends AppCompatActivity {
                                             }
                                         });
                                 alertDialog.show();
+                            }
                             }
                             if (!greskaSeVecDesila && Integer.parseInt(prviRed[2]) != procitaniCsvFajl.size() - 1) {
                                 //Broj pitanja nije ispravan.
@@ -433,6 +450,7 @@ public class DodajKvizAkt extends AppCompatActivity {
                                 alertDialog.show();
                             }
                         }
+
 
 
 

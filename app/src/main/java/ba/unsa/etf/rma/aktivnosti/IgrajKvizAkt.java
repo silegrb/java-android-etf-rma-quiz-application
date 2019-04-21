@@ -34,6 +34,6 @@ public class IgrajKvizAkt extends AppCompatActivity implements PitanjeFrag.OnPit
 
     @Override
     public void messageFromGreenFragment(int brojPreostalih, int brojOdgovorenih, int brojTacnih) {
-            informacijeFrag.primiNotifikaciju( brojPreostalih, brojOdgovorenih, brojTacnih );
+        informacijeFrag.primiNotifikaciju( brojPreostalih, brojOdgovorenih, brojTacnih );
     }
 }
