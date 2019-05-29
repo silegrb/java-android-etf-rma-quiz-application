@@ -31,6 +31,7 @@ import ba.unsa.etf.rma.klase.Kategorija;
 import ba.unsa.etf.rma.klase.Kviz;
 import ba.unsa.etf.rma.klase.Pitanje;
 
+
 public class DodajKvizAkt extends AppCompatActivity {
 
     private static final int READ_REQUEST_CODE = 42;
@@ -40,12 +41,12 @@ public class DodajKvizAkt extends AppCompatActivity {
     private ArrayList<Kategorija> kategorije;
     private ArrayList<Kviz> kvizovi;
     private Kviz trenutniKviz;
-    private ArrayAdapter<Kategorija> adapterZaSpinner;
+    private static ArrayAdapter<Kategorija> adapterZaSpinner;
     private Spinner kategorijeSpinner;
     private ListView lvTrenutnihPitanja;
     private ListView lvMogucihPitanja;
-    private ArrayList<Pitanje>  alTrenutnaPitanja = new ArrayList<>();
-    private ArrayList<Pitanje>  alMogucaPitanja = new ArrayList<>();
+    private ArrayList<Pitanje> alTrenutnaPitanja = new ArrayList<>();
+    private ArrayList<Pitanje> alMogucaPitanja = new ArrayList<>();
     private AdapterZaListuTrenutnihPitanja adapterZaListuTrenutnihPitanja;
     private AdapterZaListuMogucihPitanja adapterZaListuMogucihPitanja;
 
@@ -55,68 +56,67 @@ public class DodajKvizAkt extends AppCompatActivity {
         setContentView(R.layout.activity_dodaj_kviz_akt);
 
         //Dodajmo sve vrijednosti koristeci id.
-        etNaziv = ( EditText ) findViewById( R.id.etNaziv );
-        btnDodajKviz = (Button) findViewById( R.id.btnDodajKviz );
-        btnImportKviz = (Button) findViewById( R.id.btnImportKviz );
-        kategorijeSpinner = (Spinner)findViewById(R.id.spKategorije );
-        lvMogucihPitanja = (ListView) findViewById( R.id.lvMogucaPitanja );
-        lvTrenutnihPitanja = (ListView) findViewById( R.id.lvDodanaPitanja );
+        etNaziv = (EditText) findViewById(R.id.etNaziv);
+        btnDodajKviz = (Button) findViewById(R.id.btnDodajKviz);
+        btnImportKviz = (Button) findViewById(R.id.btnImportKviz);
+        kategorijeSpinner = (Spinner) findViewById(R.id.spKategorije);
+        lvMogucihPitanja = (ListView) findViewById(R.id.lvMogucaPitanja);
+        lvTrenutnihPitanja = (ListView) findViewById(R.id.lvDodanaPitanja);
 
         //Kupljenje podataka iz intenta.
-        trenutniKviz = (Kviz)getIntent().getSerializableExtra("trenutniKviz");
-        kategorije = (ArrayList<Kategorija>)getIntent().getSerializableExtra("sveKategorije");
-        kvizovi = (ArrayList<Kviz>)getIntent().getSerializableExtra("sviKvizovi");
+        trenutniKviz = (Kviz) getIntent().getSerializableExtra("trenutniKviz");
+        kategorije = (ArrayList<Kategorija>) getIntent().getSerializableExtra("sveKategorije");
+        kvizovi = (ArrayList<Kviz>) getIntent().getSerializableExtra("sviKvizovi");
 
         //Postavljanje adaptera.
         adapterZaSpinner = new ArrayAdapter<Kategorija>(this, android.R.layout.simple_list_item_1, kategorije);
-        kategorijeSpinner.setAdapter( adapterZaSpinner );
-        adapterZaListuTrenutnihPitanja = new AdapterZaListuTrenutnihPitanja( this, alTrenutnaPitanja );
-        lvTrenutnihPitanja.setAdapter( adapterZaListuTrenutnihPitanja );
-        adapterZaListuMogucihPitanja = new AdapterZaListuMogucihPitanja( this, alMogucaPitanja );
-        lvMogucihPitanja.setAdapter( adapterZaListuMogucihPitanja );
+        kategorijeSpinner.setAdapter(adapterZaSpinner);
+        adapterZaListuTrenutnihPitanja = new AdapterZaListuTrenutnihPitanja(this, alTrenutnaPitanja);
+        lvTrenutnihPitanja.setAdapter(adapterZaListuTrenutnihPitanja);
+        adapterZaListuMogucihPitanja = new AdapterZaListuMogucihPitanja(this, alMogucaPitanja);
+        lvMogucihPitanja.setAdapter(adapterZaListuMogucihPitanja);
 
         //Dodavanje imaginarne kategorije, pomocu kojeg mozemo dodati novu kategoriju.
         final Kategorija kategorijaZaDodavanje = new Kategorija();
         kategorijaZaDodavanje.setNaziv("Dodaj kategoriju");
-        kategorije.add( kategorijaZaDodavanje );
+        kategorije.add(kategorijaZaDodavanje);
 
         //Ukoliko je trenutniKviz apstraktni kviz za dodavanje, samo spinner kategorija postavljamo na svi, a
         //ako nije (else dio) onda cemo sve vrijednosti postaviti na podatke odabranog kviza.
-        if( trenutniKviz.getNaziv().equals("Dodaj kviz") )
+        if (trenutniKviz.getNaziv().equals("Dodaj kviz"))
             kategorijeSpinner.setSelection(0);
         else {
             int position = -1;
-            for( int i = 0; i < kategorije.size(); i++ )
-                if( kategorije.get(i).getNaziv().equals( trenutniKviz.getKategorija().getNaziv() ) ){
+            for (int i = 0; i < kategorije.size(); i++)
+                if (kategorije.get(i).getNaziv().equals(trenutniKviz.getKategorija().getNaziv())) {
                     position = i;
                     break;
                 }
-            kategorijeSpinner.setSelection( position );
+            kategorijeSpinner.setSelection(position);
             alTrenutnaPitanja.addAll(trenutniKviz.getPitanja());
-            etNaziv.setText( trenutniKviz.getNaziv() );
+            etNaziv.setText(trenutniKviz.getNaziv());
         }
 
         //Dodajmo u listu trenutnih pitanja i apstraktni element pomocu kojeg mozemo dodati i novo pitanje.
         final Pitanje dodajPitanje = new Pitanje();
         dodajPitanje.setNaziv("Dodaj pitanje");
-        alTrenutnaPitanja.add( dodajPitanje );
+        alTrenutnaPitanja.add(dodajPitanje);
         adapterZaListuTrenutnihPitanja.notifyDataSetChanged();
 
         //Akcija pritiska elementa lvTrenutnihPitanja prebacuje pritisnuti element u listu mogucih pitanja.
         lvTrenutnihPitanja.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Pitanje odabrano = (Pitanje) parent.getItemAtPosition( position );
-                if( !odabrano.getNaziv().equals("Dodaj pitanje") ) {
+                Pitanje odabrano = (Pitanje) parent.getItemAtPosition(position);
+                if (!odabrano.getNaziv().equals("Dodaj pitanje")) {
                     alTrenutnaPitanja.remove(odabrano);
                     alMogucaPitanja.add(odabrano);
-                }
-                else{
-                    Intent dodajPitanjeAkt = new Intent( DodajKvizAkt.this, DodajPitanjeAkt.class );
+                } else {
+                    Intent dodajPitanjeAkt = new Intent(DodajKvizAkt.this, DodajPitanjeAkt.class);
                     dodajPitanjeAkt.putExtra("trenutniKviz", trenutniKviz);
                     dodajPitanjeAkt.putExtra("trenutnaPitanja", alTrenutnaPitanja);
                     dodajPitanjeAkt.putExtra("mogucaPitanja", alMogucaPitanja);
-                    DodajKvizAkt.this.startActivityForResult( dodajPitanjeAkt, 777 );
+                    DodajKvizAkt.this.startActivityForResult(dodajPitanjeAkt, 777);
                 }
                 adapterZaListuMogucihPitanja.notifyDataSetChanged();
                 adapterZaListuTrenutnihPitanja.notifyDataSetChanged();
@@ -127,9 +127,9 @@ public class DodajKvizAkt extends AppCompatActivity {
         lvMogucihPitanja.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Pitanje odabrano = (Pitanje) parent.getItemAtPosition( position );
+                Pitanje odabrano = (Pitanje) parent.getItemAtPosition(position);
                 alMogucaPitanja.remove(odabrano);
-                    alTrenutnaPitanja.add(alTrenutnaPitanja.size() - 1,odabrano);
+                alTrenutnaPitanja.add(alTrenutnaPitanja.size() - 1, odabrano);
 
                 adapterZaListuMogucihPitanja.notifyDataSetChanged();
                 adapterZaListuTrenutnihPitanja.notifyDataSetChanged();
@@ -144,35 +144,32 @@ public class DodajKvizAkt extends AppCompatActivity {
 
                 String uredjivaniKviz = "";
 
-                if( etNaziv.getText().toString().equals("") ){
+                if (etNaziv.getText().toString().equals("")) {
                     etNaziv.setBackgroundColor(Color.parseColor("#ff0006"));
-                    Toast.makeText(v.getContext(), "Unesi ime kviza!", Toast.LENGTH_SHORT ).show();
-                }
-                else{
+                    Toast.makeText(v.getContext(), "Unesi ime kviza!", Toast.LENGTH_SHORT).show();
+                } else {
                     boolean dodajNoviKviz = false, vecPostoji = false;
-                    if( trenutniKviz.getNaziv().equals("Dodaj kviz") )
+                    if (trenutniKviz.getNaziv().equals("Dodaj kviz"))
                         dodajNoviKviz = true;
 
-                    if( dodajNoviKviz ){
-                        for( Kviz k: kvizovi )
-                            if( k.getNaziv().equals( etNaziv.getText().toString() ) )
+                    if (dodajNoviKviz) {
+                        for (Kviz k : kvizovi)
+                            if (k.getNaziv().equals(etNaziv.getText().toString()))
                                 vecPostoji = true;
-                    }
-                    else {
+                    } else {
                         uredjivaniKviz = trenutniKviz.getNaziv();
-                        for( Kviz k: kvizovi )
-                            if( !k.getNaziv().equals( uredjivaniKviz ) && k.getNaziv().equals( etNaziv.getText().toString() ) )
+                        for (Kviz k : kvizovi)
+                            if (!k.getNaziv().equals(uredjivaniKviz) && k.getNaziv().equals(etNaziv.getText().toString()))
                                 vecPostoji = true;
                     }
 
-                    if( etNaziv.getText().toString().equals("Dodaj kviz") )
+                    if (etNaziv.getText().toString().equals("Dodaj kviz"))
                         vecPostoji = true;
 
-                    if( vecPostoji ){
+                    if (vecPostoji) {
                         etNaziv.setBackgroundColor(Color.parseColor("#ff0006"));
-                        Toast.makeText(v.getContext(), "Kviz vec postoji!", Toast.LENGTH_SHORT ).show();
-                    }
-                    else {
+                        Toast.makeText(v.getContext(), "Kviz vec postoji!", Toast.LENGTH_SHORT).show();
+                    } else {
                         Kviz povratniKviz = new Kviz();
                         for (int i = 0; i < alTrenutnaPitanja.size(); i++)
                             if (alTrenutnaPitanja.get(i).getNaziv().equals("Dodaj pitanje")) {
@@ -187,6 +184,7 @@ public class DodajKvizAkt extends AppCompatActivity {
                         resIntent.putExtra("noviKviz", povratniKviz);
                         resIntent.putExtra("dodajNoviKviz", dodajNoviKviz);
                         setResult(RESULT_OK, resIntent);
+                        kvizovi.add(kvizovi.size(), povratniKviz);
                         finish();
                     }
                 }
@@ -197,10 +195,10 @@ public class DodajKvizAkt extends AppCompatActivity {
         btnImportKviz.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent( Intent.ACTION_OPEN_DOCUMENT );
-                intent.addCategory( Intent.CATEGORY_OPENABLE );
-                intent.setType( "text/*" );
-                startActivityForResult( intent, READ_REQUEST_CODE );
+                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                intent.setType("text/*");
+                startActivityForResult(intent, READ_REQUEST_CODE);
             }
         });
 
@@ -213,7 +211,7 @@ public class DodajKvizAkt extends AppCompatActivity {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if( !s.equals("") )
+                if (!s.equals(""))
                     etNaziv.setBackgroundResource(R.drawable.button_border);
             }
 
@@ -224,48 +222,47 @@ public class DodajKvizAkt extends AppCompatActivity {
         });
 
         //Ukoliko pritisnemo na kategoriju 'Dodaj kategoriju' pokrece se nova aktivnost za dodavanje nove kategorije.
-       kategorijeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-           @Override
-           public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-               if( parent.getItemAtPosition(position).toString().equals("Dodaj kategoriju") ){
-                   Intent dodajKategorijuAkt = new Intent( DodajKvizAkt.this, DodajKategorijuAkt.class );
-                   dodajKategorijuAkt.putExtra("sveKategorije", kategorije );
-                   DodajKvizAkt.this.startActivityForResult( dodajKategorijuAkt, 69 );
-               }
-           }
+        kategorijeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (parent.getItemAtPosition(position).toString().equals("Dodaj kategoriju")) {
+                    Intent dodajKategorijuAkt = new Intent(DodajKvizAkt.this, DodajKategorijuAkt.class);
+                    dodajKategorijuAkt.putExtra("sveKategorije", kategorije);
+                    DodajKvizAkt.this.startActivityForResult(dodajKategorijuAkt, 69);
+                }
+            }
 
-           @Override
-           public void onNothingSelected(AdapterView<?> parent) {
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
                 //Do nothing
-           }
-       });
+            }
+        });
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if( requestCode == 777 ){
-            if( resultCode == RESULT_OK ){
+        if (requestCode == 777) {
+            if (resultCode == RESULT_OK) {
                 Pitanje pitanje = (Pitanje) data.getExtras().get("novoPitanje");
-                alTrenutnaPitanja.add( alTrenutnaPitanja.size() - 1, pitanje );
+                alTrenutnaPitanja.add(alTrenutnaPitanja.size() - 1, pitanje);
                 adapterZaListuMogucihPitanja.notifyDataSetChanged();
                 adapterZaListuTrenutnihPitanja.notifyDataSetChanged();
             }
         }
-        if( requestCode == 69 ){
-            if( resultCode == RESULT_OK ){
+        if (requestCode == 69) {
+            if (resultCode == RESULT_OK) {
                 Kategorija k = (Kategorija) data.getExtras().get("novaKategorija");
-                kategorije.add( kategorije.size() - 1, k );
-                kategorijeSpinner.setSelection( kategorije.size() - 2 );
+                kategorije.add(kategorije.size() - 1, k);
+                kategorijeSpinner.setSelection(kategorije.size() - 2);
                 adapterZaSpinner.notifyDataSetChanged();
-            }
-            else{
-                kategorijeSpinner.setSelection( kategorije.size() - 2 );
+            } else {
+                kategorijeSpinner.setSelection(kategorije.size() - 2);
                 adapterZaSpinner.notifyDataSetChanged();
             }
         }
-        if( requestCode == READ_REQUEST_CODE ){
-            if( resultCode == RESULT_OK ){
+        if (requestCode == READ_REQUEST_CODE) {
+            if (resultCode == RESULT_OK) {
                 Uri uri = null;
                 if (data != null) {
                     uri = data.getData();
@@ -278,7 +275,7 @@ public class DodajKvizAkt extends AppCompatActivity {
                         ArrayList<Pitanje> pitanja = new ArrayList<>();
                         boolean importuj = true;
                         boolean greskaSeVecDesila = false;
-                        if( procitaniCsvFajl.size() == 0 ){
+                        if (procitaniCsvFajl.size() == 0) {
                             importuj = false;
                             greskaSeVecDesila = true;
                             AlertDialog alertDialog = new AlertDialog.Builder(DodajKvizAkt.this).create();
@@ -292,10 +289,9 @@ public class DodajKvizAkt extends AppCompatActivity {
                                     });
 
                             alertDialog.show();
-                        }
-                        else {
+                        } else {
                             prviRed = procitaniCsvFajl.get(0);
-                            if( prviRed.length < 3 ) {
+                            if (prviRed.length < 3) {
                                 greskaSeVecDesila = true;
                                 importuj = false;
                                 greskaSeVecDesila = true;
@@ -310,25 +306,25 @@ public class DodajKvizAkt extends AppCompatActivity {
                                         });
                                 alertDialog.show();
                             }
-                            if( !greskaSeVecDesila ){
-                            boolean vecPostoji = false;
-                            for (int i = 0; i < kvizovi.size(); i++)
-                                if (kvizovi.get(i).getNaziv().equals(prviRed[0]))
-                                    vecPostoji = true;
-                            if (!greskaSeVecDesila && vecPostoji) {
-                                importuj = false;
-                                greskaSeVecDesila = true;
-                                AlertDialog alertDialog = new AlertDialog.Builder(DodajKvizAkt.this).create();
-                                alertDialog.setTitle("Upozorenje");
-                                alertDialog.setMessage("Kviz kojeg importujete već postoji!");
-                                alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
-                                        new DialogInterface.OnClickListener() {
-                                            public void onClick(DialogInterface dialog, int which) {
-                                                dialog.dismiss();
-                                            }
-                                        });
-                                alertDialog.show();
-                            }
+                            if (!greskaSeVecDesila) {
+                                boolean vecPostoji = false;
+                                for (int i = 0; i < kvizovi.size(); i++)
+                                    if (kvizovi.get(i).getNaziv().equals(prviRed[0]))
+                                        vecPostoji = true;
+                                if (!greskaSeVecDesila && vecPostoji) {
+                                    importuj = false;
+                                    greskaSeVecDesila = true;
+                                    AlertDialog alertDialog = new AlertDialog.Builder(DodajKvizAkt.this).create();
+                                    alertDialog.setTitle("Upozorenje");
+                                    alertDialog.setMessage("Kviz kojeg importujete već postoji!");
+                                    alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
+                                            new DialogInterface.OnClickListener() {
+                                                public void onClick(DialogInterface dialog, int which) {
+                                                    dialog.dismiss();
+                                                }
+                                            });
+                                    alertDialog.show();
+                                }
                             }
                             if (!greskaSeVecDesila && Integer.parseInt(prviRed[2]) != procitaniCsvFajl.size() - 1) {
                                 //Broj pitanja nije ispravan.
@@ -347,8 +343,9 @@ public class DodajKvizAkt extends AppCompatActivity {
                             }
 
                             boolean neispravanFormatPitanja = false;
-                            for (int i  = 1; i < procitaniCsvFajl.size(); i++ )
-                                if (procitaniCsvFajl.get(i).length < 4 ) neispravanFormatPitanja = true;
+                            for (int i = 1; i < procitaniCsvFajl.size(); i++)
+                                if (procitaniCsvFajl.get(i).length < 4)
+                                    neispravanFormatPitanja = true;
 
                             if (!greskaSeVecDesila && neispravanFormatPitanja) {
                                 importuj = false;
@@ -375,37 +372,37 @@ public class DodajKvizAkt extends AppCompatActivity {
                                     p.setNaziv(tempStringNiz[0]);
                                     int brojOdgovora = Integer.parseInt(tempStringNiz[1]);
                                     int indeksTacnogOdgovora = Integer.parseInt(tempStringNiz[2]);
-                                    if( brojOdgovora != tempStringNiz.length - 3 )
+                                    if (brojOdgovora != tempStringNiz.length - 3)
                                         neispravanBrojOdgovora = true;
-                                    if( indeksTacnogOdgovora < 0 || indeksTacnogOdgovora > brojOdgovora - 1 )
+                                    if (indeksTacnogOdgovora < 0 || indeksTacnogOdgovora > brojOdgovora - 1)
                                         neispravanIndeksTacnogOdgovora = true;
                                     ArrayList<String> odgovori = new ArrayList<>();
-                                    for( int j = 3; j < tempStringNiz.length; j++ )
-                                        odgovori.add( tempStringNiz[j] );
-                                    if( !neispravanBrojOdgovora && !neispravanIndeksTacnogOdgovora  ){
-                                        p.setTekstPitanja( tempStringNiz[0] );
-                                        p.setOdgovori( odgovori );
-                                        p.setTacan( odgovori.get(indeksTacnogOdgovora) );
-                                        pitanja.add( p );
+                                    for (int j = 3; j < tempStringNiz.length; j++)
+                                        odgovori.add(tempStringNiz[j]);
+                                    if (!neispravanBrojOdgovora && !neispravanIndeksTacnogOdgovora) {
+                                        p.setTekstPitanja(tempStringNiz[0]);
+                                        p.setOdgovori(odgovori);
+                                        p.setTacan(odgovori.get(indeksTacnogOdgovora));
+                                        pitanja.add(p);
                                     }
                                 }
 
-                                if( !neispravanBrojOdgovora && !neispravanIndeksTacnogOdgovora ){
-                                    for( int i = 0; i < pitanja.size(); i++ ){
+                                if (!neispravanBrojOdgovora && !neispravanIndeksTacnogOdgovora) {
+                                    for (int i = 0; i < pitanja.size(); i++) {
                                         ArrayList<String> odgovori = pitanja.get(i).getOdgovori();
                                         ArrayList<String> odgovoriKojiSeNePonavljaju = new ArrayList<>();
-                                        for( int j = 0; j < odgovori.size(); j++ )
-                                            if( !odgovoriKojiSeNePonavljaju.contains( odgovori.get(j) ) )
-                                                odgovoriKojiSeNePonavljaju.add( odgovori.get(j) );
+                                        for (int j = 0; j < odgovori.size(); j++)
+                                            if (!odgovoriKojiSeNePonavljaju.contains(odgovori.get(j)))
+                                                odgovoriKojiSeNePonavljaju.add(odgovori.get(j));
 
-                                        if( odgovori.size() != odgovoriKojiSeNePonavljaju.size() )
+                                        if (odgovori.size() != odgovoriKojiSeNePonavljaju.size())
                                             odgovorSePonovio = true;
                                     }
                                 }
 
                             }
 
-                            if( !greskaSeVecDesila && neispravanBrojOdgovora ){
+                            if (!greskaSeVecDesila && neispravanBrojOdgovora) {
                                 importuj = false;
                                 greskaSeVecDesila = true;
                                 AlertDialog alertDialog = new AlertDialog.Builder(DodajKvizAkt.this).create();
@@ -420,7 +417,7 @@ public class DodajKvizAkt extends AppCompatActivity {
                                 alertDialog.show();
                             }
 
-                            if( !greskaSeVecDesila && neispravanIndeksTacnogOdgovora ){
+                            if (!greskaSeVecDesila && neispravanIndeksTacnogOdgovora) {
                                 importuj = false;
                                 greskaSeVecDesila = true;
                                 AlertDialog alertDialog = new AlertDialog.Builder(DodajKvizAkt.this).create();
@@ -435,7 +432,7 @@ public class DodajKvizAkt extends AppCompatActivity {
                                 alertDialog.show();
                             }
 
-                            if( !greskaSeVecDesila && odgovorSePonovio ){
+                            if (!greskaSeVecDesila && odgovorSePonovio) {
                                 importuj = false;
                                 greskaSeVecDesila = true;
                                 AlertDialog alertDialog = new AlertDialog.Builder(DodajKvizAkt.this).create();
@@ -452,63 +449,45 @@ public class DodajKvizAkt extends AppCompatActivity {
                         }
 
 
-
-
-                        if( importuj ){
+                        if (importuj) {
                             //Prvo provjeravamo da li kategorija postoji, te ako ne postoji dodajemo je.
-                                boolean kategorijaVecPostoji = false;
-                                for( Kategorija k: KvizoviAkt.kategorije )
-                                    if( k.getNaziv().equals( prviRed[1] ) )
-                                        kategorijaVecPostoji = true;
+                            boolean kategorijaVecPostoji = false;
+                            for (Kategorija k : KvizoviAkt.kategorije)
+                                if (k.getNaziv().equals(prviRed[1]))
+                                    kategorijaVecPostoji = true;
 
-                                if( !kategorijaVecPostoji ) {
-                                    Kategorija kategorija = new Kategorija();
-                                    kategorija.setNaziv( prviRed[1] );
-                                    kategorija.setId("958");
-                                    KvizoviAkt.kategorije.add( kategorije.size() - 1, kategorija );
-                                    kategorije.add( kategorije.size() - 1, kategorija );
-                                    kategorijeSpinner.setSelection( kategorije.size() - 2 );
-                                }
-                                else{
-                                    for( int i = 0; i < kategorije.size(); i++ )
-                                        if( kategorije.get(i).getNaziv().equals( prviRed[1] ) ) {
-                                            kategorijeSpinner.setSelection(i);
-                                            break;
-                                        }
-                                }
+                            if (!kategorijaVecPostoji) {
+                                Kategorija kategorija = new Kategorija();
+                                kategorija.setNaziv(prviRed[1]);
+                                kategorija.setId("958");
+                                kategorije.add(kategorije.size() - 1, kategorija);
+                                kategorijeSpinner.setSelection(kategorije.size() - 2);
+                            } else {
+                                for (int i = 0; i < kategorije.size(); i++)
+                                    if (kategorije.get(i).getNaziv().equals(prviRed[1])) {
+                                        kategorijeSpinner.setSelection(i);
+                                        break;
+                                    }
+                            }
 
-                                etNaziv.getText().clear();
-                                etNaziv.setText( prviRed[0] );
-                                alTrenutnaPitanja.clear();
-                                alTrenutnaPitanja.addAll( pitanja );
-                                Pitanje pDp = new Pitanje();
-                                pDp.setNaziv("Dodaj pitanje");
-                                alTrenutnaPitanja.add( pDp );
-                                alMogucaPitanja.clear();
-                                adapterZaListuTrenutnihPitanja.notifyDataSetChanged();
-                                adapterZaListuMogucihPitanja.notifyDataSetChanged();
-                                adapterZaSpinner.notifyDataSetChanged();
+                            etNaziv.getText().clear();
+                            etNaziv.setText(prviRed[0]);
+                            alTrenutnaPitanja.clear();
+                            alTrenutnaPitanja.addAll(pitanja);
+                            Pitanje pDp = new Pitanje();
+                            pDp.setNaziv("Dodaj pitanje");
+                            alTrenutnaPitanja.add(pDp);
+                            alMogucaPitanja.clear();
+                            adapterZaListuTrenutnihPitanja.notifyDataSetChanged();
+                            adapterZaListuMogucihPitanja.notifyDataSetChanged();
+                            adapterZaSpinner.notifyDataSetChanged();
                         }
-                            } catch (FileNotFoundException e) {
+                    } catch (FileNotFoundException e) {
                         e.printStackTrace();
                     }
-                }
                 }
             }
         }
     }
-
-//    private String readTextFromUri(Uri uri) throws IOException {
-//        InputStream inputStream = getContentResolver().openInputStream(uri);
-//        BufferedReader reader = new BufferedReader(new InputStreamReader(
-//                inputStream));
-//        StringBuilder stringBuilder = new StringBuilder();
-//        String line;
-//        while ((line = reader.readLine()) != null) {
-//            stringBuilder.append(line);
-//        }
-//        inputStream.close();
-//        reader.close();
-//        return stringBuilder.toString();
-//    }
+}
 

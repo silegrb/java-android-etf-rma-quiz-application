@@ -13,15 +13,20 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 
 import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
 
 import ba.unsa.etf.rma.R;
 import ba.unsa.etf.rma.aktivnosti.DodajKvizAkt;
 import ba.unsa.etf.rma.aktivnosti.IgrajKvizAkt;
 import ba.unsa.etf.rma.aktivnosti.KvizoviAkt;
 import ba.unsa.etf.rma.klase.AdapterZaListuKvizovaW550;
+import ba.unsa.etf.rma.klase.FirebaseKategorije;
+import ba.unsa.etf.rma.klase.FirebaseKvizovi;
+import ba.unsa.etf.rma.klase.FirebasePitanja;
 import ba.unsa.etf.rma.klase.Kviz;
 
 import static android.app.Activity.RESULT_OK;
+import static ba.unsa.etf.rma.aktivnosti.KvizoviAkt.kvizovi;
 
 public class DetailFrag extends Fragment {
 
@@ -53,11 +58,11 @@ public class DetailFrag extends Fragment {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent dodajKvizAkt = new Intent( getContext(), DodajKvizAkt.class );
-                dodajKvizAkt.putExtra( "sviKvizovi", KvizoviAkt.kvizovi );
+                dodajKvizAkt.putExtra( "sviKvizovi", kvizovi );
                 dodajKvizAkt.putExtra("trenutniKviz", (Kviz)parent.getItemAtPosition(position) );
                 dodajKvizAkt.putExtra( "sveKategorije", KvizoviAkt.kategorije );
-                for( int i = 0; i < KvizoviAkt.kvizovi.size(); i++ )
-                    if( KvizoviAkt.kvizovi.get(i).getNaziv().equals( ((Kviz) parent.getItemAtPosition(position)).getNaziv() ) )
+                for( int i = 0; i < kvizovi.size(); i++ )
+                    if( kvizovi.get(i).getNaziv().equals( ((Kviz) parent.getItemAtPosition(position)).getNaziv() ) )
                         KvizoviAkt.pozicijaKviza = i;
                 startActivityForResult( dodajKvizAkt, KvizoviAkt.pozicijaKviza );
                 return true;
@@ -70,16 +75,16 @@ public class DetailFrag extends Fragment {
     public void primiNotifikaciju(String odabir) {
         if( odabir.equals("Svi") ){
             KvizoviAkt.prikazaniKvizovi.clear();
-            for( int i = 0; i < KvizoviAkt.kvizovi.size(); i++ )
-                KvizoviAkt.prikazaniKvizovi.add( KvizoviAkt.kvizovi.get(i) );
+            for( int i = 0; i < kvizovi.size(); i++ )
+                KvizoviAkt.prikazaniKvizovi.add( kvizovi.get(i) );
         }
         //Odaberemo li bilo koji drugi element, prikazat ce se svi kvizovi koji pripadaju kategoriji
         //odabranoj u spinneru kategorija.
         else{
             KvizoviAkt.prikazaniKvizovi.clear();
-            for( int i = 0; i < KvizoviAkt.kvizovi.size(); i++ )
-                if( !KvizoviAkt.kvizovi.get(i).getNaziv().equals("Dodaj kviz") && KvizoviAkt.kvizovi.get(i).getKategorija().getNaziv().equals(odabir) )
-                    KvizoviAkt.prikazaniKvizovi.add( KvizoviAkt.kvizovi.get(i) );
+            for( int i = 0; i < kvizovi.size(); i++ )
+                if( !kvizovi.get(i).getNaziv().equals("Dodaj kviz") && kvizovi.get(i).getKategorija().getNaziv().equals(odabir) )
+                    KvizoviAkt.prikazaniKvizovi.add( kvizovi.get(i) );
 
             //Filtrirali smo sve potrebne kvizove, potrebno je i dodati element "Dodaj kviz"
             //pomocu kojeg dodajemo novi kviz.
@@ -98,23 +103,35 @@ public class DetailFrag extends Fragment {
             if( resultCode == RESULT_OK ){
                 Kviz kvizZaDodati = (Kviz)data.getExtras().get("noviKviz");
                 boolean dodajNovi = (boolean)data.getExtras().get("dodajNoviKviz");
-                if( dodajNovi )
-                    KvizoviAkt.kvizovi.add(KvizoviAkt.kvizovi.size(), kvizZaDodati);
+                if( dodajNovi ) {
+                    try {
+                        kvizovi.add( kvizovi.size(), kvizZaDodati );
+                        FirebaseKvizovi.dodajKviz(kvizZaDodati,getContext());
+                        FirebasePitanja.dodajPitanja( kvizZaDodati.getPitanja(), getContext() );
+                        if( !kvizZaDodati.getKategorija().getNaziv().equals("Svi") ) FirebaseKategorije.dodajKategoriju(kvizZaDodati.getKategorija(), getContext());
+                        adapterZaListuKvizovaW550.notifyDataSetChanged();
+                        callback.msg1();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
                 else {
                     ArrayList<Kviz> tempKvizovi = new ArrayList<>();
-                    tempKvizovi.addAll( KvizoviAkt.kvizovi );
-                    KvizoviAkt.kvizovi.clear();
+                    tempKvizovi.addAll( kvizovi );
+                    kvizovi.clear();
                     for( int i = 0; i < tempKvizovi.size(); i++ ){
                         if( KvizoviAkt.pozicijaKviza == i ) {
-                            KvizoviAkt.kvizovi.add(kvizZaDodati);
+                            kvizovi.add(kvizZaDodati);
                         }
                         else
-                            KvizoviAkt.kvizovi.add( tempKvizovi.get(i) );
+                            kvizovi.add( tempKvizovi.get(i) );
                     }
                     tempKvizovi.clear();
                 }
                 KvizoviAkt.prikazaniKvizovi.clear();
-                KvizoviAkt.prikazaniKvizovi.addAll( KvizoviAkt.kvizovi );
+                KvizoviAkt.prikazaniKvizovi.addAll( kvizovi );
 
                 Kviz k = new Kviz();
                 k.setNaziv("Dodaj kviz");
@@ -124,7 +141,7 @@ public class DetailFrag extends Fragment {
             }
             else{
                 KvizoviAkt.prikazaniKvizovi.clear();
-                KvizoviAkt.prikazaniKvizovi.addAll( KvizoviAkt.kvizovi );
+                KvizoviAkt.prikazaniKvizovi.addAll( kvizovi );
                 Kviz k = new Kviz();
                 k.setNaziv("Dodaj kviz");
                 KvizoviAkt.prikazaniKvizovi.add( k );

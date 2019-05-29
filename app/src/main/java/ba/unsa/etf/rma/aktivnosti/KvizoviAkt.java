@@ -15,11 +15,15 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
 
 import ba.unsa.etf.rma.R;
 import ba.unsa.etf.rma.fragmenti.DetailFrag;
 import ba.unsa.etf.rma.fragmenti.ListaFrag;
 import ba.unsa.etf.rma.klase.AdapterZaListuKvizova;
+import ba.unsa.etf.rma.klase.FirebaseKategorije;
+import ba.unsa.etf.rma.klase.FirebaseKvizovi;
+import ba.unsa.etf.rma.klase.FirebasePitanja;
 import ba.unsa.etf.rma.klase.Kategorija;
 import ba.unsa.etf.rma.klase.Kviz;
 import ba.unsa.etf.rma.klase.Pitanje;
@@ -33,13 +37,13 @@ public class KvizoviAkt extends AppCompatActivity implements ListaFrag.OnListaFr
     //Lista 'kvizovi' se koristi za cuvanje svih postojecih kvizova,
     //dok se lista 'prikazaniKvizovi' koristi za prikazivanje svih/filtriranih kvizova.
     public static ArrayList<Kviz> kvizovi = new ArrayList<>();
+    public static ArrayList<Pitanje> firebasePitanja = new ArrayList<>();
     public static ArrayList<Kviz> prikazaniKvizovi = new ArrayList<>();
     public static ArrayList<Kategorija> kategorije = new ArrayList<>();
     private ArrayAdapter<Kategorija> adapterZaSpinner;
     private AdapterZaListuKvizova adapterZaListuKvizova;
     private String spinnerOdabir;
     public static int pozicijaKviza;
-
     DetailFrag detailFrag;
     ListaFrag listaFrag;
 
@@ -49,6 +53,7 @@ public class KvizoviAkt extends AppCompatActivity implements ListaFrag.OnListaFr
         setContentView(R.layout.activity_main);
         if (!APLIKACIJA_POKRENUTA) {
             APLIKACIJA_POKRENUTA = true;
+
             kategorije.clear();
             Kategorija kategorijaSvi = new Kategorija();
             kategorijaSvi.setNaziv("Svi");
@@ -59,8 +64,21 @@ public class KvizoviAkt extends AppCompatActivity implements ListaFrag.OnListaFr
             if (layoutDetalji != null) {
                 kvizovi.clear();
                 prikazaniKvizovi.clear();
+                for( int i = 0; i < kvizovi.size(); i++ )
+                    prikazaniKvizovi.add( kvizovi.get(i) );
                 Kviz k = new Kviz();
+                try {
+                    FirebaseKategorije.dajKategorije(getApplicationContext());
+                    FirebasePitanja.dajPitanja(getApplicationContext());
+                    FirebaseKvizovi.dajKvizove(getApplicationContext());
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 k.setNaziv("Dodaj kviz");
+                for( int i  = 0; i < kvizovi.size(); i++ )
+                    prikazaniKvizovi.add( kvizovi.get(i) );
                 prikazaniKvizovi.add(k);
                 listaFrag = new ListaFrag();
                 detailFrag = new DetailFrag();
@@ -76,8 +94,6 @@ public class KvizoviAkt extends AppCompatActivity implements ListaFrag.OnListaFr
                 adapterZaSpinner = null;
                 adapterZaListuKvizova = null;
                 spinnerOdabir = null;
-                //  pozicijaKviza = -1;
-
 
                 //Potrebno je dodijeliti sve vrijednosti pomocu id-a.
                 listaKvizova = (ListView) findViewById(R.id.lvKvizovi);
@@ -91,6 +107,15 @@ public class KvizoviAkt extends AppCompatActivity implements ListaFrag.OnListaFr
 
                 //Aplikacija se na pocetku ne puni nikakvim podacima, osim onim potrebnim za sam rad aplikacije.
                 inicijalizirajApp();
+                try {
+                    FirebaseKategorije.dajKategorije(getApplicationContext());
+                    FirebasePitanja.dajPitanja(getApplicationContext());
+                    FirebaseKvizovi.dajKvizove(getApplicationContext());
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
 
                 //Slusac koji vrsi filtriranje listView-a svih kvizova na osnovu odabrane kategorije
                 //u spinneru, prikazivanje Toast poruke za korisnika, npr. "Odabrano: Svi".
@@ -390,8 +415,19 @@ public class KvizoviAkt extends AppCompatActivity implements ListaFrag.OnListaFr
                 spinnerKategorije.setSelection(0);
                 Kviz kvizZaDodati = (Kviz)data.getExtras().get("noviKviz");
                 boolean dodajNovi = (boolean)data.getExtras().get("dodajNoviKviz");
-                if( dodajNovi )
-                    kvizovi.add(kvizovi.size(), kvizZaDodati);
+                if( dodajNovi ) {
+
+                    try {
+                        kvizovi.add( kvizovi.size(), kvizZaDodati );
+                        FirebaseKvizovi.dodajKviz(kvizZaDodati,getApplicationContext());
+                        FirebasePitanja.dodajPitanja( kvizZaDodati.getPitanja(), getApplicationContext() );
+                       if( !kvizZaDodati.getKategorija().getNaziv().equals("Svi") ) FirebaseKategorije.dodajKategoriju(kvizZaDodati.getKategorija(), getApplicationContext());
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
                 else {
                     ArrayList<Kviz> tempKvizovi = new ArrayList<>();
                     tempKvizovi.addAll( kvizovi );
@@ -430,4 +466,8 @@ public class KvizoviAkt extends AppCompatActivity implements ListaFrag.OnListaFr
     public void msg1() {
         listaFrag.primiNotifikaciju();
     }
+
+
+
+
 }
