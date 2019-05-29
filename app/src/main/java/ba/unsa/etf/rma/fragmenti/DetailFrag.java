@@ -24,8 +24,11 @@ import ba.unsa.etf.rma.klase.FirebaseKategorije;
 import ba.unsa.etf.rma.klase.FirebaseKvizovi;
 import ba.unsa.etf.rma.klase.FirebasePitanja;
 import ba.unsa.etf.rma.klase.Kviz;
+import ba.unsa.etf.rma.klase.Pitanje;
 
 import static android.app.Activity.RESULT_OK;
+import static ba.unsa.etf.rma.aktivnosti.KvizoviAkt.POSTOJI_LI_KATEGORIJA;
+import static ba.unsa.etf.rma.aktivnosti.KvizoviAkt.firebasePitanja;
 import static ba.unsa.etf.rma.aktivnosti.KvizoviAkt.kvizovi;
 
 public class DetailFrag extends Fragment {
@@ -105,15 +108,10 @@ public class DetailFrag extends Fragment {
                 boolean dodajNovi = (boolean)data.getExtras().get("dodajNoviKviz");
                 if( dodajNovi ) {
                     try {
-                        kvizovi.add( kvizovi.size(), kvizZaDodati );
-                        FirebaseKvizovi.dodajKviz(kvizZaDodati,getContext());
-                        FirebasePitanja.dodajPitanja( kvizZaDodati.getPitanja(), getContext() );
-                        if( !kvizZaDodati.getKategorija().getNaziv().equals("Svi") ) FirebaseKategorije.dodajKategoriju(kvizZaDodati.getKategorija(), getContext());
+                        NOVI_KVIZ_REGISTRUJ_BAZA_I_APLIKACIJA(kvizZaDodati);
                         adapterZaListuKvizovaW550.notifyDataSetChanged();
                         callback.msg1();
-                    } catch (ExecutionException e) {
-                        e.printStackTrace();
-                    } catch (InterruptedException e) {
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
@@ -170,5 +168,26 @@ public class DetailFrag extends Fragment {
     public void onDetach() {
         super.onDetach();
         callback = null;
+    }
+
+    public void NOVI_KVIZ_REGISTRUJ_BAZA_I_APLIKACIJA(Kviz kvizZaDodati) throws ExecutionException, InterruptedException {
+        kvizovi.add( kvizovi.size(), kvizZaDodati );
+        FirebaseKvizovi.dodajKviz(kvizZaDodati,getContext());
+        ArrayList<Pitanje> pitanjaZaDodati = new ArrayList<>();
+        for( int i = 0; i < kvizZaDodati.getPitanja().size(); i++ ) {
+            boolean pitanjeVecPostoji = false;
+            for (int j = 0; j < firebasePitanja.size(); j++) {
+                if (kvizZaDodati.getPitanja().get(i).getNaziv().equals( firebasePitanja.get(j).getNaziv() )) {
+                    pitanjeVecPostoji = true;
+                }
+            }
+            if( !pitanjeVecPostoji ) pitanjaZaDodati.add( kvizZaDodati.getPitanja().get(i) );
+        }
+        FirebasePitanja.dodajPitanja( pitanjaZaDodati, getContext() );
+        FirebaseKategorije.dajKategoriju( kvizZaDodati.getKategorija(), getContext() );
+        if( !kvizZaDodati.getKategorija().getNaziv().equals("Svi") && !POSTOJI_LI_KATEGORIJA ) {
+            FirebaseKategorije.dodajKategoriju(kvizZaDodati.getKategorija(), getContext());
+            POSTOJI_LI_KATEGORIJA = true;
+        }
     }
 }

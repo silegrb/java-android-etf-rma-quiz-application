@@ -37,11 +37,13 @@ public class FirebasePitanja {
                 //Provjeriti da li je vec u bazi.
                 GoogleCredential credential;
                 try{
+                    String index_sa_kosom_crtom = pitanje.getNaziv().replaceAll( " ", "_RAZMAK_" );
+                    String index = index_sa_kosom_crtom.replaceAll( "/", "_KOSA_CRTA_" );
                     InputStream secretStream = context.getResources().openRawResource(R.raw.secret);
                     credential = GoogleCredential.fromStream(secretStream).createScoped(Lists.newArrayList("https://www.googleapis.com/auth/datastore"));
                     credential.refreshToken();
                     String TOKEN = credential.getAccessToken();
-                    String URL = "https://firestore.googleapis.com/v1/projects/rma19sisicfaris31-e36af/databases/(default)/documents/Pitanja?documentId=" + firebasePitanja.size() +"&access_token=";
+                    String URL = "https://firestore.googleapis.com/v1/projects/rma19sisicfaris31-e36af/databases/(default)/documents/Pitanja?documentId=" + index +"&access_token=";
                     java.net.URL urlOBJ = new URL( URL + URLEncoder.encode(TOKEN,"UTF-8"));
                     HttpURLConnection CONNECTION = (HttpURLConnection) urlOBJ.openConnection();
                     CONNECTION.setDoOutput(true);
@@ -101,6 +103,7 @@ public class FirebasePitanja {
                 //Provjeriti da li je vec u bazi.
                 GoogleCredential credential;
                 try{
+                    firebasePitanja.clear();
                     InputStream secretStream = context.getResources().openRawResource(R.raw.secret);
                     credential = GoogleCredential.fromStream(secretStream).createScoped(Lists.newArrayList("https://www.googleapis.com/auth/datastore"));
                     credential.refreshToken();
@@ -193,7 +196,9 @@ public class FirebasePitanja {
                     String TOKEN = credential.getAccessToken();
                     for( int N = 0; N < pitanja.size(); N++ ) {
                         Pitanje pitanje = pitanja.get(N);
-                        String URL = "https://firestore.googleapis.com/v1/projects/rma19sisicfaris31-e36af/databases/(default)/documents/Pitanja?documentId=" + firebasePitanja.size() + "&access_token=";
+                        String index_sa_kosom_crtom = pitanje.getNaziv().replaceAll(" ", "_RAZMAK_");
+                        String index= index_sa_kosom_crtom.replaceAll("/", "_KOSA_CRTA_");
+                        String URL = "https://firestore.googleapis.com/v1/projects/rma19sisicfaris31-e36af/databases/(default)/documents/Pitanja?documentId=" + index + "&access_token=";
                         java.net.URL urlOBJ = new URL(URL + URLEncoder.encode(TOKEN, "UTF-8"));
                         HttpURLConnection CONNECTION = (HttpURLConnection) urlOBJ.openConnection();
                         CONNECTION.setDoOutput(true);

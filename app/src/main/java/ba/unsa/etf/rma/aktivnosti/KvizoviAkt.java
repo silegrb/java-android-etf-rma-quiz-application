@@ -33,6 +33,7 @@ public class KvizoviAkt extends AppCompatActivity implements ListaFrag.OnListaFr
     private ListView listaKvizova;
     private Spinner spinnerKategorije;
     private static boolean APLIKACIJA_POKRENUTA = false;
+    public static boolean POSTOJI_LI_KATEGORIJA = true;
 
     //Lista 'kvizovi' se koristi za cuvanje svih postojecih kvizova,
     //dok se lista 'prikazaniKvizovi' koristi za prikazivanje svih/filtriranih kvizova.
@@ -418,13 +419,8 @@ public class KvizoviAkt extends AppCompatActivity implements ListaFrag.OnListaFr
                 if( dodajNovi ) {
 
                     try {
-                        kvizovi.add( kvizovi.size(), kvizZaDodati );
-                        FirebaseKvizovi.dodajKviz(kvizZaDodati,getApplicationContext());
-                        FirebasePitanja.dodajPitanja( kvizZaDodati.getPitanja(), getApplicationContext() );
-                       if( !kvizZaDodati.getKategorija().getNaziv().equals("Svi") ) FirebaseKategorije.dodajKategoriju(kvizZaDodati.getKategorija(), getApplicationContext());
-                    } catch (ExecutionException e) {
-                        e.printStackTrace();
-                    } catch (InterruptedException e) {
+                       NOVI_KVIZ_REGISTRUJ_BAZA_I_APLIKACIJA(kvizZaDodati);
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
@@ -468,6 +464,25 @@ public class KvizoviAkt extends AppCompatActivity implements ListaFrag.OnListaFr
     }
 
 
-
+    public void NOVI_KVIZ_REGISTRUJ_BAZA_I_APLIKACIJA(Kviz kvizZaDodati) throws ExecutionException, InterruptedException {
+        kvizovi.add( kvizovi.size(), kvizZaDodati );
+        FirebaseKvizovi.dodajKviz(kvizZaDodati,getApplicationContext());
+        ArrayList<Pitanje> pitanjaZaDodati = new ArrayList<>();
+        for( int i = 0; i < kvizZaDodati.getPitanja().size(); i++ ) {
+            boolean pitanjeVecPostoji = false;
+            for (int j = 0; j < firebasePitanja.size(); j++) {
+                if (kvizZaDodati.getPitanja().get(i).getNaziv().equals( firebasePitanja.get(j).getNaziv() )) {
+                    pitanjeVecPostoji = true;
+                }
+            }
+            if( !pitanjeVecPostoji ) pitanjaZaDodati.add( kvizZaDodati.getPitanja().get(i) );
+        }
+        FirebasePitanja.dodajPitanja( pitanjaZaDodati, getApplicationContext() );
+        FirebaseKategorije.dajKategoriju( kvizZaDodati.getKategorija(), getApplicationContext() );
+        if( !kvizZaDodati.getKategorija().getNaziv().equals("Svi") && !POSTOJI_LI_KATEGORIJA ) {
+            FirebaseKategorije.dodajKategoriju(kvizZaDodati.getKategorija(), getApplicationContext());
+            POSTOJI_LI_KATEGORIJA = true;
+        }
+    }
 
 }

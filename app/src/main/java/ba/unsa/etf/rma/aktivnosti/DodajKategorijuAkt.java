@@ -15,9 +15,13 @@ import com.maltaisn.icondialog.Icon;
 import com.maltaisn.icondialog.IconDialog;
 
 import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
 
 import ba.unsa.etf.rma.R;
+import ba.unsa.etf.rma.klase.FirebaseKategorije;
 import ba.unsa.etf.rma.klase.Kategorija;
+
+import static ba.unsa.etf.rma.aktivnosti.KvizoviAkt.POSTOJI_LI_KATEGORIJA;
 
 public class DodajKategorijuAkt extends AppCompatActivity implements IconDialog.Callback {
 
@@ -27,6 +31,7 @@ public class DodajKategorijuAkt extends AppCompatActivity implements IconDialog.
     private Button dodajKategoriju;
     private ArrayList<Kategorija> kategorije;
     private Icon[] selectedIcons;
+    public static boolean dodajKat = false;
     //public boolean pritisnutnoSpasiKategoriju = false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,17 +79,35 @@ public class DodajKategorijuAkt extends AppCompatActivity implements IconDialog.
         dodajKategoriju.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                boolean dodajKat = true;
+                dodajKat = true;
                 String s1 = "", s2 = "";
                 if( etNaziv.getText().toString().equals("") ) {
+
                     dodajKat = false;
                     s1 += "Unesite kategoriju!";
                 }
 
-                for( Kategorija k: kategorije )
-                    if( k.getNaziv().equals( etNaziv.getText().toString() ) ) {
+
+                    if( true  ) {
                         dodajKat = false;
-                        s2 += "Kategorija vec postoji!";
+                        Kategorija k = new Kategorija();
+                        k.setNaziv( etNaziv.getText().toString() );
+                        etIkona.setEnabled(true);
+                        String ikona = etIkona.getText().toString();
+                        etIkona.setEnabled(false);
+                        if( ikona.equals("") ) ikona = "958";
+                        k.setId( ikona );
+                        try {
+                            if( !etNaziv.getText().toString().equals("Svi") && !etNaziv.getText().toString().equals("Dodaj kategoriju") )
+                            FirebaseKategorije.dajKategoriju(k,getApplicationContext());
+                            POSTOJI_LI_KATEGORIJA = true;
+                        } catch (ExecutionException e) {
+                            e.printStackTrace();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        if(!dodajKat )
+                            s2 += "Kategorija vec postoji!";
                     }
                 if( !dodajKat )   {
                     String konacni = "";
@@ -99,7 +122,6 @@ public class DodajKategorijuAkt extends AppCompatActivity implements IconDialog.
 
                 }
                 else{
-                    //pritisnutnoSpasiKategoriju = true;
                     Kategorija k = new Kategorija();
                     k.setNaziv( etNaziv.getText().toString() );
                     etIkona.setEnabled(true);
@@ -108,7 +130,13 @@ public class DodajKategorijuAkt extends AppCompatActivity implements IconDialog.
                     if( ikona.equals("") ) ikona = "958";
                     k.setId( ikona );
 
-                    KvizoviAkt.kategorije.add( kategorije.size() - 1, k );
+                    try {
+                        FirebaseKategorije.dodajKategoriju(k,getApplicationContext());
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                     Intent resIntent = new Intent();
                     resIntent.putExtra("novaKategorija", k );
                     setResult(RESULT_OK, resIntent);

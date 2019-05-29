@@ -22,14 +22,18 @@ import android.widget.Toast;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
 
 import ba.unsa.etf.rma.R;
 import ba.unsa.etf.rma.klase.AdapterZaListuMogucihPitanja;
 import ba.unsa.etf.rma.klase.AdapterZaListuTrenutnihPitanja;
 import ba.unsa.etf.rma.klase.CSVReader;
+import ba.unsa.etf.rma.klase.FirebasePitanja;
 import ba.unsa.etf.rma.klase.Kategorija;
 import ba.unsa.etf.rma.klase.Kviz;
 import ba.unsa.etf.rma.klase.Pitanje;
+
+import static ba.unsa.etf.rma.aktivnosti.KvizoviAkt.firebasePitanja;
 
 
 public class DodajKvizAkt extends AppCompatActivity {
@@ -83,8 +87,17 @@ public class DodajKvizAkt extends AppCompatActivity {
 
         //Ukoliko je trenutniKviz apstraktni kviz za dodavanje, samo spinner kategorija postavljamo na svi, a
         //ako nije (else dio) onda cemo sve vrijednosti postaviti na podatke odabranog kviza.
-        if (trenutniKviz.getNaziv().equals("Dodaj kviz"))
+        if (trenutniKviz.getNaziv().equals("Dodaj kviz")) {
             kategorijeSpinner.setSelection(0);
+            try {
+                FirebasePitanja.dajPitanja(getApplicationContext());
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            alMogucaPitanja.addAll( firebasePitanja );
+        }
         else {
             int position = -1;
             for (int i = 0; i < kategorije.size(); i++)
@@ -94,6 +107,20 @@ public class DodajKvizAkt extends AppCompatActivity {
                 }
             kategorijeSpinner.setSelection(position);
             alTrenutnaPitanja.addAll(trenutniKviz.getPitanja());
+            try {
+                FirebasePitanja.dajPitanja(getApplicationContext());
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            alMogucaPitanja.addAll(firebasePitanja);
+            for( int i = 0; i < trenutniKviz.getPitanja().size(); i++ )
+                for( int j = 0; j < alMogucaPitanja.size(); j++ )
+                    if( trenutniKviz.getPitanja().get(i).getNaziv().equals( alMogucaPitanja.get(j).getNaziv() ) ){
+                        alMogucaPitanja.remove(j);
+                        j--;
+                    }
             etNaziv.setText(trenutniKviz.getNaziv());
         }
 

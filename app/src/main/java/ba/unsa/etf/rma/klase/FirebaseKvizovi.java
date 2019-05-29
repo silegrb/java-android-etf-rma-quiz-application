@@ -40,12 +40,13 @@ public class FirebaseKvizovi extends AppCompatActivity {
 
                 GoogleCredential credential;
                 try{
-
+                    String index_sa_kosom_crtom = kviz.getNaziv().replaceAll(" ", "_RAZMAK_");
+                    String index = index_sa_kosom_crtom.replaceAll("/", "_KOSA_CRTA_" );
                     InputStream secretStream = context.getResources().openRawResource(R.raw.secret);
                     credential = GoogleCredential.fromStream(secretStream).createScoped(Lists.newArrayList("https://www.googleapis.com/auth/datastore"));
                     credential.refreshToken();
                     String TOKEN = credential.getAccessToken();
-                    String URL = "https://firestore.googleapis.com/v1/projects/rma19sisicfaris31-e36af/databases/(default)/documents/Kvizovi?documentId=" + kvizovi.size() + "&access_token=";
+                    String URL = "https://firestore.googleapis.com/v1/projects/rma19sisicfaris31-e36af/databases/(default)/documents/Kvizovi?documentId=" + index + "&access_token=";
                     URL urlOBJ = new URL( URL + URLEncoder.encode(TOKEN,"UTF-8"));
                     System.out.println(urlOBJ);
                     HttpURLConnection CONNECTION = (HttpURLConnection) urlOBJ.openConnection();
@@ -53,8 +54,10 @@ public class FirebaseKvizovi extends AppCompatActivity {
                     CONNECTION.setRequestMethod("POST");
                     CONNECTION.setRequestProperty("Content-Type","application/json");
                     CONNECTION.setRequestProperty("Accept","application/json");
+                    index_sa_kosom_crtom = kviz.getKategorija().getNaziv().replace(" ", "_RAZMAK_");
+                    index = index_sa_kosom_crtom.replaceAll("/", "_KOSA_CRTA_");
                     String noviDokument = "{ \"fields\": { \"naziv\": { \"stringValue\" : \"" + kviz.getNaziv() + "\" }, \"idKategorije\" : { \"stringValue\" : \"" +
-                            kviz.getKategorija().getId() + "\" }, \"pitanja\": { \"arrayValue\" : { \"values\": [";
+                            index + "\" }, \"pitanja\": { \"arrayValue\" : { \"values\": [";
                     for( int i = 0; i < kviz.getPitanja().size(); i++ ){
                         String jsonPITANJE = "{ \"stringValue\" : \"";
                         jsonPITANJE += kviz.getPitanja().get(i).getNaziv();
@@ -119,7 +122,9 @@ public class FirebaseKvizovi extends AppCompatActivity {
                         JSONObject nazivOBJEKAT = field.getJSONObject("naziv");
                         String nazivString = nazivOBJEKAT.getString("stringValue");
                         JSONObject idKategorijeOBJEKAT = field.getJSONObject("idKategorije");
-                        String idKategorijeString = idKategorijeOBJEKAT.getString("stringValue");
+                        String idKategorijeString_NIJE_DEKODIRAN = idKategorijeOBJEKAT.getString("stringValue");
+                        String idKategorijeString_DEKODIRAN_KOSIM = idKategorijeString_NIJE_DEKODIRAN.replaceAll("_KOSA_CRTA_","/");
+                        String idKategorijeString_DEKODIRAN_RAZMACIMA = idKategorijeString_DEKODIRAN_KOSIM.replaceAll("_RAZMAK_"," ");
                         JSONObject pitanjaOBJECT = field.getJSONObject("pitanja");
                         JSONObject pitanjaARRAY = pitanjaOBJECT.getJSONObject("arrayValue");
                         ArrayList<String> pitanjaLista = new ArrayList<>();
@@ -142,7 +147,7 @@ public class FirebaseKvizovi extends AppCompatActivity {
                         Kviz noviKviz = new Kviz();
                         noviKviz.setNaziv( nazivString );
                         for( int m = 0; m < kategorije.size(); m++ )
-                            if( kategorije.get(m).getId().equals( idKategorijeString ) )
+                            if( kategorije.get(m).getNaziv().equals( idKategorijeString_DEKODIRAN_RAZMACIMA ) )
                                 noviKviz.setKategorija( kategorije.get(m) );
                         noviKviz.setPitanja( pitanjaZaKviz );
                         kvizovi.add( kvizovi.size(), noviKviz );

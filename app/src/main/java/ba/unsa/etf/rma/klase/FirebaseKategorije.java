@@ -24,6 +24,8 @@ import java.util.concurrent.ExecutionException;
 
 import ba.unsa.etf.rma.R;
 
+import static ba.unsa.etf.rma.aktivnosti.DodajKategorijuAkt.dodajKat;
+import static ba.unsa.etf.rma.aktivnosti.KvizoviAkt.POSTOJI_LI_KATEGORIJA;
 import static ba.unsa.etf.rma.aktivnosti.KvizoviAkt.kategorije;
 
 public class FirebaseKategorije {
@@ -36,40 +38,40 @@ public class FirebaseKategorije {
                 //Provjeriti da li je vec u bazi.
 
                 GoogleCredential credential;
-                try{
-
+                try {
+                    String index_sa_kosom_crtom = kategorija.getNaziv().replaceAll(" ", "_RAZMAK_" );
+                    String index = index_sa_kosom_crtom.replaceAll("/", "_KOSA_CRTA_" );
                     InputStream secretStream = context.getResources().openRawResource(R.raw.secret);
                     credential = GoogleCredential.fromStream(secretStream).createScoped(Lists.newArrayList("https://www.googleapis.com/auth/datastore"));
                     credential.refreshToken();
                     String TOKEN = credential.getAccessToken();
-                    String URL = "https://firestore.googleapis.com/v1/projects/rma19sisicfaris31-e36af/databases/(default)/documents/Kategorije?documentId=" + kategorije.size() + "&access_token=";
-                    java.net.URL urlOBJ = new URL( URL + URLEncoder.encode(TOKEN,"UTF-8"));
+                    String URL = "https://firestore.googleapis.com/v1/projects/rma19sisicfaris31-e36af/databases/(default)/documents/Kategorije?documentId=" + index + "&access_token=";
+                    java.net.URL urlOBJ = new URL(URL + URLEncoder.encode(TOKEN, "UTF-8"));
                     HttpURLConnection CONNECTION = (HttpURLConnection) urlOBJ.openConnection();
                     CONNECTION.setDoOutput(true);
                     CONNECTION.setRequestMethod("POST");
-                    CONNECTION.setRequestProperty("Content-Type","application/json");
-                    CONNECTION.setRequestProperty("Accept","application/json");
+                    CONNECTION.setRequestProperty("Content-Type", "application/json");
+                    CONNECTION.setRequestProperty("Accept", "application/json");
                     String noviDokument = "{ \"fields\": { \"naziv\": { \"stringValue\" : \"" + kategorija.getNaziv() + "\" }, \"idIkonice\" : { \"integerValue\" : \"" +
                             kategorija.getId() + "\" } } }";
-                    try(OutputStream os = CONNECTION.getOutputStream()){
+                    try (OutputStream os = CONNECTION.getOutputStream()) {
                         byte[] input = noviDokument.getBytes("utf-8");
-                        os.write(input,0,input.length);
+                        os.write(input, 0, input.length);
                     }
                     //int CODE = conn.getResponseCode();
                     InputStream odgovor = CONNECTION.getInputStream();
-                    try(BufferedReader br = new BufferedReader(
-                            new InputStreamReader(odgovor,"utf-8"))) {
+                    try (BufferedReader br = new BufferedReader(
+                            new InputStreamReader(odgovor, "utf-8"))) {
                         StringBuilder response = new StringBuilder();
                         String responseLine = null;
-                        while((responseLine = br.readLine()) != null){
+                        while ((responseLine = br.readLine()) != null) {
                             response.append(responseLine.trim());
                         }
-                        Log.d("ODGOVOR",response.toString());
+                        Log.d("ODGOVOR", response.toString());
                     }
-                    kategorije.add( kategorije.size(), kategorija );
+                   kategorije.add(kategorije.size(), kategorija);
                     CONNECTION.disconnect();
-                }
-                catch (IOException e){
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
                 return null;
@@ -85,27 +87,26 @@ public class FirebaseKategorije {
             protected Void doInBackground(String... strings) {
                 //Provjeriti da li je vec u bazi.
                 GoogleCredential credential;
-                try{
+                try {
                     InputStream secretStream = context.getResources().openRawResource(R.raw.secret);
                     credential = GoogleCredential.fromStream(secretStream).createScoped(Lists.newArrayList("https://www.googleapis.com/auth/datastore"));
                     credential.refreshToken();
                     String TOKEN = credential.getAccessToken();
                     String URL = "https://firestore.googleapis.com/v1/projects/rma19sisicfaris31-e36af/databases/(default)/documents/Kategorije?access_token=";
-                    java.net.URL urlOBJ = new URL( URL + URLEncoder.encode(TOKEN,"UTF-8"));
+                    java.net.URL urlOBJ = new URL(URL + URLEncoder.encode(TOKEN, "UTF-8"));
                     HttpURLConnection CONNECTION = (HttpURLConnection) urlOBJ.openConnection();
                     InputStream inputStream = new BufferedInputStream(CONNECTION.getInputStream());
                     String result = streamToStringConversion(inputStream);
                     JSONObject jo = new JSONObject(result);
                     JSONArray dokumentovaniKvizovi;
-                    try{
+                    try {
                         dokumentovaniKvizovi = jo.getJSONArray("documents");
-                    }
-                    catch (Exception e){
+                    } catch (Exception e) {
                         return null;
                     }
-                    for( int i = 0; i < dokumentovaniKvizovi.length(); i++ ){
+                    for (int i = 0; i < dokumentovaniKvizovi.length(); i++) {
                         JSONObject dokument = dokumentovaniKvizovi.getJSONObject(i);
-                        JSONObject field =  dokument.getJSONObject("fields");
+                        JSONObject field = dokument.getJSONObject("fields");
                         JSONObject nazivOBJEKAT = field.getJSONObject("naziv");
                         String nazivString = nazivOBJEKAT.getString("stringValue");
                         JSONObject idIkoniceOBJEKAT = field.getJSONObject("idIkonice");
@@ -113,13 +114,12 @@ public class FirebaseKategorije {
                         String idIkonice = String.valueOf(idIkoniceINT);
                         Kategorija novaKategorija = new Kategorija();
                         novaKategorija.setNaziv(nazivString);
-                        novaKategorija.setId( idIkonice );
-                        kategorije.add( novaKategorija );
+                        novaKategorija.setId(idIkonice);
+                        kategorije.add(novaKategorija);
                     }
 
                     CONNECTION.disconnect();
-                }
-                catch (IOException e){
+                } catch (IOException e) {
                     e.printStackTrace();
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -129,27 +129,62 @@ public class FirebaseKategorije {
             }
 
 
-
         }.execute().get();
 
     }
-    public static String streamToStringConversion(InputStream is){
+
+    public static String streamToStringConversion(InputStream is) {
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is));
         StringBuilder stringBuilder = new StringBuilder();
         String line = null;
-        try{
-            while( (line = bufferedReader.readLine()) != null )
+        try {
+            while ((line = bufferedReader.readLine()) != null)
                 stringBuilder.append(line + "\n");
-        }
-        catch(IOException e) { } finally {
-            try{
+        } catch (IOException e) {
+        } finally {
+            try {
                 is.close();
-            }
-            catch (IOException e){
+            } catch (IOException e) {
 
             }
 
         }
         return stringBuilder.toString();
     }
+
+    public static void dajKategoriju(Kategorija kategorija, Context context) throws ExecutionException, InterruptedException {
+        new AsyncTask<String, Void, Void>() {
+
+            @Override
+            protected Void doInBackground(String... strings) {
+                //Provjeriti da li je vec u bazi.
+                GoogleCredential credential;
+                try {
+                    String index_sa_kosom_crtom = kategorija.getNaziv().replaceAll(" ", "_RAZMAK_" );
+                    String index = index_sa_kosom_crtom.replaceAll("/", "_KOSA_CRTA_" );
+                    InputStream secretStream = context.getResources().openRawResource(R.raw.secret);
+                    credential = GoogleCredential.fromStream(secretStream).createScoped(Lists.newArrayList("https://www.googleapis.com/auth/datastore"));
+                    credential.refreshToken();
+                    String TOKEN = credential.getAccessToken();
+                    String URL = "https://firestore.googleapis.com/v1/projects/rma19sisicfaris31-e36af/databases/(default)/documents/Kategorije/" + index + "?access_token=";
+                    java.net.URL urlOBJ = new URL(URL + URLEncoder.encode(TOKEN, "UTF-8"));
+                    HttpURLConnection CONNECTION = (HttpURLConnection) urlOBJ.openConnection();
+                    InputStream inputStream = new BufferedInputStream(CONNECTION.getInputStream());
+
+                    CONNECTION.disconnect();
+                } catch (Exception e) {
+                    dodajKat = true;
+                    POSTOJI_LI_KATEGORIJA = false;
+                    return null;
+                }
+                return null;
+
+            }
+
+
+        }.execute().get();
+
+    }
 }
+
+
