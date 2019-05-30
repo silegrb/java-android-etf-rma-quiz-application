@@ -12,6 +12,8 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import java.util.concurrent.ExecutionException;
+
 import ba.unsa.etf.rma.R;
 import ba.unsa.etf.rma.aktivnosti.KvizoviAkt;
 import ba.unsa.etf.rma.klase.AdapterZaListuKategorija;
@@ -35,7 +37,13 @@ public class ListaFrag extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 String text = parent.getItemAtPosition( position ).toString();
-                callback.msg( text );
+                try {
+                    callback.msg( text );
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 Toast.makeText( parent.getContext(), "Odabrano: " + text, Toast.LENGTH_SHORT ).show();
             }
         });
@@ -47,7 +55,7 @@ public class ListaFrag extends Fragment {
     }
 
     public interface OnListaFragmentListener {
-        void msg(String odabir);
+        void msg(String odabir) throws ExecutionException, InterruptedException;
     }
 
     @Override

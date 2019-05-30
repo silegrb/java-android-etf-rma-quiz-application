@@ -71,16 +71,12 @@ public class KvizoviAkt extends AppCompatActivity implements ListaFrag.OnListaFr
                 try {
                     FirebaseKategorije.dajKategorije(getApplicationContext());
                     FirebasePitanja.dajPitanja(getApplicationContext());
-                    FirebaseKvizovi.dajKvizove(getApplicationContext());
+                   FirebaseKvizovi.POKUPI_KVIZOVE_IZ_BAZE(getApplicationContext());
                 } catch (ExecutionException e) {
                     e.printStackTrace();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                k.setNaziv("Dodaj kviz");
-                for( int i  = 0; i < kvizovi.size(); i++ )
-                    prikazaniKvizovi.add( kvizovi.get(i) );
-                prikazaniKvizovi.add(k);
                 listaFrag = new ListaFrag();
                 detailFrag = new DetailFrag();
                 FragmentManager fragmentManagerFinal = getSupportFragmentManager();
@@ -111,7 +107,8 @@ public class KvizoviAkt extends AppCompatActivity implements ListaFrag.OnListaFr
                 try {
                     FirebaseKategorije.dajKategorije(getApplicationContext());
                     FirebasePitanja.dajPitanja(getApplicationContext());
-                    FirebaseKvizovi.dajKvizove(getApplicationContext());
+                    FirebaseKvizovi.POKUPI_KVIZOVE_IZ_BAZE(getApplicationContext());
+
                 } catch (ExecutionException e) {
                     e.printStackTrace();
                 } catch (InterruptedException e) {
@@ -129,30 +126,13 @@ public class KvizoviAkt extends AppCompatActivity implements ListaFrag.OnListaFr
                         String text = parent.getItemAtPosition(position).toString();
                         spinnerOdabir = text;
                         Toast.makeText(parent.getContext(), "Odabrano: " + text, Toast.LENGTH_SHORT).show();
-
-                        //Odabaremo li element (koji je uvijek prisutan) u spinneru kategorija, prikazat ce se
-                        //svi kreirani kvizovi unutar aplikacije.
-                        if (text.equals("Svi")) {
-                            prikazaniKvizovi.clear();
-                            for (int i = 0; i < kvizovi.size(); i++)
-                                prikazaniKvizovi.add(kvizovi.get(i));
+                        try {
+                            FirebaseKvizovi.FILTRIRAJ_KVIZOVE(getApplicationContext(),adapterZaListuKvizova,text);
+                        } catch (ExecutionException e) {
+                            e.printStackTrace();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
                         }
-                        //Odaberemo li bilo koji drugi element, prikazat ce se svi kvizovi koji pripadaju kategoriji
-                        //odabranoj u spinneru kategorija.
-                        else {
-                            prikazaniKvizovi.clear();
-                            for (int i = 0; i < kvizovi.size(); i++)
-                                if (!kvizovi.get(i).getNaziv().equals("Dodaj kviz") && kvizovi.get(i).getKategorija().getNaziv().equals(text))
-                                    prikazaniKvizovi.add(kvizovi.get(i));
-
-                            //Filtrirali smo sve potrebne kvizove, potrebno je i dodati element "Dodaj kviz"
-                            //pomocu kojeg dodajemo novi kviz.
-
-                        }
-                        Kviz k = new Kviz();
-                        k.setNaziv("Dodaj kviz");
-                        prikazaniKvizovi.add(k);
-                        adapterZaListuKvizova.notifyDataSetChanged();
                     }
 
                     @Override
@@ -166,13 +146,23 @@ public class KvizoviAkt extends AppCompatActivity implements ListaFrag.OnListaFr
                 listaKvizova.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
                     @Override
                     public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                        Kviz trenutniKviz = new Kviz();
+                        trenutniKviz.setNaziv("Dodaj kviz");
                         Intent dodajKvizAkt = new Intent(KvizoviAkt.this, DodajKvizAkt.class);
-                        dodajKvizAkt.putExtra("sviKvizovi", kvizovi);
-                        dodajKvizAkt.putExtra("trenutniKviz", (Kviz) parent.getItemAtPosition(position));
-                        dodajKvizAkt.putExtra("sveKategorije", kategorije);
                         for (int i = 0; i < kvizovi.size(); i++)
-                            if (kvizovi.get(i).getNaziv().equals(((Kviz) parent.getItemAtPosition(position)).getNaziv()))
+                            if (kvizovi.get(i).getNaziv().equals(((Kviz) parent.getItemAtPosition(position)).getNaziv())) {
+                                if( !((Kviz) parent.getItemAtPosition(position)).getNaziv().equals("Dodaj kviz") ) {
+                                    trenutniKviz.setNaziv(kvizovi.get(i).getNaziv());
+                                    trenutniKviz.setKategorija(kvizovi.get(i).getKategorija());
+                                    trenutniKviz.setPitanja(kvizovi.get(i).getPitanja());
+                                    trenutniKviz.setNEPROMJENJIVI_ID( kvizovi.get(i).getNEPROMJENJIVI_ID() );
+                                }
                                 pozicijaKviza = i;
+                            }
+                        dodajKvizAkt.putExtra("sviKvizovi", kvizovi);
+                        dodajKvizAkt.putExtra("trenutniKviz", trenutniKviz );
+                        dodajKvizAkt.putExtra("sveKategorije", kategorije);
+
                         KvizoviAkt.this.startActivityForResult(dodajKvizAkt, pozicijaKviza);
                         return true;
                     }
@@ -225,30 +215,13 @@ public class KvizoviAkt extends AppCompatActivity implements ListaFrag.OnListaFr
                         String text = parent.getItemAtPosition(position).toString();
                         spinnerOdabir = text;
                         Toast.makeText(parent.getContext(), "Odabrano: " + text, Toast.LENGTH_SHORT).show();
-
-                        //Odabaremo li element (koji je uvijek prisutan) u spinneru kategorija, prikazat ce se
-                        //svi kreirani kvizovi unutar aplikacije.
-                        if (text.equals("Svi")) {
-                            prikazaniKvizovi.clear();
-                            for (int i = 0; i < kvizovi.size(); i++)
-                                prikazaniKvizovi.add(kvizovi.get(i));
+                        try {
+                            FirebaseKvizovi.FILTRIRAJ_KVIZOVE(getApplicationContext(),adapterZaListuKvizova,text);
+                        } catch (ExecutionException e) {
+                            e.printStackTrace();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
                         }
-                        //Odaberemo li bilo koji drugi element, prikazat ce se svi kvizovi koji pripadaju kategoriji
-                        //odabranoj u spinneru kategorija.
-                        else {
-                            prikazaniKvizovi.clear();
-                            for (int i = 0; i < kvizovi.size(); i++)
-                                if (!kvizovi.get(i).getNaziv().equals("Dodaj kviz") && kvizovi.get(i).getKategorija().getNaziv().equals(text))
-                                    prikazaniKvizovi.add(kvizovi.get(i));
-
-                            //Filtrirali smo sve potrebne kvizove, potrebno je i dodati element "Dodaj kviz"
-                            //pomocu kojeg dodajemo novi kviz.
-
-                        }
-                        Kviz k = new Kviz();
-                        k.setNaziv("Dodaj kviz");
-                        prikazaniKvizovi.add(k);
-                        adapterZaListuKvizova.notifyDataSetChanged();
                     }
 
                     @Override
@@ -413,38 +386,31 @@ public class KvizoviAkt extends AppCompatActivity implements ListaFrag.OnListaFr
 
         if( requestCode == pozicijaKviza ){
             if( resultCode == RESULT_OK ){
-                spinnerKategorije.setSelection(0);
                 Kviz kvizZaDodati = (Kviz)data.getExtras().get("noviKviz");
                 boolean dodajNovi = (boolean)data.getExtras().get("dodajNoviKviz");
                 if( dodajNovi ) {
 
                     try {
-                       NOVI_KVIZ_REGISTRUJ_BAZA_I_APLIKACIJA(kvizZaDodati);
+                       FirebaseKvizovi.DODAJ_KVIZ(kvizZaDodati,getApplicationContext(),"PATCH",true);
+                       FirebaseKvizovi.FILTRIRAJ_KVIZOVE(getApplicationContext(),adapterZaListuKvizova,"Svi");
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
                 else {
-                    ArrayList<Kviz> tempKvizovi = new ArrayList<>();
-                    tempKvizovi.addAll( kvizovi );
-                    kvizovi.clear();
-                    for( int i = 0; i < tempKvizovi.size(); i++ ){
-                        if( pozicijaKviza == i ) {
-                            kvizovi.add(kvizZaDodati);
-                        }
-                        else
-                            kvizovi.add( tempKvizovi.get(i) );
+                    try {
+                        FirebaseKvizovi.DODAJ_KVIZ(kvizZaDodati,getApplicationContext(),"PATCH",false);
+                        kvizovi.clear();
+                        FirebaseKvizovi.POKUPI_KVIZOVE_IZ_BAZE(getApplicationContext());
+                        FirebaseKvizovi.FILTRIRAJ_KVIZOVE(getApplicationContext(),adapterZaListuKvizova,"Svi");
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
                     }
-                    tempKvizovi.clear();
-                }
-                prikazaniKvizovi.clear();
-                prikazaniKvizovi.addAll( kvizovi );
 
-                Kviz k = new Kviz();
-                k.setNaziv("Dodaj kviz");
-                prikazaniKvizovi.add( k );
-                adapterZaListuKvizova.notifyDataSetChanged();
-                adapterZaSpinner.notifyDataSetChanged();
+                }
+
             }
             else{
                 spinnerKategorije.setSelection(0);
@@ -454,35 +420,13 @@ public class KvizoviAkt extends AppCompatActivity implements ListaFrag.OnListaFr
     }
 
     @Override
-    public void msg(String odabir) {
+    public void msg(String odabir) throws ExecutionException, InterruptedException {
         detailFrag.primiNotifikaciju( odabir );
     }
 
     @Override
     public void msg1() {
         listaFrag.primiNotifikaciju();
-    }
-
-
-    public void NOVI_KVIZ_REGISTRUJ_BAZA_I_APLIKACIJA(Kviz kvizZaDodati) throws ExecutionException, InterruptedException {
-        kvizovi.add( kvizovi.size(), kvizZaDodati );
-        FirebaseKvizovi.dodajKviz(kvizZaDodati,getApplicationContext());
-        ArrayList<Pitanje> pitanjaZaDodati = new ArrayList<>();
-        for( int i = 0; i < kvizZaDodati.getPitanja().size(); i++ ) {
-            boolean pitanjeVecPostoji = false;
-            for (int j = 0; j < firebasePitanja.size(); j++) {
-                if (kvizZaDodati.getPitanja().get(i).getNaziv().equals( firebasePitanja.get(j).getNaziv() )) {
-                    pitanjeVecPostoji = true;
-                }
-            }
-            if( !pitanjeVecPostoji ) pitanjaZaDodati.add( kvizZaDodati.getPitanja().get(i) );
-        }
-        FirebasePitanja.dodajPitanja( pitanjaZaDodati, getApplicationContext() );
-        FirebaseKategorije.dajKategoriju( kvizZaDodati.getKategorija(), getApplicationContext() );
-        if( !kvizZaDodati.getKategorija().getNaziv().equals("Svi") && !POSTOJI_LI_KATEGORIJA ) {
-            FirebaseKategorije.dodajKategoriju(kvizZaDodati.getKategorija(), getApplicationContext());
-            POSTOJI_LI_KATEGORIJA = true;
-        }
     }
 
 }

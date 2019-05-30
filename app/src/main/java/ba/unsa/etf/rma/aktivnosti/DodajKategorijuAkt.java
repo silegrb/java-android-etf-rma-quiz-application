@@ -88,7 +88,7 @@ public class DodajKategorijuAkt extends AppCompatActivity implements IconDialog.
                 }
 
 
-                    if( true  ) {
+                    if( dodajKat  ) {
                         dodajKat = false;
                         Kategorija k = new Kategorija();
                         k.setNaziv( etNaziv.getText().toString() );
@@ -99,7 +99,7 @@ public class DodajKategorijuAkt extends AppCompatActivity implements IconDialog.
                         k.setId( ikona );
                         try {
                             if( !etNaziv.getText().toString().equals("Svi") && !etNaziv.getText().toString().equals("Dodaj kategoriju") )
-                            FirebaseKategorije.dajKategoriju(k,getApplicationContext());
+                            FirebaseKategorije.provjeraPostojanjaKategorije(k,getApplicationContext());
                             POSTOJI_LI_KATEGORIJA = true;
                         } catch (ExecutionException e) {
                             e.printStackTrace();

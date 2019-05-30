@@ -28,6 +28,7 @@ import ba.unsa.etf.rma.R;
 import ba.unsa.etf.rma.klase.AdapterZaListuMogucihPitanja;
 import ba.unsa.etf.rma.klase.AdapterZaListuTrenutnihPitanja;
 import ba.unsa.etf.rma.klase.CSVReader;
+import ba.unsa.etf.rma.klase.FirebaseKategorije;
 import ba.unsa.etf.rma.klase.FirebasePitanja;
 import ba.unsa.etf.rma.klase.Kategorija;
 import ba.unsa.etf.rma.klase.Kviz;
@@ -53,6 +54,7 @@ public class DodajKvizAkt extends AppCompatActivity {
     private ArrayList<Pitanje> alMogucaPitanja = new ArrayList<>();
     private AdapterZaListuTrenutnihPitanja adapterZaListuTrenutnihPitanja;
     private AdapterZaListuMogucihPitanja adapterZaListuMogucihPitanja;
+    public static boolean POSTOJI_LI_PITANJE = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -204,6 +206,7 @@ public class DodajKvizAkt extends AppCompatActivity {
                                 i--;
                             }
                         Kategorija kategorija = (Kategorija) kategorijeSpinner.getSelectedItem();
+                            povratniKviz.setNEPROMJENJIVI_ID( trenutniKviz.getNEPROMJENJIVI_ID() );
                         povratniKviz.setKategorija(kategorija);
                         povratniKviz.setNaziv(etNaziv.getText().toString());
                         povratniKviz.setPitanja(alTrenutnaPitanja);
@@ -273,6 +276,18 @@ public class DodajKvizAkt extends AppCompatActivity {
             if (resultCode == RESULT_OK) {
                 Pitanje pitanje = (Pitanje) data.getExtras().get("novoPitanje");
                 alTrenutnaPitanja.add(alTrenutnaPitanja.size() - 1, pitanje);
+                try {
+                    FirebasePitanja.provjeraPostojanjaPitanja( pitanje,getApplicationContext() );
+                    if( !POSTOJI_LI_PITANJE ){
+                        FirebasePitanja.dodajPitanje(pitanje,getApplicationContext());
+                        POSTOJI_LI_PITANJE = true;
+                    }
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
                 adapterZaListuMogucihPitanja.notifyDataSetChanged();
                 adapterZaListuTrenutnihPitanja.notifyDataSetChanged();
             }
@@ -477,8 +492,28 @@ public class DodajKvizAkt extends AppCompatActivity {
 
 
                         if (importuj) {
+
+                            ArrayList<Pitanje> pitanjaZaDodati = new ArrayList<>();
+                            for( int i = 0; i < pitanja.size(); i++ ) {
+                                boolean pitanjeVecPostoji = false;
+                                for (int j = 0; j < firebasePitanja.size(); j++) {
+                                    if (pitanja.get(i).getNaziv().equals( firebasePitanja.get(j).getNaziv() )) {
+                                        pitanjeVecPostoji = true;
+                                    }
+                                }
+                                if( !pitanjeVecPostoji ) pitanjaZaDodati.add( pitanja.get(i) );
+                            }
+                            FirebasePitanja.dodajPitanja( pitanjaZaDodati, getApplicationContext() );
+
                             //Prvo provjeravamo da li kategorija postoji, te ako ne postoji dodajemo je.
+
                             boolean kategorijaVecPostoji = false;
+                            KvizoviAkt.kategorije.clear();
+                            Kategorija SVI = new Kategorija();
+                            SVI.setNaziv("Svi");
+                            SVI.setId("5");
+                            KvizoviAkt.kategorije.add(SVI);
+                            FirebaseKategorije.dajKategorije(getApplicationContext());
                             for (Kategorija k : KvizoviAkt.kategorije)
                                 if (k.getNaziv().equals(prviRed[1]))
                                     kategorijaVecPostoji = true;
@@ -488,6 +523,9 @@ public class DodajKvizAkt extends AppCompatActivity {
                                 kategorija.setNaziv(prviRed[1]);
                                 kategorija.setId("958");
                                 kategorije.add(kategorije.size() - 1, kategorija);
+                                if( !prviRed[1].equals("Svi") && !prviRed[1].equals("Dodaj kategoriju") ) {
+                                    FirebaseKategorije.dodajKategoriju(kategorija, getApplicationContext());
+                                }
                                 kategorijeSpinner.setSelection(kategorije.size() - 2);
                             } else {
                                 for (int i = 0; i < kategorije.size(); i++)
@@ -505,11 +543,22 @@ public class DodajKvizAkt extends AppCompatActivity {
                             pDp.setNaziv("Dodaj pitanje");
                             alTrenutnaPitanja.add(pDp);
                             alMogucaPitanja.clear();
+                            alMogucaPitanja.addAll(firebasePitanja);
+                            for( int i = 0; i < pitanja.size(); i++ )
+                                for( int j = 0; j < alMogucaPitanja.size(); j++ )
+                                    if( pitanja.get(i).getNaziv().equals( alMogucaPitanja.get(j).getNaziv() ) ){
+                                        alMogucaPitanja.remove(j);
+                                        j--;
+                                    }
                             adapterZaListuTrenutnihPitanja.notifyDataSetChanged();
                             adapterZaListuMogucihPitanja.notifyDataSetChanged();
                             adapterZaSpinner.notifyDataSetChanged();
                         }
                     } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (ExecutionException e) {
                         e.printStackTrace();
                     }
                 }

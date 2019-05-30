@@ -75,28 +75,8 @@ public class DetailFrag extends Fragment {
         return rootView;
     }
 
-    public void primiNotifikaciju(String odabir) {
-        if( odabir.equals("Svi") ){
-            KvizoviAkt.prikazaniKvizovi.clear();
-            for( int i = 0; i < kvizovi.size(); i++ )
-                KvizoviAkt.prikazaniKvizovi.add( kvizovi.get(i) );
-        }
-        //Odaberemo li bilo koji drugi element, prikazat ce se svi kvizovi koji pripadaju kategoriji
-        //odabranoj u spinneru kategorija.
-        else{
-            KvizoviAkt.prikazaniKvizovi.clear();
-            for( int i = 0; i < kvizovi.size(); i++ )
-                if( !kvizovi.get(i).getNaziv().equals("Dodaj kviz") && kvizovi.get(i).getKategorija().getNaziv().equals(odabir) )
-                    KvizoviAkt.prikazaniKvizovi.add( kvizovi.get(i) );
-
-            //Filtrirali smo sve potrebne kvizove, potrebno je i dodati element "Dodaj kviz"
-            //pomocu kojeg dodajemo novi kviz.
-
-        }
-        Kviz k = new Kviz();
-        k.setNaziv("Dodaj kviz");
-        KvizoviAkt.prikazaniKvizovi.add( k );
-        adapterZaListuKvizovaW550.notifyDataSetChanged();
+    public void primiNotifikaciju(String odabir) throws ExecutionException, InterruptedException {
+        FirebaseKvizovi.FILTRIRAJ_KVIZOVE_FRAGMENTI(getContext(),adapterZaListuKvizovaW550,odabir);
     }
 
     @Override
@@ -108,32 +88,27 @@ public class DetailFrag extends Fragment {
                 boolean dodajNovi = (boolean)data.getExtras().get("dodajNoviKviz");
                 if( dodajNovi ) {
                     try {
-                        NOVI_KVIZ_REGISTRUJ_BAZA_I_APLIKACIJA(kvizZaDodati);
-                        adapterZaListuKvizovaW550.notifyDataSetChanged();
-                        callback.msg1();
+                        NOVI_KVIZ_REGISTRUJ_BAZA_I_APLIKACIJA(kvizZaDodati,"POST");
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
                 else {
-                    ArrayList<Kviz> tempKvizovi = new ArrayList<>();
-                    tempKvizovi.addAll( kvizovi );
-                    kvizovi.clear();
-                    for( int i = 0; i < tempKvizovi.size(); i++ ){
-                        if( KvizoviAkt.pozicijaKviza == i ) {
-                            kvizovi.add(kvizZaDodati);
-                        }
-                        else
-                            kvizovi.add( tempKvizovi.get(i) );
+                    try {
+                        NOVI_KVIZ_REGISTRUJ_BAZA_I_APLIKACIJA(kvizZaDodati,"PATCH");
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
                     }
-                    tempKvizovi.clear();
-                }
-                KvizoviAkt.prikazaniKvizovi.clear();
-                KvizoviAkt.prikazaniKvizovi.addAll( kvizovi );
 
-                Kviz k = new Kviz();
-                k.setNaziv("Dodaj kviz");
-                KvizoviAkt.prikazaniKvizovi.add( k );
+                }
+//                KvizoviAkt.prikazaniKvizovi.clear();
+//                KvizoviAkt.prikazaniKvizovi.addAll( kvizovi );
+//
+//                Kviz k = new Kviz();
+//                k.setNaziv("Dodaj kviz");
+//                KvizoviAkt.prikazaniKvizovi.add( k );
                 adapterZaListuKvizovaW550.notifyDataSetChanged();
                 callback.msg1();
             }
@@ -170,9 +145,9 @@ public class DetailFrag extends Fragment {
         callback = null;
     }
 
-    public void NOVI_KVIZ_REGISTRUJ_BAZA_I_APLIKACIJA(Kviz kvizZaDodati) throws ExecutionException, InterruptedException {
+    public void NOVI_KVIZ_REGISTRUJ_BAZA_I_APLIKACIJA(Kviz kvizZaDodati,String opcija) throws ExecutionException, InterruptedException {
         kvizovi.add( kvizovi.size(), kvizZaDodati );
-        FirebaseKvizovi.dodajKviz(kvizZaDodati,getContext());
+     //   FirebaseKvizovi.DODAJ_ILI_EDITUJ_KVIZ(kvizZaDodati,getContext(),opcija);
         ArrayList<Pitanje> pitanjaZaDodati = new ArrayList<>();
         for( int i = 0; i < kvizZaDodati.getPitanja().size(); i++ ) {
             boolean pitanjeVecPostoji = false;
@@ -184,7 +159,7 @@ public class DetailFrag extends Fragment {
             if( !pitanjeVecPostoji ) pitanjaZaDodati.add( kvizZaDodati.getPitanja().get(i) );
         }
         FirebasePitanja.dodajPitanja( pitanjaZaDodati, getContext() );
-        FirebaseKategorije.dajKategoriju( kvizZaDodati.getKategorija(), getContext() );
+        FirebaseKategorije.provjeraPostojanjaKategorije( kvizZaDodati.getKategorija(), getContext() );
         if( !kvizZaDodati.getKategorija().getNaziv().equals("Svi") && !POSTOJI_LI_KATEGORIJA ) {
             FirebaseKategorije.dodajKategoriju(kvizZaDodati.getKategorija(), getContext());
             POSTOJI_LI_KATEGORIJA = true;

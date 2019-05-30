@@ -39,13 +39,13 @@ public class FirebaseKategorije {
 
                 GoogleCredential credential;
                 try {
-                    String index_sa_kosom_crtom = kategorija.getNaziv().replaceAll(" ", "_RAZMAK_" );
-                    String index = index_sa_kosom_crtom.replaceAll("/", "_KOSA_CRTA_" );
+                    String index_sa_kosom_crtom = kategorija.getNaziv().replaceAll( " ", "_RAZMAK_" );
+                    String index = index_sa_kosom_crtom.replaceAll( "/", "_KOSA_CRTA_" );
                     InputStream secretStream = context.getResources().openRawResource(R.raw.secret);
                     credential = GoogleCredential.fromStream(secretStream).createScoped(Lists.newArrayList("https://www.googleapis.com/auth/datastore"));
                     credential.refreshToken();
                     String TOKEN = credential.getAccessToken();
-                    String URL = "https://firestore.googleapis.com/v1/projects/rma19sisicfaris31-e36af/databases/(default)/documents/Kategorije?documentId=" + index + "&access_token=";
+                    String URL = "https://firestore.googleapis.com/v1/projects/rma19sisicfaris31-97b17/databases/(default)/documents/Kategorije?documentId="+ index  +"&access_token=";
                     java.net.URL urlOBJ = new URL(URL + URLEncoder.encode(TOKEN, "UTF-8"));
                     HttpURLConnection CONNECTION = (HttpURLConnection) urlOBJ.openConnection();
                     CONNECTION.setDoOutput(true);
@@ -92,7 +92,7 @@ public class FirebaseKategorije {
                     credential = GoogleCredential.fromStream(secretStream).createScoped(Lists.newArrayList("https://www.googleapis.com/auth/datastore"));
                     credential.refreshToken();
                     String TOKEN = credential.getAccessToken();
-                    String URL = "https://firestore.googleapis.com/v1/projects/rma19sisicfaris31-e36af/databases/(default)/documents/Kategorije?access_token=";
+                    String URL = "https://firestore.googleapis.com/v1/projects/rma19sisicfaris31-97b17/databases/(default)/documents/Kategorije?access_token=";
                     java.net.URL urlOBJ = new URL(URL + URLEncoder.encode(TOKEN, "UTF-8"));
                     HttpURLConnection CONNECTION = (HttpURLConnection) urlOBJ.openConnection();
                     InputStream inputStream = new BufferedInputStream(CONNECTION.getInputStream());
@@ -104,6 +104,7 @@ public class FirebaseKategorije {
                     } catch (Exception e) {
                         return null;
                     }
+
                     for (int i = 0; i < dokumentovaniKvizovi.length(); i++) {
                         JSONObject dokument = dokumentovaniKvizovi.getJSONObject(i);
                         JSONObject field = dokument.getJSONObject("fields");
@@ -152,39 +153,97 @@ public class FirebaseKategorije {
         return stringBuilder.toString();
     }
 
-    public static void dajKategoriju(Kategorija kategorija, Context context) throws ExecutionException, InterruptedException {
+    public static void provjeraPostojanjaKategorije(Kategorija kategorija, Context context) throws ExecutionException, InterruptedException {
         new AsyncTask<String, Void, Void>() {
 
             @Override
             protected Void doInBackground(String... strings) {
-                //Provjeriti da li je vec u bazi.
+
                 GoogleCredential credential;
                 try {
-                    String index_sa_kosom_crtom = kategorija.getNaziv().replaceAll(" ", "_RAZMAK_" );
-                    String index = index_sa_kosom_crtom.replaceAll("/", "_KOSA_CRTA_" );
                     InputStream secretStream = context.getResources().openRawResource(R.raw.secret);
                     credential = GoogleCredential.fromStream(secretStream).createScoped(Lists.newArrayList("https://www.googleapis.com/auth/datastore"));
                     credential.refreshToken();
                     String TOKEN = credential.getAccessToken();
-                    String URL = "https://firestore.googleapis.com/v1/projects/rma19sisicfaris31-e36af/databases/(default)/documents/Kategorije/" + index + "?access_token=";
-                    java.net.URL urlOBJ = new URL(URL + URLEncoder.encode(TOKEN, "UTF-8"));
+                    String URL = "https://firestore.googleapis.com/v1/projects/rma19sisicfaris31-97b17/databases/(default)/documents:runQuery?access_token=";
+                    URL urlOBJ = new URL(URL + URLEncoder.encode(TOKEN, "UTF-8"));
                     HttpURLConnection CONNECTION = (HttpURLConnection) urlOBJ.openConnection();
-                    InputStream inputStream = new BufferedInputStream(CONNECTION.getInputStream());
-
+                    CONNECTION.setDoOutput(true);
+                    CONNECTION.setRequestMethod("POST");
+                    CONNECTION.setRequestProperty("Content-Type", "application/json");
+                    CONNECTION.setRequestProperty("Accept", "application/json");
+                    String dajKategorijuQuery = "{  \n" +
+                            "   \"structuredQuery\":{  \n" +
+                            "      \"where\":{  \n" +
+                            "         \"fieldFilter\":{  \n" +
+                            "            \"field\":{  \n" +
+                            "               \"fieldPath\":\"naziv\"\n" +
+                            "            },\n" +
+                            "            \"op\":\"EQUAL\",\n" +
+                            "            \"value\":{  \n" +
+                            "               \"stringValue\":\"" + kategorija.getNaziv() + "\"\n" +
+                            "            }\n" +
+                            "         }\n" +
+                            "      },\n" +
+                            "      \"select\":{  \n" +
+                            "         \"fields\":[  \n" +
+                            "            {  \n" +
+                            "               \"fieldPath\":\"idIkonice\"\n" +
+                            "            },\n" +
+                            "            {  \n" +
+                            "               \"fieldPath\":\"naziv\"\n" +
+                            "            }\n" +
+                            "         ]\n" +
+                            "      },\n" +
+                            "      \"from\":[  \n" +
+                            "         {  \n" +
+                            "            \"collectionId\":\"Kategorije\"\n" +
+                            "         }\n" +
+                            "      ],\n" +
+                            "      \"limit\":1000\n" +
+                            "   }\n" +
+                            "}";
+                    try (OutputStream os = CONNECTION.getOutputStream()) {
+                        byte[] input = dajKategorijuQuery.getBytes("utf-8");
+                        os.write(input, 0, input.length);
+                    }
+                    //int CODE = conn.getResponseCode();
+                    InputStream odgovor = CONNECTION.getInputStream();
+                    String result = "{\"documents\" : ";
+                    result += streamToStringConversion(odgovor);
+                    result += " }";
+                    JSONObject jsonObject  = new JSONObject(result);
+                    JSONArray dokumenti = jsonObject.getJSONArray("documents");
+                    int brojacDokumenata = 0;
+                    for( int i = 0; i < dokumenti.length(); i++ ){
+                        JSONObject objekat = dokumenti.getJSONObject(i);
+                        try {
+                            JSONObject dokument = objekat.getJSONObject("document");
+                            brojacDokumenata ++;
+                        }
+                        catch (JSONException e){
+                            e.printStackTrace();
+                        }
+                    }
+                    if( brojacDokumenata == 0 ){
+                        POSTOJI_LI_KATEGORIJA = false;
+                        dodajKat = true;
+                    }
                     CONNECTION.disconnect();
-                } catch (Exception e) {
-                    dodajKat = true;
-                    POSTOJI_LI_KATEGORIJA = false;
-                    return null;
+                } catch (IOException e) {
+                    System.out.print("NE VALJA");
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
                 return null;
-
             }
 
 
         }.execute().get();
 
     }
+
 }
 
 
