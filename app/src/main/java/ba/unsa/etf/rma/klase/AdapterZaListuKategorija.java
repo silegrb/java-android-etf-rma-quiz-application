@@ -54,7 +54,6 @@ public class AdapterZaListuKategorija extends BaseAdapter implements View.OnClic
             vi = inflater.inflate(R.layout.element_liste_kvizova, null);
         TextView text = vi.findViewById(R.id.Itemname);
         ikonaClanaListe = vi.findViewById( R.id.icon );
-        System.out.println( data.get(position).getNaziv() );
         text.setText( data.get(position).getNaziv() );
         final IconHelper iconHelper = IconHelper.getInstance(vi.getContext());
         final View finalVi = vi;

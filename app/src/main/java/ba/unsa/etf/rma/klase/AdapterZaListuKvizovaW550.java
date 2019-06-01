@@ -62,7 +62,6 @@ public class AdapterZaListuKvizovaW550 extends BaseAdapter implements View.OnCli
             brojPitanja = "";
         else {
             brojPitanja = String.valueOf( k.getPitanja().size());
-            System.out.println( brojPitanja );
         }
         textTwo.setText( brojPitanja );
         final IconHelper iconHelper = IconHelper.getInstance(vi.getContext());

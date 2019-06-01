@@ -53,8 +53,9 @@ public class KvizoviAkt extends AppCompatActivity implements ListaFrag.OnListaFr
 
     private ListView listaKvizova;
     private Spinner spinnerKategorije;
-    private static boolean APLIKACIJA_POKRENUTA = false;
+    public static boolean USPRAVAN_DISPLEJ = false;
     public static boolean POSTOJI_LI_KATEGORIJA = true;
+
 
     //Lista 'kvizovi' se koristi za cuvanje svih postojecih kvizova,
     //dok se lista 'prikazaniKvizovi' koristi za prikazivanje svih/filtriranih kvizova.
@@ -76,26 +77,14 @@ public class KvizoviAkt extends AppCompatActivity implements ListaFrag.OnListaFr
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        if (!APLIKACIJA_POKRENUTA) {
-            APLIKACIJA_POKRENUTA = true;
 
             FragmentManager fragmentManager = getSupportFragmentManager();
             FrameLayout layoutDetalji = (FrameLayout) findViewById(R.id.detailPlace);
             if (layoutDetalji != null) {
+                USPRAVAN_DISPLEJ = false;
                 kvizovi.clear();
+                kategorije.clear();
                 prikazaniKvizovi.clear();
-                for( int i = 0; i < kvizovi.size(); i++ )
-                    prikazaniKvizovi.add( kvizovi.get(i) );
-                Kviz k = new Kviz();
-//                try {
-//                    FirebaseKategorije.dajKategorije(getApplicationContext());
-//                    FirebasePitanja.dajPitanja(getApplicationContext());
-//                   FirebaseKvizovi.POKUPI_KVIZOVE_IZ_BAZE(getApplicationContext());
-//                } catch (ExecutionException e) {
-//                    e.printStackTrace();
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
                 listaFrag = new ListaFrag();
                 detailFrag = new DetailFrag();
                 FragmentManager fragmentManagerFinal = getSupportFragmentManager();
@@ -104,9 +93,11 @@ public class KvizoviAkt extends AppCompatActivity implements ListaFrag.OnListaFr
                 fragmentTransaction.replace(R.id.detailPlace, detailFrag);
                 fragmentTransaction.commit();
             } else {
+                USPRAVAN_DISPLEJ = true;
                 //Prvo svima skinemo vrijednosti!
                 kvizovi.clear();
                 prikazaniKvizovi.clear();
+                kategorije.clear();
                 adapterZaSpinner = null;
                 adapterZaListuKvizova = null;
                 spinnerOdabir = null;
@@ -123,8 +114,10 @@ public class KvizoviAkt extends AppCompatActivity implements ListaFrag.OnListaFr
 
                 //Aplikacija se na pocetku ne puni nikakvim podacima, osim onim potrebnim za sam rad aplikacije.
                 inicijalizirajApp();
-                 PokupiFirebaseKategorije pokupiFirebaseKategorije = new PokupiFirebaseKategorije(getApplicationContext());
-                 pokupiFirebaseKategorije.execute();
+                if( USPRAVAN_DISPLEJ ) {
+                    PokupiFirebaseKategorije pokupiFirebaseKategorije = new PokupiFirebaseKategorije(getApplicationContext());
+                    pokupiFirebaseKategorije.execute();
+                }
 
                 //Slusac koji vrsi filtriranje listView-a svih kvizova na osnovu odabrane kategorije
                 //u spinneru, prikazivanje Toast poruke za korisnika, npr. "Odabrano: Svi".
@@ -192,82 +185,100 @@ public class KvizoviAkt extends AppCompatActivity implements ListaFrag.OnListaFr
                 });
             }
 
-        } else {
-            FragmentManager fragmentManager = getSupportFragmentManager();
-            FrameLayout layoutDetalji = (FrameLayout) findViewById(R.id.detailPlace);
-            if (layoutDetalji != null) {
-                listaFrag = new ListaFrag();
-                detailFrag = new DetailFrag();
-                FragmentManager fragmentManagerFinal = getSupportFragmentManager();
-                FragmentTransaction fragmentTransaction = fragmentManagerFinal.beginTransaction();
-                fragmentTransaction.replace(R.id.listPlace, listaFrag);
-                fragmentTransaction.replace(R.id.detailPlace, detailFrag);
-                fragmentTransaction.commit();
-            }
-            else{
-                //Potrebno je dodijeliti sve vrijednosti pomocu id-a.
-                listaKvizova = (ListView) findViewById(R.id.lvKvizovi);
-                spinnerKategorije = (Spinner) findViewById(R.id.spPostojeceKategorije);
-
-                //Postavljanje adaptera.
-                adapterZaSpinner = new ArrayAdapter<Kategorija>(this, android.R.layout.simple_list_item_1, kategorije);
-                spinnerKategorije.setAdapter(adapterZaSpinner);
-                adapterZaListuKvizova = new AdapterZaListuKvizova(this, prikazaniKvizovi);
-                listaKvizova.setAdapter(adapterZaListuKvizova);
-
-                //Slusac koji vrsi filtriranje listView-a svih kvizova na osnovu odabrane kategorije
-                //u spinneru, prikazivanje Toast poruke za korisnika, npr. "Odabrano: Svi".
-                spinnerKategorije.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                    @Override
-                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                        adapterZaSpinner.notifyDataSetChanged();
-
-                        //Stvaranje string vrijednosti za Toast poruku.
-                        String text = parent.getItemAtPosition(position).toString();
-                        spinnerOdabir = text;
-                        Toast.makeText(parent.getContext(), "Odabrano: " + text, Toast.LENGTH_SHORT).show();
-                            FilterKvizova filter = new FilterKvizova(getApplicationContext(),text);
-                            filter.execute();
-
-                    }
-
-                    @Override
-                    public void onNothingSelected(AdapterView<?> parent) {
-                        //Ukoliko ne selektujemo nista, nista se nece desiti.
-                    }
-                });
-
-                //Ukoliko kliknemo DUGO na neki od elemenata kviza, otvara se nova aktivnost za kreiranje novog kviza
-                //ukoliko je odabran element "Dodaj kviz", odnosno za uredjivanje ukoliko je odabran bilo koji drugi element.
-                listaKvizova.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-                    @Override
-                    public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                        Intent dodajKvizAkt = new Intent(KvizoviAkt.this, DodajKvizAkt.class);
-                        dodajKvizAkt.putExtra("sviKvizovi", kvizovi);
-                        dodajKvizAkt.putExtra("trenutniKviz", (Kviz) parent.getItemAtPosition(position));
-                        dodajKvizAkt.putExtra("sveKategorije", kategorije);
-                        for (int i = 0; i < kvizovi.size(); i++)
-                            if (kvizovi.get(i).getNaziv().equals(((Kviz) parent.getItemAtPosition(position)).getNaziv()))
-                                pozicijaKviza = i;
-                        KvizoviAkt.this.startActivityForResult(dodajKvizAkt, pozicijaKviza);
-                        return true;
-                    }
-                });
-
-                listaKvizova.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                        Kviz k = (Kviz) parent.getItemAtPosition(position);
-                        if (!k.getNaziv().equals("Dodaj kviz")) {
-                            Intent intent = new Intent(KvizoviAkt.this, IgrajKvizAkt.class);
-                            intent.putExtra("odabraniKviz", k);
-                            startActivity(intent);
-                        }
-                    }
-                });
-            }
-
-        }
+//        } else {
+//            FragmentManager fragmentManager = getSupportFragmentManager();
+//            FrameLayout layoutDetalji = (FrameLayout) findViewById(R.id.detailPlace);
+//            if (layoutDetalji != null) {
+//
+//                listaFrag = new ListaFrag();
+//                detailFrag = new DetailFrag();
+//                FragmentManager fragmentManagerFinal = getSupportFragmentManager();
+//                FragmentTransaction fragmentTransaction = fragmentManagerFinal.beginTransaction();
+//                fragmentTransaction.replace(R.id.listPlace, listaFrag);
+//                fragmentTransaction.replace(R.id.detailPlace, detailFrag);
+//                fragmentTransaction.commit();
+//                kvizovi.clear();
+//                kategorije.clear();
+//                firebasePitanja.clear();
+//            }
+//            else{
+//                //Potrebno je dodijeliti sve vrijednosti pomocu id-a.
+//                listaKvizova = (ListView) findViewById(R.id.lvKvizovi);
+//                spinnerKategorije = (Spinner) findViewById(R.id.spPostojeceKategorije);
+//
+//                //Postavljanje adaptera.
+//                adapterZaSpinner = new ArrayAdapter<Kategorija>(this, android.R.layout.simple_list_item_1, kategorije);
+//                spinnerKategorije.setAdapter(adapterZaSpinner);
+//                adapterZaListuKvizova = new AdapterZaListuKvizova(this, prikazaniKvizovi);
+//                listaKvizova.setAdapter(adapterZaListuKvizova);
+//
+//                //Slusac koji vrsi filtriranje listView-a svih kvizova na osnovu odabrane kategorije
+//                //u spinneru, prikazivanje Toast poruke za korisnika, npr. "Odabrano: Svi".
+//                spinnerKategorije.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+//                    @Override
+//                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+//                        adapterZaSpinner.notifyDataSetChanged();
+//
+//                        //Stvaranje string vrijednosti za Toast poruku.
+//                        String text = parent.getItemAtPosition(position).toString();
+//                        spinnerOdabir = text;
+//                        String textBezRazmaka = text.replaceAll(" ","_RAZMAK_");
+//                        String textBezKosihBezRazmaka = textBezRazmaka.replaceAll("/","_KOSA_CRTA_");
+//                        Toast.makeText(parent.getContext(), "Odabrano: " + text, Toast.LENGTH_SHORT).show();
+//                        FilterKvizova filter = new FilterKvizova(getApplicationContext(),textBezKosihBezRazmaka);
+//                        filter.execute();
+//
+//                    }
+//
+//                    @Override
+//                    public void onNothingSelected(AdapterView<?> parent) {
+//                        //Ukoliko ne selektujemo nista, nista se nece desiti.
+//                    }
+//                });
+//
+//                //Ukoliko kliknemo DUGO na neki od elemenata kviza, otvara se nova aktivnost za kreiranje novog kviza
+//                //ukoliko je odabran element "Dodaj kviz", odnosno za uredjivanje ukoliko je odabran bilo koji drugi element.
+//                listaKvizova.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+//                    @Override
+//                    public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+//                        Kviz trenutniKviz = new Kviz();
+//                        trenutniKviz.setNaziv("Dodaj kviz");
+//                        trenutniKviz.setKategorija( (Kategorija)spinnerKategorije.getSelectedItem() );
+//                        System.out.print( trenutniKviz.getKategorija().getNaziv() );
+//                        Intent dodajKvizAkt = new Intent(KvizoviAkt.this, DodajKvizAkt.class);
+//                        for (int i = 0; i < kvizovi.size(); i++)
+//                            if (kvizovi.get(i).getNaziv().equals(((Kviz) parent.getItemAtPosition(position)).getNaziv())) {
+//                                if( !((Kviz) parent.getItemAtPosition(position)).getNaziv().equals("Dodaj kviz") ) {
+//                                    trenutniKviz.setNaziv(kvizovi.get(i).getNaziv());
+//                                    trenutniKviz.setKategorija(kvizovi.get(i).getKategorija());
+//                                    trenutniKviz.setPitanja(kvizovi.get(i).getPitanja());
+//                                    trenutniKviz.setNEPROMJENJIVI_ID( kvizovi.get(i).getNEPROMJENJIVI_ID() );
+//                                }
+//                                pozicijaKviza = i;
+//                            }
+//                        dodajKvizAkt.putExtra("sviKvizovi", kvizovi);
+//                        dodajKvizAkt.putExtra("trenutniKviz", trenutniKviz );
+//                        dodajKvizAkt.putExtra("sveKategorije", kategorije);
+//
+//                        KvizoviAkt.this.startActivityForResult(dodajKvizAkt, pozicijaKviza);
+//                        return true;
+//                    }
+//                });
+//
+//                listaKvizova.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//                    @Override
+//                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+//                        Kviz k = (Kviz) parent.getItemAtPosition(position);
+//                        if (!k.getNaziv().equals("Dodaj kviz")) {
+//                            Intent intent = new Intent(KvizoviAkt.this, IgrajKvizAkt.class);
+//                            intent.putExtra("odabraniKviz", k);
+//                            startActivity(intent);
+//                        }
+//                    }
+//                });
+//            }
+//
+//        }
     }
 
     private void napuniPodacima() {
@@ -387,6 +398,7 @@ public class KvizoviAkt extends AppCompatActivity implements ListaFrag.OnListaFr
         FragmentManager fragmentManager = getSupportFragmentManager();
         FrameLayout layoutDetalji = (FrameLayout) findViewById(R.id.detailPlace);
         if( layoutDetalji != null ) {
+            kategorije.clear();
             detailFrag.onActivityResult(requestCode, resultCode, data);
             return;
         }
@@ -418,6 +430,11 @@ public class KvizoviAkt extends AppCompatActivity implements ListaFrag.OnListaFr
     @Override
     public void msg(String odabir) throws ExecutionException, InterruptedException {
         detailFrag.primiNotifikaciju( odabir );
+    }
+
+    @Override
+    public void slanjeObavijestiZaPocetakPreuzimanja(){
+        detailFrag.zapocniPreuzimanje();
     }
 
     @Override
@@ -867,13 +884,13 @@ public class KvizoviAkt extends AppCompatActivity implements ListaFrag.OnListaFr
 
         @Override
         protected void onPostExecute(Void result){
+            super.onPostExecute(result);
             adapterZaListuKvizova.notifyDataSetChanged();
             prikazaniKvizovi.clear();
             prikazaniKvizovi.addAll(kvizovi);
             Kviz k = new Kviz();
             k.setNaziv("Dodaj kviz");
             prikazaniKvizovi.add(k);
-            super.onPostExecute(result);
         }
     }
 

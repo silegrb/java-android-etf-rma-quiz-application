@@ -149,6 +149,7 @@ public class DodajPitanjeAkt extends AppCompatActivity {
         dodajPitanje.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 boolean pokreni = true;
                 if (tacanOdgovor == null) {
                     lvOdgovori.setBackgroundColor(Color.parseColor("#ff0006"));

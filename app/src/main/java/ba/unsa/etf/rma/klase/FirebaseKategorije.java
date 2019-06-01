@@ -176,7 +176,6 @@ public class FirebaseKategorije {
                     }
                     CONNECTION.disconnect();
                 } catch (IOException e) {
-                    System.out.print("NE VALJA");
                     e.printStackTrace();
                 } catch (JSONException e) {
                     e.printStackTrace();

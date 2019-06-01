@@ -147,7 +147,6 @@ public class FirebasePitanja {
                             if (i < pitanje.getOdgovori().size() - 1) noviDokument += ",";
                         }
                         noviDokument += " ] } } } }";
-                        System.out.println(noviDokument);
                         try (OutputStream os = CONNECTION.getOutputStream()) {
                             byte[] input = noviDokument.getBytes("utf-8");
                             os.write(input, 0, input.length);
