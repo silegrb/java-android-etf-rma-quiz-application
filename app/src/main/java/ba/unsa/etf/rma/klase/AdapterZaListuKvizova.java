@@ -1,6 +1,8 @@
 package ba.unsa.etf.rma.klase;
 
 import android.content.Context;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,7 +16,7 @@ import java.util.ArrayList;
 
 import ba.unsa.etf.rma.R;
 
-public class AdapterZaListuKvizova extends BaseAdapter implements View.OnClickListener {
+public class AdapterZaListuKvizova extends BaseAdapter implements View.OnClickListener, Parcelable {
 
     private Context context;
     private ArrayList<Kviz> data;
@@ -74,5 +76,15 @@ public class AdapterZaListuKvizova extends BaseAdapter implements View.OnClickLi
     @Override
     public void onClick(View v) {
         //Do nothing
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+
     }
 }
