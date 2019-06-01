@@ -61,6 +61,7 @@ public class AdapterZaListuKategorija extends BaseAdapter implements View.OnClic
             @Override
             public void onDataLoaded() {
                 // This happens on UI thread, and is guaranteed to be called.
+                if( data.get(position).getId()!=null )
                     ikonaClanaListe.setImageDrawable(iconHelper.getIcon(Integer.parseInt(data.get(position).getId())).getDrawable(context));
                     notifyDataSetChanged();
             }

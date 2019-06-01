@@ -1,12 +1,15 @@
 package ba.unsa.etf.rma.fragmenti;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,8 +24,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -33,7 +38,6 @@ import java.util.concurrent.ExecutionException;
 import ba.unsa.etf.rma.R;
 import ba.unsa.etf.rma.aktivnosti.DodajKvizAkt;
 import ba.unsa.etf.rma.aktivnosti.IgrajKvizAkt;
-import ba.unsa.etf.rma.aktivnosti.KvizoviAkt;
 import ba.unsa.etf.rma.klase.AdapterZaListuKvizovaW550;
 import ba.unsa.etf.rma.klase.FirebaseKategorije;
 import ba.unsa.etf.rma.klase.FirebasePitanja;
@@ -46,6 +50,7 @@ import static ba.unsa.etf.rma.aktivnosti.KvizoviAkt.POSTOJI_LI_KATEGORIJA;
 import static ba.unsa.etf.rma.aktivnosti.KvizoviAkt.firebasePitanja;
 import static ba.unsa.etf.rma.aktivnosti.KvizoviAkt.kategorije;
 import static ba.unsa.etf.rma.aktivnosti.KvizoviAkt.kvizovi;
+import static ba.unsa.etf.rma.aktivnosti.KvizoviAkt.pozicijaKviza;
 import static ba.unsa.etf.rma.aktivnosti.KvizoviAkt.prikazaniKvizovi;
 import static ba.unsa.etf.rma.klase.FirebaseKvizovi.streamToStringConversion;
 
@@ -91,8 +96,8 @@ public class DetailFrag extends Fragment {
                 dodajKvizAkt.putExtra( "sveKategorije", kategorije );
                 for( int i = 0; i < kvizovi.size(); i++ )
                     if( kvizovi.get(i).getNaziv().equals( ((Kviz) parent.getItemAtPosition(position)).getNaziv() ) )
-                        KvizoviAkt.pozicijaKviza = i;
-                startActivityForResult( dodajKvizAkt, KvizoviAkt.pozicijaKviza );
+                        pozicijaKviza = i;
+                startActivityForResult( dodajKvizAkt, pozicijaKviza );
                 return true;
             }
         });
@@ -113,50 +118,60 @@ public class DetailFrag extends Fragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if( requestCode == KvizoviAkt.pozicijaKviza ){
-            if( resultCode == RESULT_OK ){
+        if( requestCode == pozicijaKviza ){
+            if( resultCode == RESULT_OK) {
+                adapterZaListuKvizovaW550.notifyDataSetChanged();
+                callback.msg1();
                 Kviz kvizZaDodati = (Kviz)data.getExtras().get("noviKviz");
                 boolean dodajNovi = (boolean)data.getExtras().get("dodajNoviKviz");
-//                if( dodajNovi ) {
-//                    try {
-//                        NOVI_KVIZ_REGISTRUJ_BAZA_I_APLIKACIJA(kvizZaDodati,"POST");
-//                    } catch (Exception e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//                else {
-//                    try {
-//                        NOVI_KVIZ_REGISTRUJ_BAZA_I_APLIKACIJA(kvizZaDodati,"PATCH");
-//                    } catch (ExecutionException e) {
-//                        e.printStackTrace();
-//                    } catch (InterruptedException e) {
-//                        e.printStackTrace();
-//                    }
-//
-//                }
-//                KvizoviAkt.prikazaniKvizovi.clear();
-//                KvizoviAkt.prikazaniKvizovi.addAll( kvizovi );
-//
-//                Kviz k = new Kviz();
-//                k.setNaziv("Dodaj kviz");
-//                KvizoviAkt.prikazaniKvizovi.add( k );
-                adapterZaListuKvizovaW550.notifyDataSetChanged();
-                callback.msg1();
+                if( dodajNovi ) {
+                    DodajEditujKviz dodaj = new DodajEditujKviz(getContext(),kvizZaDodati,dodajNovi);
+                    dodaj.execute();
+                }
+                else{
+                    DodajEditujKviz edituj = new DodajEditujKviz(getContext(),kvizZaDodati,dodajNovi);
+                    edituj.execute();
+                }
             }
             else{
-                prikazaniKvizovi.clear();
-                prikazaniKvizovi.addAll( kvizovi );
-                Kviz k = new Kviz();
-                k.setNaziv("Dodaj kviz");
-                prikazaniKvizovi.add( k );
-                adapterZaListuKvizovaW550.notifyDataSetChanged();
+                for( int i = 0; i < kvizovi.size(); i++ ){
+                    for( int j = i + 1; j < kvizovi.size(); j++ )
+                        if( kvizovi.get(i).getNaziv().equals( kvizovi.get(j).getNaziv() ) ) {
+                            kvizovi.remove(kvizovi.get(i));
+                            j--;
+                        }
+                }
+                try {
+                    callback.slanjeObavijestiZaResetKategorija();
+                    callback.msg1();
+                }
+                catch (Exception e){
+                    //ignored
+                }
+            }
+
+        }
+        else{
+            for( int i = 0; i < kvizovi.size(); i++ ){
+                for( int j = i + 1; j < kvizovi.size(); j++ )
+                    if( kvizovi.get(i).getNaziv().equals( kvizovi.get(j).getNaziv() ) ) {
+                        kvizovi.remove(kvizovi.get(i));
+                        j--;
+                    }
+            }
+            try {
+                callback.slanjeObavijestiZaResetKategorija();
                 callback.msg1();
+            }
+            catch (Exception e){
+                //ignored
             }
         }
     }
 
     public interface OnDetailFragmentListener {
         void msg1();
+        void slanjeObavijestiZaResetKategorija();
     }
 
     @Override
@@ -517,6 +532,135 @@ public class DetailFrag extends Fragment {
             prikazaniKvizovi.add(k);
             adapterZaListuKvizovaW550.notifyDataSetChanged();
         }
+    }
+
+
+    public class DodajEditujKviz extends AsyncTask<String,Void,Void>{
+
+        Context context;
+        Kviz kviz;
+        boolean dodajKviz;
+
+        public DodajEditujKviz(Context context,Kviz kviz,boolean dodajKviz){
+            this.context = context;
+            this.kviz = new Kviz();
+            this.kviz.setNEPROMJENJIVI_ID( kviz.getNEPROMJENJIVI_ID() );
+            this.kviz.setNaziv( kviz.getNaziv() );
+            this.kviz.setKategorija( kviz.getKategorija() );
+            this.kviz.setPitanja( kviz.getPitanja() );
+            this.dodajKviz = dodajKviz;
+        }
+        @Override
+        protected void onPreExecute(){
+
+            super.onPreExecute();
+        }
+
+        @Override
+        protected Void doInBackground(String... strings) {
+            //Provjeriti da li je vec u bazi.
+
+            GoogleCredential credential;
+            try{
+
+                InputStream secretStream = context.getResources().openRawResource(R.raw.secret);
+                credential = GoogleCredential.fromStream(secretStream).createScoped(Lists.newArrayList("https://www.googleapis.com/auth/datastore"));
+                credential.refreshToken();
+                String TOKEN = credential.getAccessToken();
+                String URL = "https://firestore.googleapis.com/v1/projects/rma19sisicfaris31-97b17/databases/(default)/documents/Kvizovi/"+ kviz.getNEPROMJENJIVI_ID() +"?access_token=";
+                URL urlOBJ = new URL( URL + URLEncoder.encode(TOKEN,"UTF-8"));
+                HttpURLConnection CONNECTION = (HttpURLConnection) urlOBJ.openConnection();
+                CONNECTION.setDoOutput(true);
+                CONNECTION.setRequestMethod("PATCH");
+                CONNECTION.setRequestProperty("Content-Type","application/json");
+                CONNECTION.setRequestProperty("Accept","application/json");
+                String index_sa_kosom_crtom = kviz.getKategorija().getNaziv().replace(" ", "_RAZMAK_");
+                String index = index_sa_kosom_crtom.replaceAll("/", "_KOSA_CRTA_");
+                String noviDokument = "{ \"fields\":   { \"id\": { \"stringValue\" : \"" + kviz.getNEPROMJENJIVI_ID() + "\" }, \"naziv\": { \"stringValue\" : \"" + kviz.getNaziv() + "\" }, \"idKategorije\" : { \"stringValue\" : \"" +
+                        index + "\" }, \"pitanja\": { \"arrayValue\" : { \"values\": [";
+                for( int i = 0; i < kviz.getPitanja().size(); i++ ){
+                    String jsonPITANJE = "{ \"stringValue\" : \"";
+                    jsonPITANJE += kviz.getPitanja().get(i).getNaziv();
+                    jsonPITANJE += "\" }";
+                    noviDokument += jsonPITANJE;
+                    if( i < kviz.getPitanja().size() - 1   ) noviDokument += ",";
+                }
+                noviDokument += " ] } } } }";
+                try(OutputStream os = CONNECTION.getOutputStream()){
+                    byte[] input = noviDokument.getBytes("utf-8");
+                    os.write(input,0,input.length);
+                }
+                //int CODE = conn.getResponseCode();
+                InputStream odgovor = CONNECTION.getInputStream();
+                try(BufferedReader br = new BufferedReader(
+                        new InputStreamReader(odgovor,"utf-8"))) {
+                    StringBuilder response = new StringBuilder();
+                    String responseLine = null;
+                    while((responseLine = br.readLine()) != null){
+                        response.append(responseLine.trim());
+                    }
+                    Log.d("ODGOVOR",response.toString());
+                }
+                CONNECTION.disconnect();
+            }
+            catch (IOException e){
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void result){
+            super.onPostExecute(result);
+            if(dodajKviz){
+                kvizovi.add(kviz);
+                AlertDialog alertDialog = new AlertDialog.Builder(getContext()).create();
+                alertDialog.setTitle("Obavijest");
+                String tekstObavjestenja = "NOVI KVIZ USPJESNO DODAN!\n\nNaziv: " + kviz.getNaziv() + "\nKategorija: " + kviz.getKategorija().getNaziv() + "\nBroj pitanja: " + String.valueOf(kviz.getPitanja().size());
+                alertDialog.setMessage(tekstObavjestenja);
+                alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        });
+
+                alertDialog.show();
+                FilterKvizova filter = new FilterKvizova(getContext(),"Svi");
+                filter.execute();
+            }
+            else {
+                String tekstObavjestenja = "KVIZ USPJESNO UREDJEN!\n\n";
+                for( int i = 0; i < kvizovi.size(); i++ ){
+                    if( i == pozicijaKviza ){
+                        tekstObavjestenja += "Stari naziv: " + kvizovi.get(i).getNaziv() + "\nStara kategorija: " + kvizovi.get(i).getKategorija().getNaziv() + "\nStari broj pitanja: " + String.valueOf(kvizovi.get(i).getPitanja().size());
+                        kvizovi.get(i).setNEPROMJENJIVI_ID( kviz.getNEPROMJENJIVI_ID() );
+                        kvizovi.get(i).setNaziv( kviz.getNaziv() );
+                        kvizovi.get(i).setKategorija( kviz.getKategorija() );
+                        kvizovi.get(i).setPitanja( kviz.getPitanja() );
+                        tekstObavjestenja += "\n\nNovi naziv: " + kvizovi.get(i).getNaziv() + "\nNova kategorija: " + kvizovi.get(i).getKategorija().getNaziv() + "\nNovi broj pitanja: " + String.valueOf(kvizovi.get(i).getPitanja().size());
+
+                    }
+                }
+                AlertDialog alertDialog = new AlertDialog.Builder(getContext()).create();
+                alertDialog.setTitle("Obavijest");
+                alertDialog.setMessage(tekstObavjestenja);
+                alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        });
+
+                alertDialog.show();
+                FilterKvizova filter = new FilterKvizova(getContext(), "Svi");
+                filter.execute();
+
+            }
+            callback.slanjeObavijestiZaResetKategorija();
+            callback.msg1();
+        }
+
     }
 
 }

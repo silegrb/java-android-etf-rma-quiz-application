@@ -167,6 +167,7 @@ public class ListaFrag extends Fragment {
             super.onPostExecute(result);
             //Ovakvim pristupom da se u fragmentu pokupe kategorije, dolazi tokom izvrsavanja aplikacije do duplog kupljenja kategorija, tako
             //da se duplikati trebaju izbaciti. Naravno, u bazi se nalazi samo jedan primjerak svake...
+
             for( int i = 0; i < kategorije.size(); i++ ){
                 for( int j = i + 1; j < kategorije.size(); j++ )
                     if( kategorije.get(i).getNaziv().equals( kategorije.get(j).getNaziv() ) ) {
@@ -185,7 +186,7 @@ public class ListaFrag extends Fragment {
     }
 
     public void funkty(){
-        kategorije.clear();
+        //kategorije.clear();
         PokupiFirebaseKategorije pokupiFirebaseKategorije = new PokupiFirebaseKategorije(getContext());
         pokupiFirebaseKategorije.execute();
     }

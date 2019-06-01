@@ -70,7 +70,14 @@ public class AdapterZaListuKvizovaW550 extends BaseAdapter implements View.OnCli
             @Override
             public void onDataLoaded() {
                 // This happens on UI thread, and is guaranteed to be called.
-                if( !data.get(position).getNaziv().equals("Dodaj kviz") ) {
+                boolean omgMoze = true;
+                try{
+                    data.get(position).getKategorija().getId();
+                }
+                catch (Exception e){
+                    omgMoze = false;
+                }
+                if( !data.get(position).getNaziv().equals("Dodaj kviz") && omgMoze ) {
                     ikonaClanaListe.setImageDrawable(iconHelper.getIcon(Integer.parseInt(data.get(position).getKategorija().getId())).getDrawable(context));
                 }
                 else

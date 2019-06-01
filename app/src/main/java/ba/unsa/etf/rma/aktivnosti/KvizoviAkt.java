@@ -442,6 +442,11 @@ public class KvizoviAkt extends AppCompatActivity implements ListaFrag.OnListaFr
         listaFrag.primiNotifikaciju();
     }
 
+    @Override
+    public void slanjeObavijestiZaResetKategorija(){
+        listaFrag.funkty();
+    }
+
     public final class FilterKvizova extends AsyncTask<String,Void,Void>{
 
         Context context;
