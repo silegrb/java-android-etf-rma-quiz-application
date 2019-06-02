@@ -13,6 +13,8 @@ import android.widget.TextView;
 import ba.unsa.etf.rma.R;
 import ba.unsa.etf.rma.klase.Kviz;
 
+import static ba.unsa.etf.rma.fragmenti.PitanjeFrag.POSTOTAK_KVIZA;
+
 public class InformacijeFrag extends Fragment {
 
     private TextView infNazivKviza;
@@ -59,6 +61,7 @@ public class InformacijeFrag extends Fragment {
         pomoc = Math.round( pomoc*100.0 )/100.0;
         String brojNaDvijeDecimale = String.valueOf(pomoc);
         infProcenatTacni.setText( brojNaDvijeDecimale + "%" );
+        POSTOTAK_KVIZA = pomoc;
     }
 
 }

@@ -65,6 +65,7 @@ public class DetailFrag extends Fragment {
     public static ArrayList<Kviz> prikazaniKvizoviFragment = new ArrayList<>();
     private Context context;
     public static boolean zapocniPreuzimanje = false;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -76,6 +77,7 @@ public class DetailFrag extends Fragment {
         prikazaniKvizoviFragment.clear();
         adapterZaListuKvizovaW550.notifyDataSetChanged();
         zapocniPreuzimanje = true;
+        RANG_LISTE.size();
         gridKvizovi.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -759,7 +761,7 @@ public class DetailFrag extends Fragment {
                                         break;
                                     }
                                 }
-                                JSONObject ucesnik = vrijednostMAPAfields.getJSONObject(nazivKvizaString);
+                                JSONObject ucesnik = vrijednostMAPAfields.getJSONObject(nazivUcesnikaKviza);
                                 Double procenatTacnih = ucesnik.getDouble("doubleValue");
                                 povratnaMapa.put(redniBroj, new Pair<>(nazivUcesnikaKviza, procenatTacnih));
                                 redniBroj++;
@@ -828,11 +830,11 @@ public class DetailFrag extends Fragment {
                 int VELICINA_MAPE = rangListaKlasa.getMapa().size();
                 int brojac = 0;
                 for (Map.Entry<Integer, Pair<String, Double>> entry : rangListaKlasa.getMapa().entrySet()) {
-                    brojac++;
                     Integer pozicijaPokusaja = entry.getKey();
                     Pair<String, Double> podaciOPokusaju = entry.getValue();
                     noviDokument += "\"" + pozicijaPokusaja + "\": {\"mapValue\": {\"fields\": {\"" + podaciOPokusaju.first + "\": {\"doubleValue\": " + String.valueOf(podaciOPokusaju.second) + "}}}}";
                     if (brojac < VELICINA_MAPE - 1) noviDokument += ",";
+                    brojac++;
                 }
                 noviDokument += "} } } } }";
                 try (OutputStream os = CONNECTION.getOutputStream()) {

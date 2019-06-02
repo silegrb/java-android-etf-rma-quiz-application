@@ -829,11 +829,11 @@ public int check;
                 int VELICINA_MAPE = rangListaKlasa.getMapa().size();
                 int brojac = 0;
                 for (Map.Entry<Integer, Pair<String, Double>> entry : rangListaKlasa.getMapa().entrySet()) {
-                    brojac++;
                     Integer pozicijaPokusaja = entry.getKey();
                     Pair<String, Double> podaciOPokusaju = entry.getValue();
                     noviDokument += "\"" + pozicijaPokusaja + "\": {\"mapValue\": {\"fields\": {\"" + podaciOPokusaju.first + "\": {\"doubleValue\": " + String.valueOf(podaciOPokusaju.second) + "}}}}";
                     if (brojac < VELICINA_MAPE - 1) noviDokument += ",";
+                    brojac++;
                 }
                 noviDokument += "} } } } }";
                 try (OutputStream os = CONNECTION.getOutputStream()) {
@@ -931,7 +931,7 @@ public int check;
                                         break;
                                     }
                                 }
-                                JSONObject ucesnik = vrijednostMAPAfields.getJSONObject(nazivKvizaString);
+                                JSONObject ucesnik = vrijednostMAPAfields.getJSONObject(nazivUcesnikaKviza);
                                 Double procenatTacnih = ucesnik.getDouble("doubleValue");
                                 povratnaMapa.put(redniBroj, new Pair<>(nazivUcesnikaKviza, procenatTacnih));
                                 redniBroj++;
