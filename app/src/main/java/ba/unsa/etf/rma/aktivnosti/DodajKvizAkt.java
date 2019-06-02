@@ -452,9 +452,10 @@ public class DodajKvizAkt extends AppCompatActivity {
                         }
 
 
+
                         if (importuj) {
 
-                            ArrayList<Pitanje> pitanjaZaDodati = new ArrayList<>();
+                            boolean GRESKA_ISTOG_PITANJA = false;
                             for( int i = 0; i < pitanja.size(); i++ ) {
                                 boolean pitanjeVecPostoji = false;
                                 for (int j = 0; j < firebasePitanja.size(); j++) {
@@ -462,29 +463,40 @@ public class DodajKvizAkt extends AppCompatActivity {
                                         pitanjeVecPostoji = true;
                                     }
                                 }
-                                if( !pitanjeVecPostoji ) pitanjaZaDodati.add( pitanja.get(i) );
+                                if( pitanjeVecPostoji ) GRESKA_ISTOG_PITANJA = true;
                             }
-                            FirebasePitanja.dodajPitanja( pitanjaZaDodati, getApplicationContext() );
 
-                            //Prvo provjeravamo da li kategorija postoji, te ako ne postoji dodajemo je.
+                            if( GRESKA_ISTOG_PITANJA ){
+                                importuj = false;
+                                AlertDialog alertDialog = new AlertDialog.Builder(DodajKvizAkt.this).create();
+                                alertDialog.setTitle("Upozorenje");
+                                alertDialog.setMessage("Kviz kojeg importujete ima pitanja koja se vec nalaze u bazi!");
+                                alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
+                                        new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                dialog.dismiss();
+                                            }
+                                        });
+                                alertDialog.show();
+                            }
 
-                            ProvjeriPostojanjeKategorije provjera = new ProvjeriPostojanjeKategorije(getApplicationContext(),prviRed[1]);
-                            provjera.execute();
-
-
-
-                            etNaziv.getText().clear();
-                            etNaziv.setText(prviRed[0]);
-                            alTrenutnaPitanja.clear();
-                            alTrenutnaPitanja.addAll(pitanja);
-                            Pitanje pDp = new Pitanje();
-                            pDp.setNaziv("Dodaj pitanje");
-                            alTrenutnaPitanja.add(pDp);
-                            importUradjen = true;
-                            PokupiMogucaPitanja pokupiMogucaPitanja = new PokupiMogucaPitanja(getApplicationContext());
-                            pokupiMogucaPitanja.execute();
-                            adapterZaListuTrenutnihPitanja.notifyDataSetChanged();
-                            adapterZaSpinner.notifyDataSetChanged();
+                            if( importuj ) {
+                                FirebasePitanja.dodajPitanja(pitanja, getApplicationContext());
+                                ProvjeriPostojanjeKategorije provjera = new ProvjeriPostojanjeKategorije(getApplicationContext(), prviRed[1]);
+                                provjera.execute();
+                                etNaziv.getText().clear();
+                                etNaziv.setText(prviRed[0]);
+                                alTrenutnaPitanja.clear();
+                                alTrenutnaPitanja.addAll(pitanja);
+                                Pitanje pDp = new Pitanje();
+                                pDp.setNaziv("Dodaj pitanje");
+                                alTrenutnaPitanja.add(pDp);
+                                importUradjen = true;
+                                PokupiMogucaPitanja pokupiMogucaPitanja = new PokupiMogucaPitanja(getApplicationContext());
+                                pokupiMogucaPitanja.execute();
+                                adapterZaListuTrenutnihPitanja.notifyDataSetChanged();
+                                adapterZaSpinner.notifyDataSetChanged();
+                            }
                         }
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
