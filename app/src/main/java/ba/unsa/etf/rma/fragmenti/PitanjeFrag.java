@@ -7,6 +7,7 @@ import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -50,8 +51,15 @@ public class PitanjeFrag extends Fragment {
         adapter = new ArrayAdapter<String>( getActivity(), android.R.layout.simple_list_item_1, alOdgovori);
         odgovoriPitanja.setAdapter( adapter );
         adapter.notifyDataSetChanged();
-        if( alPitanja.size() == 0 )
-            tekstPitanja.setText("Kviz je završen!");
+        if( alPitanja.size() == 0 ) {
+            RangLista fragmentRangLista = new RangLista();
+            Bundle bundle = new Bundle();
+            bundle.putSerializable( "trenutniKviz", trenutniKviz  );
+            fragmentRangLista.setArguments(bundle);
+            FragmentTransaction ft = getFragmentManager().beginTransaction();
+            ft.replace( R.id.pitanjePlace, fragmentRangLista);
+            ft.commit();
+        }
         else{
             trenutnoPitanje = alPitanja.get(0);
             tekstPitanja.setText( trenutnoPitanje.getNaziv() );
@@ -96,9 +104,9 @@ public class PitanjeFrag extends Fragment {
                                     parent.getChildAt(i).setBackgroundColor(Color.WHITE);
 
                                 if (alPitanja.size() == 0) {
-                                    tekstPitanja.setText("Kviz je završen!");
-                                    alOdgovori.clear();
-                                    adapter.notifyDataSetChanged();
+                                    FragmentTransaction ft = getFragmentManager().beginTransaction();
+                                    ft.replace(R.id.pitanjePlace,new RangLista());
+                                    ft.commit();
                                 } else {
                                     trenutnoPitanje = alPitanja.get(0);
                                     tekstPitanja.setText(trenutnoPitanje.getNaziv());

@@ -10,6 +10,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,20 +34,22 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 
 import ba.unsa.etf.rma.R;
 import ba.unsa.etf.rma.aktivnosti.DodajKvizAkt;
 import ba.unsa.etf.rma.aktivnosti.IgrajKvizAkt;
 import ba.unsa.etf.rma.klase.AdapterZaListuKvizovaW550;
-import ba.unsa.etf.rma.klase.FirebaseKategorije;
 import ba.unsa.etf.rma.klase.FirebasePitanja;
 import ba.unsa.etf.rma.klase.Kategorija;
 import ba.unsa.etf.rma.klase.Kviz;
 import ba.unsa.etf.rma.klase.Pitanje;
+import ba.unsa.etf.rma.klase.RangListaKlasa;
 
 import static android.app.Activity.RESULT_OK;
-import static ba.unsa.etf.rma.aktivnosti.KvizoviAkt.POSTOJI_LI_KATEGORIJA;
+import static ba.unsa.etf.rma.aktivnosti.KvizoviAkt.RANG_LISTE;
 import static ba.unsa.etf.rma.aktivnosti.KvizoviAkt.firebasePitanja;
 import static ba.unsa.etf.rma.aktivnosti.KvizoviAkt.kategorije;
 import static ba.unsa.etf.rma.aktivnosti.KvizoviAkt.kvizovi;
@@ -59,21 +62,26 @@ public class DetailFrag extends Fragment {
     private GridView gridKvizovi;
     private AdapterZaListuKvizovaW550 adapterZaListuKvizovaW550;
     private OnDetailFragmentListener callback;
+    public static ArrayList<Kviz> prikazaniKvizoviFragment = new ArrayList<>();
+    private Context context;
+    public static boolean zapocniPreuzimanje = false;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
         gridKvizovi = (GridView) rootView.findViewById( R.id.gridKvizovi );
-        adapterZaListuKvizovaW550 = new AdapterZaListuKvizovaW550( getContext(), prikazaniKvizovi);
+        adapterZaListuKvizovaW550 = new AdapterZaListuKvizovaW550( context, prikazaniKvizoviFragment);
         gridKvizovi.setAdapter( adapterZaListuKvizovaW550 );
+        kvizovi.clear();
+        prikazaniKvizoviFragment.clear();
         adapterZaListuKvizovaW550.notifyDataSetChanged();
-
+        zapocniPreuzimanje = true;
         gridKvizovi.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Kviz k = (Kviz)parent.getItemAtPosition(position);
                 if( !k.getNaziv().equals("Dodaj kviz") ){
-                    Intent intent = new Intent(getContext(), IgrajKvizAkt.class);
+                    Intent intent = new Intent(context, IgrajKvizAkt.class);
                     intent.putExtra("odabraniKviz", k );
                     startActivity(intent);
                 }
@@ -83,7 +91,7 @@ public class DetailFrag extends Fragment {
         gridKvizovi.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent dodajKvizAkt = new Intent( getContext(), DodajKvizAkt.class );
+                Intent dodajKvizAkt = new Intent( context, DodajKvizAkt.class );
                 Kviz odabraniKviz = (Kviz)parent.getItemAtPosition(position);
                 if( odabraniKviz.getNaziv().equals("Dodaj kviz") ){
                     Kategorija kategorija = new Kategorija();
@@ -106,12 +114,12 @@ public class DetailFrag extends Fragment {
     }
 
     public void primiNotifikaciju(String odabir) throws ExecutionException, InterruptedException {
-        FilterKvizova filter = new FilterKvizova(getContext(),odabir);
+        FilterKvizova filter = new FilterKvizova(context,odabir);
         filter.execute();
     }
 
     public void zapocniPreuzimanje(){
-        PokupiFirebasePitanja pokupiFirebasePitanja = new PokupiFirebasePitanja(getContext());
+        PokupiFirebasePitanja pokupiFirebasePitanja = new PokupiFirebasePitanja(context);
         pokupiFirebasePitanja.execute();
     }
 
@@ -120,16 +128,15 @@ public class DetailFrag extends Fragment {
         super.onActivityResult(requestCode, resultCode, data);
         if( requestCode == pozicijaKviza ){
             if( resultCode == RESULT_OK) {
-                adapterZaListuKvizovaW550.notifyDataSetChanged();
                 callback.msg1();
                 Kviz kvizZaDodati = (Kviz)data.getExtras().get("noviKviz");
                 boolean dodajNovi = (boolean)data.getExtras().get("dodajNoviKviz");
                 if( dodajNovi ) {
-                    DodajEditujKviz dodaj = new DodajEditujKviz(getContext(),kvizZaDodati,dodajNovi);
+                    DodajEditujKviz dodaj = new DodajEditujKviz(context,kvizZaDodati,dodajNovi);
                     dodaj.execute();
                 }
                 else{
-                    DodajEditujKviz edituj = new DodajEditujKviz(getContext(),kvizZaDodati,dodajNovi);
+                    DodajEditujKviz edituj = new DodajEditujKviz(context,kvizZaDodati,dodajNovi);
                     edituj.execute();
                 }
             }
@@ -138,6 +145,13 @@ public class DetailFrag extends Fragment {
                     for( int j = i + 1; j < kvizovi.size(); j++ )
                         if( kvizovi.get(i).getNaziv().equals( kvizovi.get(j).getNaziv() ) ) {
                             kvizovi.remove(kvizovi.get(i));
+                            j--;
+                        }
+                }
+                for( int i = 0; i < prikazaniKvizoviFragment.size(); i++ ){
+                    for( int j = i + 1; j < prikazaniKvizoviFragment.size(); j++ )
+                        if( prikazaniKvizoviFragment.get(i).getNaziv().equals( prikazaniKvizoviFragment.get(j).getNaziv() ) ) {
+                            prikazaniKvizoviFragment.remove(prikazaniKvizoviFragment.get(i));
                             j--;
                         }
                 }
@@ -159,6 +173,13 @@ public class DetailFrag extends Fragment {
                         j--;
                     }
             }
+            for( int i = 0; i < prikazaniKvizoviFragment.size(); i++ ){
+                for( int j = i + 1; j < prikazaniKvizoviFragment.size(); j++ )
+                    if( prikazaniKvizoviFragment.get(i).getNaziv().equals( prikazaniKvizoviFragment.get(j).getNaziv() ) ) {
+                        prikazaniKvizoviFragment.remove(prikazaniKvizoviFragment.get(i));
+                        j--;
+                    }
+            }
             try {
                 callback.slanjeObavijestiZaResetKategorija();
                 callback.msg1();
@@ -166,6 +187,7 @@ public class DetailFrag extends Fragment {
             catch (Exception e){
                 //ignored
             }
+            adapterZaListuKvizovaW550.notifyDataSetChanged();
         }
     }
 
@@ -177,6 +199,13 @@ public class DetailFrag extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+        this.context = context;
+        kvizovi.clear();
+        firebasePitanja.clear();
+        RANG_LISTE.clear();
+        kategorije.clear();
+        prikazaniKvizoviFragment.clear();
+        prikazaniKvizovi.clear();
         if (context instanceof DetailFrag.OnDetailFragmentListener) {
             callback = (DetailFrag.OnDetailFragmentListener) context;
         } else {
@@ -189,27 +218,12 @@ public class DetailFrag extends Fragment {
     public void onDetach() {
         super.onDetach();
         callback = null;
-    }
-
-    public void NOVI_KVIZ_REGISTRUJ_BAZA_I_APLIKACIJA(Kviz kvizZaDodati,String opcija) throws ExecutionException, InterruptedException {
-        kvizovi.add( kvizovi.size(), kvizZaDodati );
-     //   FirebaseKvizovi.DODAJ_ILI_EDITUJ_KVIZ(kvizZaDodati,getContext(),opcija);
-        ArrayList<Pitanje> pitanjaZaDodati = new ArrayList<>();
-        for( int i = 0; i < kvizZaDodati.getPitanja().size(); i++ ) {
-            boolean pitanjeVecPostoji = false;
-            for (int j = 0; j < firebasePitanja.size(); j++) {
-                if (kvizZaDodati.getPitanja().get(i).getNaziv().equals( firebasePitanja.get(j).getNaziv() )) {
-                    pitanjeVecPostoji = true;
-                }
-            }
-            if( !pitanjeVecPostoji ) pitanjaZaDodati.add( kvizZaDodati.getPitanja().get(i) );
-        }
-        FirebasePitanja.dodajPitanja( pitanjaZaDodati, getContext() );
-        FirebaseKategorije.provjeraPostojanjaKategorije( kvizZaDodati.getKategorija(), getContext() );
-        if( !kvizZaDodati.getKategorija().getNaziv().equals("Svi") && !POSTOJI_LI_KATEGORIJA ) {
-            FirebaseKategorije.dodajKategoriju(kvizZaDodati.getKategorija(), getContext());
-            POSTOJI_LI_KATEGORIJA = true;
-        }
+        kvizovi.clear();
+        prikazaniKvizoviFragment.clear();
+        kategorije.clear();
+        firebasePitanja.clear();
+        RANG_LISTE.clear();
+        prikazaniKvizovi.clear();
     }
 
     public final class FilterKvizova extends AsyncTask<String,Void,Void> {
@@ -225,7 +239,7 @@ public class DetailFrag extends Fragment {
         @Override
         protected void onPreExecute(){
             super.onPreExecute();
-            prikazaniKvizovi.clear();
+            prikazaniKvizoviFragment.clear();
         }
 
         @Override
@@ -234,7 +248,7 @@ public class DetailFrag extends Fragment {
             GoogleCredential credential;
             try {
                 if( text.equals("Svi") )
-                    prikazaniKvizovi.addAll(kvizovi);
+                    prikazaniKvizoviFragment.addAll(kvizovi);
                 else{
                     InputStream secretStream = context.getResources().openRawResource(R.raw.secret);
                     credential = GoogleCredential.fromStream(secretStream).createScoped(Lists.newArrayList("https://www.googleapis.com/auth/datastore"));
@@ -335,7 +349,7 @@ public class DetailFrag extends Fragment {
                             k.setNaziv( imeKvize );
                             k.setPitanja( pitanjaZaKviz );
                             k.setNEPROMJENJIVI_ID(idKviza);
-                            prikazaniKvizovi.add( k );
+                            prikazaniKvizoviFragment.add( k );
                         }
                         catch (JSONException e){
                             //  e.printStackTrace();
@@ -345,7 +359,7 @@ public class DetailFrag extends Fragment {
                 }
                 Kviz dodajKviz = new Kviz();
                 dodajKviz.setNaziv("Dodaj kviz");
-                prikazaniKvizovi.add( dodajKviz );
+                prikazaniKvizoviFragment.add( dodajKviz );
 
             } catch (IOException | JSONException e) {
                 e.printStackTrace();
@@ -433,7 +447,7 @@ public class DetailFrag extends Fragment {
         @Override
         protected void onPostExecute(Void result){
             super.onPostExecute(result);
-            PokupiFirebaseKvizove pokupiFirebaseKvizove = new PokupiFirebaseKvizove(getContext());
+            PokupiFirebaseKvizove pokupiFirebaseKvizove = new PokupiFirebaseKvizove(context);
             pokupiFirebaseKvizove.execute();
         }
 
@@ -525,12 +539,10 @@ public class DetailFrag extends Fragment {
         @Override
         protected void onPostExecute(Void result){
             super.onPostExecute(result);
-            prikazaniKvizovi.clear();
-            prikazaniKvizovi.addAll(kvizovi);
-            Kviz k = new Kviz();
-            k.setNaziv("Dodaj kviz");
-            prikazaniKvizovi.add(k);
-            adapterZaListuKvizovaW550.notifyDataSetChanged();
+            FilterKvizova filterKvizova = new FilterKvizova(context,"Svi");
+            filterKvizova.execute();
+            PokupiFirebaseRangliste pokupiFirebaseRangliste = new PokupiFirebaseRangliste(context);
+            pokupiFirebaseRangliste.execute();
         }
     }
 
@@ -614,7 +626,7 @@ public class DetailFrag extends Fragment {
             super.onPostExecute(result);
             if(dodajKviz){
                 kvizovi.add(kviz);
-                AlertDialog alertDialog = new AlertDialog.Builder(getContext()).create();
+                AlertDialog alertDialog = new AlertDialog.Builder(context).create();
                 alertDialog.setTitle("Obavijest");
                 String tekstObavjestenja = "NOVI KVIZ USPJESNO DODAN!\n\nNaziv: " + kviz.getNaziv() + "\nKategorija: " + kviz.getKategorija().getNaziv() + "\nBroj pitanja: " + String.valueOf(kviz.getPitanja().size());
                 alertDialog.setMessage(tekstObavjestenja);
@@ -625,24 +637,39 @@ public class DetailFrag extends Fragment {
                             }
                         });
 
-                alertDialog.show();
-                FilterKvizova filter = new FilterKvizova(getContext(),"Svi");
-                filter.execute();
+                alertDialog.show();FilterKvizova filter = new FilterKvizova(context,"Svi");
+               filter.execute();
+                RangListaKlasa rangListaKlasa = new RangListaKlasa();
+                rangListaKlasa.setNazivKviza(kviz.getNaziv());
+                DodajEditujRanglistu dodaj = new DodajEditujRanglistu(context, kviz, rangListaKlasa,true);
+                dodaj.execute();
             }
             else {
                 String tekstObavjestenja = "KVIZ USPJESNO UREDJEN!\n\n";
+                String stariNaziv = "";
+                String noviNaziv = "";
                 for( int i = 0; i < kvizovi.size(); i++ ){
                     if( i == pozicijaKviza ){
                         tekstObavjestenja += "Stari naziv: " + kvizovi.get(i).getNaziv() + "\nStara kategorija: " + kvizovi.get(i).getKategorija().getNaziv() + "\nStari broj pitanja: " + String.valueOf(kvizovi.get(i).getPitanja().size());
+                        stariNaziv = kvizovi.get(i).getNaziv();
                         kvizovi.get(i).setNEPROMJENJIVI_ID( kviz.getNEPROMJENJIVI_ID() );
                         kvizovi.get(i).setNaziv( kviz.getNaziv() );
                         kvizovi.get(i).setKategorija( kviz.getKategorija() );
                         kvizovi.get(i).setPitanja( kviz.getPitanja() );
+                        noviNaziv = kvizovi.get(i).getNaziv();
                         tekstObavjestenja += "\n\nNovi naziv: " + kvizovi.get(i).getNaziv() + "\nNova kategorija: " + kvizovi.get(i).getKategorija().getNaziv() + "\nNovi broj pitanja: " + String.valueOf(kvizovi.get(i).getPitanja().size());
-
                     }
                 }
-                AlertDialog alertDialog = new AlertDialog.Builder(getContext()).create();
+                for (int i = 0; i < RANG_LISTE.size(); i++)
+                    if (RANG_LISTE.get(i).getNazivKviza().equals(stariNaziv))
+                        RANG_LISTE.get(i).setNazivKviza(noviNaziv);
+                RangListaKlasa rangListaKlasa = new RangListaKlasa();
+                for (int i = 0; i < RANG_LISTE.size(); i++)
+                    if (RANG_LISTE.get(i).getNazivKviza().equals(noviNaziv))
+                        rangListaKlasa = RANG_LISTE.get(i);
+                DodajEditujRanglistu edituj = new DodajEditujRanglistu(context, kviz, rangListaKlasa,false);
+                edituj.execute();
+                AlertDialog alertDialog = new AlertDialog.Builder(context).create();
                 alertDialog.setTitle("Obavijest");
                 alertDialog.setMessage(tekstObavjestenja);
                 alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
@@ -653,12 +680,183 @@ public class DetailFrag extends Fragment {
                         });
 
                 alertDialog.show();
-                FilterKvizova filter = new FilterKvizova(getContext(), "Svi");
+                FilterKvizova filter = new FilterKvizova(context, "Svi");
                 filter.execute();
 
             }
             callback.slanjeObavijestiZaResetKategorija();
             callback.msg1();
+        }
+
+    }
+
+    public class PokupiFirebaseRangliste extends AsyncTask<String, Void, Void> {
+
+        private Context context;
+
+        public PokupiFirebaseRangliste(Context context) {
+            this.context = context;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            RANG_LISTE.clear();
+        }
+
+        @Override
+        protected Void doInBackground(String... strings) {
+            //Provjeriti da li je vec u bazi.
+            GoogleCredential credential;
+            try {
+                InputStream secretStream = context.getResources().openRawResource(R.raw.secret);
+                credential = GoogleCredential.fromStream(secretStream).createScoped(Lists.newArrayList("https://www.googleapis.com/auth/datastore"));
+                credential.refreshToken();
+                String TOKEN = credential.getAccessToken();
+                String URL = "https://firestore.googleapis.com/v1/projects/rma19sisicfaris31-97b17/databases/(default)/documents/Rangliste?access_token=";
+                java.net.URL urlOBJ = new URL(URL + URLEncoder.encode(TOKEN, "UTF-8"));
+                HttpURLConnection CONNECTION = (HttpURLConnection) urlOBJ.openConnection();
+                InputStream inputStream = new BufferedInputStream(CONNECTION.getInputStream());
+                String result = streamToStringConversion(inputStream);
+                JSONObject jo = new JSONObject(result);
+                JSONArray dokumentovaniKvizovi;
+                try {
+                    dokumentovaniKvizovi = jo.getJSONArray("documents");
+                } catch (Exception e) {
+                    return null;
+                }
+                //Prvo napunimo kvizove.
+                for (int i = 0; i < dokumentovaniKvizovi.length(); i++) {
+                    JSONObject dokument = dokumentovaniKvizovi.getJSONObject(i);
+                    JSONObject field = dokument.getJSONObject("fields");
+                    JSONObject nazivKvizaOBJEKAT = field.getJSONObject("nazivKviza");
+                    JSONObject idOBJEKAT = field.getJSONObject("id");
+                    String id = idOBJEKAT.getString("stringValue");
+                    String nazivKvizaString = nazivKvizaOBJEKAT.getString("stringValue");
+                    Map<Integer,Pair<String,Double>> povratnaMapa = new TreeMap<>();
+                    try {
+                        JSONObject lista = field.getJSONObject("lista");
+                        JSONObject mapValue = lista.getJSONObject("mapValue");
+                        JSONObject mapFields = mapValue.getJSONObject("fields");
+                        int redniBroj = 1;
+                        while (true) {
+                            try {
+                                String stringRedniBroj = String.valueOf(redniBroj);
+                                JSONObject pozicijaURangListi = mapFields.getJSONObject(stringRedniBroj);
+                                //Uzeli smo sada, ako nije bacen izuzetak, objekat koji ima vrijednost mapValue,
+                                //ciji je kljuc ime igraca (objekat koji cemo dobit iz fields), te vrijednost doubleValue procenat
+                                JSONObject vrijednostMAPA = pozicijaURangListi.getJSONObject("mapValue");
+                                JSONObject vrijednostMAPAfields = vrijednostMAPA.getJSONObject("fields");
+                                String vrijednostMAPAfields_string = vrijednostMAPAfields.toString();
+                                String nazivUcesnikaKviza = "";
+                                for (int j = 0; j < vrijednostMAPAfields_string.length(); j++) {
+                                    if (vrijednostMAPAfields_string.charAt(j) == '\"') {
+                                        j++;
+                                        while (vrijednostMAPAfields_string.charAt(j) != '\"') {
+                                            nazivUcesnikaKviza += String.valueOf(vrijednostMAPAfields_string.charAt(j));
+                                            j++;
+                                        }
+                                        break;
+                                    }
+                                }
+                                JSONObject ucesnik = vrijednostMAPAfields.getJSONObject(nazivKvizaString);
+                                Double procenatTacnih = ucesnik.getDouble("doubleValue");
+                                povratnaMapa.put(redniBroj, new Pair<>(nazivUcesnikaKviza, procenatTacnih));
+                                redniBroj++;
+                            } catch (Exception e) {
+                                break;
+                            }
+                        }
+                    }
+                    catch (JSONException e){
+                        //Ignored
+                    }
+                    RangListaKlasa novaRangListaKlasa = new RangListaKlasa();
+                    novaRangListaKlasa.setNEPROMJENJIVI_ID(id);
+                    novaRangListaKlasa.setNazivKviza(nazivKvizaString);
+                    novaRangListaKlasa.setMapa(povratnaMapa);
+                    RANG_LISTE.add(novaRangListaKlasa);
+                }
+                CONNECTION.disconnect();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+            super.onPostExecute(result);
+        }
+    }
+
+    public class DodajEditujRanglistu extends AsyncTask<String,Void,Void> {
+
+        private Context context;
+        private Kviz kviz;
+        private RangListaKlasa rangListaKlasa;
+        private boolean dodaj;
+
+        public DodajEditujRanglistu(Context context, Kviz kviz, RangListaKlasa rangListaKlasa,boolean dodaj) {
+            this.context = context;
+            this.kviz = kviz;
+            this.rangListaKlasa = rangListaKlasa;
+            this.dodaj = dodaj;
+        }
+
+        @Override
+        protected Void doInBackground(String... strings) {
+            //Provjeriti da li je vec u bazi.
+
+            GoogleCredential credential;
+            try {
+
+                InputStream secretStream = context.getResources().openRawResource(R.raw.secret);
+                credential = GoogleCredential.fromStream(secretStream).createScoped(Lists.newArrayList("https://www.googleapis.com/auth/datastore"));
+                credential.refreshToken();
+                String TOKEN = credential.getAccessToken();
+                String URL = "https://firestore.googleapis.com/v1/projects/rma19sisicfaris31-97b17/databases/(default)/documents/Rangliste/" + rangListaKlasa.getNEPROMJENJIVI_ID() + "?access_token=";
+                URL urlOBJ = new URL(URL + URLEncoder.encode(TOKEN, "UTF-8"));
+                HttpURLConnection CONNECTION = (HttpURLConnection) urlOBJ.openConnection();
+                CONNECTION.setDoOutput(true);
+                CONNECTION.setRequestMethod("PATCH");
+                CONNECTION.setRequestProperty("Content-Type", "application/json");
+                CONNECTION.setRequestProperty("Accept", "application/json");
+                String noviDokument = "{ \"fields\": { \"id\": {\"stringValue\" : \"" + rangListaKlasa.getNEPROMJENJIVI_ID() + "\"}, \"nazivKviza\": { \"stringValue\": \"" + kviz.getNaziv() + "\"}, \"lista\": {\"mapValue\": {\"fields\": {";
+                int VELICINA_MAPE = rangListaKlasa.getMapa().size();
+                int brojac = 0;
+                for (Map.Entry<Integer, Pair<String, Double>> entry : rangListaKlasa.getMapa().entrySet()) {
+                    brojac++;
+                    Integer pozicijaPokusaja = entry.getKey();
+                    Pair<String, Double> podaciOPokusaju = entry.getValue();
+                    noviDokument += "\"" + pozicijaPokusaja + "\": {\"mapValue\": {\"fields\": {\"" + podaciOPokusaju.first + "\": {\"doubleValue\": " + String.valueOf(podaciOPokusaju.second) + "}}}}";
+                    if (brojac < VELICINA_MAPE - 1) noviDokument += ",";
+                }
+                noviDokument += "} } } } }";
+                try (OutputStream os = CONNECTION.getOutputStream()) {
+                    byte[] input = noviDokument.getBytes("utf-8");
+                    os.write(input, 0, input.length);
+                }
+                //int CODE = conn.getResponseCode();
+                InputStream odgovor = CONNECTION.getInputStream();
+                try (BufferedReader br = new BufferedReader(
+                        new InputStreamReader(odgovor, "utf-8"))) {
+                    StringBuilder response = new StringBuilder();
+                    String responseLine = null;
+                    while ((responseLine = br.readLine()) != null) {
+                        response.append(responseLine.trim());
+                    }
+                    Log.d("ODGOVOR", response.toString());
+                }
+                if(dodaj)
+                    RANG_LISTE.add(rangListaKlasa);
+                CONNECTION.disconnect();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
         }
 
     }

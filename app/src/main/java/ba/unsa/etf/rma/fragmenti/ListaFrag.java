@@ -34,6 +34,7 @@ import ba.unsa.etf.rma.klase.Kategorija;
 
 import static ba.unsa.etf.rma.aktivnosti.KvizoviAkt.USPRAVAN_DISPLEJ;
 import static ba.unsa.etf.rma.aktivnosti.KvizoviAkt.kategorije;
+import static ba.unsa.etf.rma.fragmenti.DetailFrag.zapocniPreuzimanje;
 import static ba.unsa.etf.rma.klase.FirebaseKvizovi.streamToStringConversion;
 
 public class ListaFrag extends Fragment {
@@ -176,7 +177,10 @@ public class ListaFrag extends Fragment {
                     }
             }
             try {
-                callback.slanjeObavijestiZaPocetakPreuzimanja();
+                if( zapocniPreuzimanje ) {
+                    callback.slanjeObavijestiZaPocetakPreuzimanja();
+                    zapocniPreuzimanje = false;
+                }
             }
             catch (Exception e){
 
