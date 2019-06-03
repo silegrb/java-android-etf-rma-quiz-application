@@ -116,13 +116,17 @@ public class DetailFrag extends Fragment {
     }
 
     public void primiNotifikaciju(String odabir) throws ExecutionException, InterruptedException {
-        FilterKvizova filter = new FilterKvizova(context,odabir);
-        filter.execute();
+
+            FilterKvizova filter = new FilterKvizova(context, odabir);
+            filter.execute();
+
     }
 
     public void zapocniPreuzimanje(){
-        PokupiFirebasePitanja pokupiFirebasePitanja = new PokupiFirebasePitanja(context);
-        pokupiFirebasePitanja.execute();
+
+            PokupiFirebasePitanja pokupiFirebasePitanja = new PokupiFirebasePitanja(context);
+            pokupiFirebasePitanja.execute();
+
     }
 
     @Override
@@ -134,12 +138,16 @@ public class DetailFrag extends Fragment {
                 Kviz kvizZaDodati = (Kviz)data.getExtras().get("noviKviz");
                 boolean dodajNovi = (boolean)data.getExtras().get("dodajNoviKviz");
                 if( dodajNovi ) {
-                    DodajEditujKviz dodaj = new DodajEditujKviz(context,kvizZaDodati,dodajNovi);
-                    dodaj.execute();
+
+                        DodajEditujKviz dodaj = new DodajEditujKviz(context, kvizZaDodati, dodajNovi);
+                        dodaj.execute();
+
                 }
                 else{
-                    DodajEditujKviz edituj = new DodajEditujKviz(context,kvizZaDodati,dodajNovi);
-                    edituj.execute();
+
+                        DodajEditujKviz edituj = new DodajEditujKviz(context, kvizZaDodati, dodajNovi);
+                        edituj.execute();
+
                 }
             }
             else{
@@ -449,8 +457,10 @@ public class DetailFrag extends Fragment {
         @Override
         protected void onPostExecute(Void result){
             super.onPostExecute(result);
-            PokupiFirebaseKvizove pokupiFirebaseKvizove = new PokupiFirebaseKvizove(context);
-            pokupiFirebaseKvizove.execute();
+
+                PokupiFirebaseKvizove pokupiFirebaseKvizove = new PokupiFirebaseKvizove(context);
+                pokupiFirebaseKvizove.execute();
+
         }
 
     }
@@ -541,10 +551,12 @@ public class DetailFrag extends Fragment {
         @Override
         protected void onPostExecute(Void result){
             super.onPostExecute(result);
-            FilterKvizova filterKvizova = new FilterKvizova(context,"Svi");
-            filterKvizova.execute();
-            PokupiFirebaseRangliste pokupiFirebaseRangliste = new PokupiFirebaseRangliste(context);
-            pokupiFirebaseRangliste.execute();
+
+                FilterKvizova filterKvizova = new FilterKvizova(context, "Svi");
+                filterKvizova.execute();
+                PokupiFirebaseRangliste pokupiFirebaseRangliste = new PokupiFirebaseRangliste(context);
+                pokupiFirebaseRangliste.execute();
+
         }
     }
 
@@ -639,12 +651,17 @@ public class DetailFrag extends Fragment {
                             }
                         });
 
-                alertDialog.show();FilterKvizova filter = new FilterKvizova(context,"Svi");
-               filter.execute();
+                alertDialog.show();
+
+                    FilterKvizova filter = new FilterKvizova(context, "Svi");
+                    filter.execute();
+
                 RangListaKlasa rangListaKlasa = new RangListaKlasa();
                 rangListaKlasa.setNazivKviza(kviz.getNaziv());
-                DodajEditujRanglistu dodaj = new DodajEditujRanglistu(context, kviz, rangListaKlasa,true);
-                dodaj.execute();
+
+                    DodajEditujRanglistu dodaj = new DodajEditujRanglistu(context, kviz, rangListaKlasa, true);
+                    dodaj.execute();
+
             }
             else {
                 String tekstObavjestenja = "KVIZ USPJESNO UREDJEN!\n\n";
@@ -669,8 +686,10 @@ public class DetailFrag extends Fragment {
                 for (int i = 0; i < RANG_LISTE.size(); i++)
                     if (RANG_LISTE.get(i).getNazivKviza().equals(noviNaziv))
                         rangListaKlasa = RANG_LISTE.get(i);
-                DodajEditujRanglistu edituj = new DodajEditujRanglistu(context, kviz, rangListaKlasa,false);
-                edituj.execute();
+
+                        DodajEditujRanglistu edituj = new DodajEditujRanglistu(context, kviz, rangListaKlasa, false);
+                        edituj.execute();
+
                 AlertDialog alertDialog = new AlertDialog.Builder(context).create();
                 alertDialog.setTitle("Obavijest");
                 alertDialog.setMessage(tekstObavjestenja);
@@ -682,8 +701,10 @@ public class DetailFrag extends Fragment {
                         });
 
                 alertDialog.show();
-                FilterKvizova filter = new FilterKvizova(context, "Svi");
-                filter.execute();
+
+                    FilterKvizova filter = new FilterKvizova(context, "Svi");
+                    filter.execute();
+
 
             }
             callback.slanjeObavijestiZaResetKategorija();
@@ -862,5 +883,7 @@ public class DetailFrag extends Fragment {
         }
 
     }
+
+
 
 }

@@ -57,8 +57,10 @@ public class RangLista extends Fragment {
         adapter = new ArrayAdapter<String>( getActivity(), android.R.layout.simple_list_item_1, rezultati);
         rangListaKviza.setAdapter(adapter);
         adapter.notifyDataSetChanged();
-        PreuzmiRanglistu preuzmiRanglistu = new PreuzmiRanglistu(CONTEXT,idRangListe);
-        preuzmiRanglistu.execute();
+
+            PreuzmiRanglistu preuzmiRanglistu = new PreuzmiRanglistu(CONTEXT, idRangListe);
+            preuzmiRanglistu.execute();
+
         return rootView;
     }
 
@@ -173,6 +175,5 @@ public class RangLista extends Fragment {
         super.onAttach(context);
         this.CONTEXT = context;
     }
-
 
 }

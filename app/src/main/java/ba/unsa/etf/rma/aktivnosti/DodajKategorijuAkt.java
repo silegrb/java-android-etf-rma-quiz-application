@@ -93,8 +93,10 @@ public class DodajKategorijuAkt extends AppCompatActivity implements IconDialog.
         dodajKategoriju.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ProvjeriPostojanjeKategorije provjera = new ProvjeriPostojanjeKategorije( getApplicationContext() , etNaziv.getText().toString() );
-                provjera.execute();
+
+                    ProvjeriPostojanjeKategorije provjera = new ProvjeriPostojanjeKategorije(getApplicationContext(), etNaziv.getText().toString());
+                    provjera.execute();
+
             }
         });
     }
@@ -176,7 +178,7 @@ public class DodajKategorijuAkt extends AppCompatActivity implements IconDialog.
                 JSONObject povratnaInformacija = new JSONObject(result);
                 JSONArray dokumenti = povratnaInformacija.getJSONArray("documents");
                 int brojacDokumenata = 0;
-                for ( int i = 0; i < dokumenti.length(); i++ ) {
+                for (int i = 0; i < dokumenti.length(); i++) {
                     JSONObject objekat = dokumenti.getJSONObject(i);
                     try {
                         JSONObject dokument = objekat.getJSONObject("document");
@@ -199,20 +201,21 @@ public class DodajKategorijuAkt extends AppCompatActivity implements IconDialog.
         @Override
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);
-            if( !dodajKat || etNaziv.getText().toString().equals("Svi") || etNaziv.getText().toString().equals("Dodaj kategoriju") || etNaziv.getText().toString().equals("") ){
+            if (!dodajKat || etNaziv.getText().toString().equals("Svi") || etNaziv.getText().toString().equals("Dodaj kategoriju") || etNaziv.getText().toString().equals("")) {
                 etNaziv.setBackgroundColor(Color.parseColor("#ff0006"));
                 Toast.makeText(context, "Unesena kategorija već postoji!", Toast.LENGTH_SHORT).show();
-            }
-            else{
+            } else {
                 Kategorija k = new Kategorija();
-                k.setNaziv( etNaziv.getText().toString() );
+                k.setNaziv(etNaziv.getText().toString());
                 etIkona.setEnabled(true);
                 String ikona = etIkona.getText().toString();
                 etIkona.setEnabled(false);
                 if (ikona.equals("")) ikona = "958";
                 k.setId(ikona);
                 try {
+
                     FirebaseKategorije.dodajKategoriju(k, getApplicationContext());
+
                 } catch (ExecutionException | InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -225,4 +228,7 @@ public class DodajKategorijuAkt extends AppCompatActivity implements IconDialog.
             dodajKat = false;
         }
     }
+
+
+
 }

@@ -135,8 +135,11 @@ public class DodajKvizAkt extends AppCompatActivity {
         alTrenutnaPitanja.add(dodajPitanje);
         adapterZaListuTrenutnihPitanja.notifyDataSetChanged();
 
-        PokupiMogucaPitanja pokupiMogucaPitanja = new PokupiMogucaPitanja(getApplicationContext());
-        pokupiMogucaPitanja.execute();
+
+            PokupiMogucaPitanja pokupiMogucaPitanja = new PokupiMogucaPitanja(getApplicationContext());
+            pokupiMogucaPitanja.execute();
+
+
 
         //Akcija pritiska elementa lvTrenutnihPitanja prebacuje pritisnuti element u listu mogucih pitanja.
         lvTrenutnihPitanja.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -178,19 +181,24 @@ public class DodajKvizAkt extends AppCompatActivity {
             public void onClick(View v) {
                 if( trenutniKviz.getNaziv().equals( "Dodaj kviz" ) ) {
                     String naziv = etNaziv.getText().toString();
-                    ProvjeriPostojanjeKviza provjera = new ProvjeriPostojanjeKviza(getApplicationContext(), naziv,false);
-                    provjera.execute();
+
+                        ProvjeriPostojanjeKviza provjera = new ProvjeriPostojanjeKviza(getApplicationContext(), naziv, false);
+                        provjera.execute();
                 }
                 else{
                     if( trenutniKviz.getNaziv().equals( etNaziv.getText().toString() ) ){
                         String naziv = etNaziv.getText().toString();
-                        ProvjeriPostojanjeKviza provjera = new ProvjeriPostojanjeKviza(getApplicationContext(), naziv,true);
-                        provjera.execute();
+
+                            ProvjeriPostojanjeKviza provjera = new ProvjeriPostojanjeKviza(getApplicationContext(), naziv, true);
+                            provjera.execute();
+
                     }
                     else{
                         String naziv = etNaziv.getText().toString();
-                        ProvjeriPostojanjeKviza provjera = new ProvjeriPostojanjeKviza(getApplicationContext(), naziv,false);
-                        provjera.execute();
+
+                            ProvjeriPostojanjeKviza provjera = new ProvjeriPostojanjeKviza(getApplicationContext(), naziv, false);
+                            provjera.execute();
+
                     }
                 }
             }
@@ -455,7 +463,7 @@ public class DodajKvizAkt extends AppCompatActivity {
 
                         if (importuj) {
 
-                            boolean GRESKA_ISTOG_PITANJA = false;
+                            boolean GRESKA_ISTOG_PITANJA_FIREBASE = false;
                             for( int i = 0; i < pitanja.size(); i++ ) {
                                 boolean pitanjeVecPostoji = false;
                                 for (int j = 0; j < firebasePitanja.size(); j++) {
@@ -463,10 +471,39 @@ public class DodajKvizAkt extends AppCompatActivity {
                                         pitanjeVecPostoji = true;
                                     }
                                 }
-                                if( pitanjeVecPostoji ) GRESKA_ISTOG_PITANJA = true;
+                                if( pitanjeVecPostoji ) GRESKA_ISTOG_PITANJA_FIREBASE = true;
                             }
 
+                            boolean GRESKA_ISTOG_PITANJA = false;
+                            int velicina = pitanja.size();
+                            for( int i = 0; i < pitanja.size(); i++ ){
+                                for( int j = i + 1; j < pitanja.size(); j++ ){
+                                    if( pitanja.get(i).getNaziv().equals( pitanja.get(j).getNaziv() ) ){
+                                        pitanja.remove(j);
+                                        j--;
+                                    }
+                                }
+                            }
+                            if( velicina != pitanja.size() )
+                                GRESKA_ISTOG_PITANJA = true;
+
+                            boolean greska_ispisana = false;
                             if( GRESKA_ISTOG_PITANJA ){
+                                greska_ispisana = true;
+                                importuj = false;
+                                AlertDialog alertDialog = new AlertDialog.Builder(DodajKvizAkt.this).create();
+                                alertDialog.setTitle("Upozorenje");
+                                alertDialog.setMessage("Kviz kojeg importujete ima ponavljanje pitanja!");
+                                alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
+                                        new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                dialog.dismiss();
+                                            }
+                                        });
+                                alertDialog.show();
+                            }
+
+                            if( !greska_ispisana & GRESKA_ISTOG_PITANJA_FIREBASE ){
                                 importuj = false;
                                 AlertDialog alertDialog = new AlertDialog.Builder(DodajKvizAkt.this).create();
                                 alertDialog.setTitle("Upozorenje");
@@ -481,9 +518,10 @@ public class DodajKvizAkt extends AppCompatActivity {
                             }
 
                             if( importuj ) {
-                                FirebasePitanja.dodajPitanja(pitanja, getApplicationContext());
-                                ProvjeriPostojanjeKategorije provjera = new ProvjeriPostojanjeKategorije(getApplicationContext(), prviRed[1]);
-                                provjera.execute();
+                                    FirebasePitanja.dodajPitanja(pitanja, getApplicationContext());
+                                    ProvjeriPostojanjeKategorije provjera = new ProvjeriPostojanjeKategorije(getApplicationContext(), prviRed[1]);
+                                    provjera.execute();
+
                                 etNaziv.getText().clear();
                                 etNaziv.setText(prviRed[0]);
                                 alTrenutnaPitanja.clear();
@@ -492,8 +530,9 @@ public class DodajKvizAkt extends AppCompatActivity {
                                 pDp.setNaziv("Dodaj pitanje");
                                 alTrenutnaPitanja.add(pDp);
                                 importUradjen = true;
-                                PokupiMogucaPitanja pokupiMogucaPitanja = new PokupiMogucaPitanja(getApplicationContext());
-                                pokupiMogucaPitanja.execute();
+                                    PokupiMogucaPitanja pokupiMogucaPitanja = new PokupiMogucaPitanja(getApplicationContext());
+                                    pokupiMogucaPitanja.execute();
+
                                 adapterZaListuTrenutnihPitanja.notifyDataSetChanged();
                                 adapterZaSpinner.notifyDataSetChanged();
                             }
@@ -630,7 +669,6 @@ public class DodajKvizAkt extends AppCompatActivity {
                    resIntent.putExtra("noviKviz", povratniKviz);
                    resIntent.putExtra("dodajNoviKviz", true);
                     setResult(RESULT_OK, resIntent);
-                  //  kvizovi.add(kvizovi.size(), povratniKviz);
                     finish();
                 }
                 else{
@@ -924,7 +962,9 @@ public class DodajKvizAkt extends AppCompatActivity {
                 kategorije.add(kategorije.size() - 1, kategorija);
                 if( !naziv.equals("Svi") && !naziv.equals("Dodaj kategoriju") ) {
                     try {
+
                         FirebaseKategorije.dodajKategoriju(kategorija,getApplicationContext());
+
                     } catch (ExecutionException | InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -935,5 +975,6 @@ public class DodajKvizAkt extends AppCompatActivity {
             POSTOJI_LI_KATEGORIJA = true;
         }
     }
+
 }
 

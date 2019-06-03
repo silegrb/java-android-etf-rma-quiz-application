@@ -157,8 +157,10 @@ public class DodajPitanjeAkt extends AppCompatActivity {
                     pokreni = false;
                 }
                 if (pokreni) {
-                    ProvjeriPostojanjePitanja provjera = new ProvjeriPostojanjePitanja(getApplicationContext(),etNaziv.getText().toString());
-                    provjera.execute();
+                        ProvjeriPostojanjePitanja provjera = new ProvjeriPostojanjePitanja(getApplicationContext(), etNaziv.getText().toString());
+                        provjera.execute();
+
+
                 }
             }
         });
@@ -293,7 +295,9 @@ public class DodajPitanjeAkt extends AppCompatActivity {
                 tacanOdgovor = null;
                 tacanDodan = false;
                 try {
+
                     FirebasePitanja.dodajPitanje( pitanje, getApplicationContext() );
+
                 } catch (ExecutionException | InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -305,5 +309,6 @@ public class DodajPitanjeAkt extends AppCompatActivity {
             POSTOJI_LI_PITANJE = true;
         }
     }
+
 }
 

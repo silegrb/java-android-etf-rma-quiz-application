@@ -62,6 +62,8 @@ public class KvizoviAkt extends AppCompatActivity implements ListaFrag.OnListaFr
     public static boolean POSTOJI_LI_KATEGORIJA = true;
 
 
+
+
     //Lista 'kvizovi' se koristi za cuvanje svih postojecih kvizova,
     //dok se lista 'prikazaniKvizovi' koristi za prikazivanje svih/filtriranih kvizova.
     public static ArrayList<Kviz> kvizovi = new ArrayList<>();
@@ -120,8 +122,10 @@ public int check;
                 //Aplikacija se na pocetku ne puni nikakvim podacima, osim onim potrebnim za sam rad aplikacije.
                 inicijalizirajApp();
                 if( USPRAVAN_DISPLEJ ) {
-                    PokupiFirebaseKategorije pokupiFirebaseKategorije = new PokupiFirebaseKategorije(getApplicationContext());
-                    pokupiFirebaseKategorije.execute();
+
+                        PokupiFirebaseKategorije pokupiFirebaseKategorije = new PokupiFirebaseKategorije(getApplicationContext());
+                        pokupiFirebaseKategorije.execute();
+
                 }
 
                 //Slusac koji vrsi filtriranje listView-a svih kvizova na osnovu odabrane kategorije
@@ -137,8 +141,10 @@ public int check;
                         String textBezKosihBezRazmaka = textBezRazmaka.replaceAll("/","_KOSA_CRTA_");
                         Toast.makeText(parent.getContext(), "Odabrano: " + text, Toast.LENGTH_SHORT).show();
                         if( ++check>1 ) {
-                            FilterKvizova filter = new FilterKvizova(getApplicationContext(), textBezKosihBezRazmaka);
-                            filter.execute();
+
+                                FilterKvizova filter = new FilterKvizova(getApplicationContext(), textBezKosihBezRazmaka);
+                                filter.execute();
+
                         }
 
 
@@ -216,12 +222,16 @@ public int check;
                 Kviz kvizZaDodati = (Kviz)data.getExtras().get("noviKviz");
                 boolean dodajNovi = (boolean)data.getExtras().get("dodajNoviKviz");
                 if( dodajNovi ) {
-                    DodajEditujKviz dodaj = new DodajEditujKviz(getApplicationContext(),kvizZaDodati,dodajNovi);
-                    dodaj.execute();
+
+                        DodajEditujKviz dodaj = new DodajEditujKviz(getApplicationContext(), kvizZaDodati, dodajNovi);
+                        dodaj.execute();
+
                 }
                 else{
-                    DodajEditujKviz edituj = new DodajEditujKviz(getApplicationContext(),kvizZaDodati,dodajNovi);
-                    edituj.execute();
+
+                        DodajEditujKviz edituj = new DodajEditujKviz(getApplicationContext(), kvizZaDodati, dodajNovi);
+                        edituj.execute();
+
                 }
                 }
                 else{
@@ -397,9 +407,6 @@ public int check;
         @Override
         protected void onPostExecute(Void result){
             super.onPostExecute(result);
-//            for( int i = 0; i < kategorije.size(); i++ )
-//                if( kategorije.get(i).getNaziv().equals( text ) )
-//                    spinnerKategorije.setSelection(i);
             adapterZaSpinner.notifyDataSetChanged();
             adapterZaListuKvizova.notifyDataSetChanged();
         }
@@ -498,10 +505,12 @@ public int check;
                 alertDialog.show();
                 RangListaKlasa rangListaKlasa = new RangListaKlasa();
                 rangListaKlasa.setNazivKviza(kviz.getNaziv());
-                DodajEditujRangListu dodaj = new DodajEditujRangListu(getApplicationContext(), kviz, rangListaKlasa,true);
-                dodaj.execute();
-                FilterKvizova filter = new FilterKvizova(getApplicationContext(), "Svi");
-                filter.execute();
+
+                    DodajEditujRangListu dodaj = new DodajEditujRangListu(getApplicationContext(), kviz, rangListaKlasa, true);
+                    dodaj.execute();
+                    FilterKvizova filter = new FilterKvizova(getApplicationContext(), "Svi");
+                    filter.execute();
+
             } else {
                 String tekstObavjestenja = "KVIZ USPJESNO UREDJEN!\n\n";
                 String stariNaziv = "";
@@ -526,8 +535,10 @@ public int check;
                     for (int i = 0; i < RANG_LISTE.size(); i++)
                         if (RANG_LISTE.get(i).getNazivKviza().equals(noviNaziv))
                             rangListaKlasa = RANG_LISTE.get(i);
-                    DodajEditujRangListu edituj = new DodajEditujRangListu(getApplicationContext(), kviz, rangListaKlasa,false);
-                    edituj.execute();
+
+                            DodajEditujRangListu edituj = new DodajEditujRangListu(getApplicationContext(), kviz, rangListaKlasa, false);
+                            edituj.execute();
+
                     AlertDialog alertDialog = new AlertDialog.Builder(KvizoviAkt.this).create();
                     alertDialog.setTitle("Obavijest");
                     alertDialog.setMessage(tekstObavjestenja);
@@ -539,8 +550,10 @@ public int check;
                             });
 
                     alertDialog.show();
-                    FilterKvizova filter = new FilterKvizova(getApplicationContext(), ((Kategorija) spinnerKategorije.getSelectedItem()).getNaziv());
-                    filter.execute();
+
+                        FilterKvizova filter = new FilterKvizova(getApplicationContext(), ((Kategorija) spinnerKategorije.getSelectedItem()).getNaziv());
+                        filter.execute();
+
                 }
             }
 
@@ -619,8 +632,10 @@ public int check;
             @Override
             protected void onPostExecute(Void result) {
                 super.onPostExecute(result);
-                PokupiFirebaseKvizove pokupiFirebaseKvizove = new PokupiFirebaseKvizove(getApplicationContext());
-                pokupiFirebaseKvizove.execute();
+
+                    PokupiFirebaseKvizove pokupiFirebaseKvizove = new PokupiFirebaseKvizove(getApplicationContext());
+                    pokupiFirebaseKvizove.execute();
+
             }
 
         }
@@ -716,8 +731,10 @@ public int check;
                 k.setNaziv("Dodaj kviz");
                 prikazaniKvizovi.add(k);
                 adapterZaListuKvizova.notifyDataSetChanged();
-                PokupiFirebaseRangliste pokupiFirebaseRangliste = new PokupiFirebaseRangliste(getApplicationContext());
-                pokupiFirebaseRangliste.execute();
+
+                    PokupiFirebaseRangliste pokupiFirebaseRangliste = new PokupiFirebaseRangliste(getApplicationContext());
+                    pokupiFirebaseRangliste.execute();
+
             }
         }
 
@@ -786,8 +803,10 @@ public int check;
             @Override
             protected void onPostExecute(Void result) {
                 super.onPostExecute(result);
-                PokupiFirebasePitanja pokupiFirebasePitanja = new PokupiFirebasePitanja(getApplicationContext());
-                pokupiFirebasePitanja.execute();
+
+                    PokupiFirebasePitanja pokupiFirebasePitanja = new PokupiFirebasePitanja(getApplicationContext());
+                    pokupiFirebasePitanja.execute();
+
                 adapterZaSpinner.notifyDataSetChanged();
             }
         }
@@ -963,6 +982,7 @@ public int check;
             super.onPostExecute(result);
         }
     }
+
 }
 
 

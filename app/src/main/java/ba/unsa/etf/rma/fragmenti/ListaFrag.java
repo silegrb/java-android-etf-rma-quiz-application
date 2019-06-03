@@ -42,6 +42,7 @@ public class ListaFrag extends Fragment {
     private ListView listaKategorija;
     private AdapterZaListuKategorija adapterZaListuKategorija;
     private OnListaFragmentListener callback;
+    private Context CONTEXT;
 
     @Nullable
     @Override
@@ -93,6 +94,7 @@ public class ListaFrag extends Fragment {
             throw new RuntimeException(context.toString()
                     + " must implement OnGreenFragmentListener");
         }
+        CONTEXT = context;
     }
 
     @Override
@@ -190,8 +192,9 @@ public class ListaFrag extends Fragment {
     }
 
     public void funkty(){
-        //kategorije.clear();
-        PokupiFirebaseKategorije pokupiFirebaseKategorije = new PokupiFirebaseKategorije(getContext());
-        pokupiFirebaseKategorije.execute();
+
+            PokupiFirebaseKategorije pokupiFirebaseKategorije = new PokupiFirebaseKategorije(getContext());
+            pokupiFirebaseKategorije.execute();
+
     }
 }
