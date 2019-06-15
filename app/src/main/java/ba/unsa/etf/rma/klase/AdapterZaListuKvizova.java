@@ -30,6 +30,21 @@ public class AdapterZaListuKvizova extends BaseAdapter implements View.OnClickLi
         inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
+    protected AdapterZaListuKvizova(Parcel in) {
+    }
+
+    public static final Creator<AdapterZaListuKvizova> CREATOR = new Creator<AdapterZaListuKvizova>() {
+        @Override
+        public AdapterZaListuKvizova createFromParcel(Parcel in) {
+            return new AdapterZaListuKvizova(in);
+        }
+
+        @Override
+        public AdapterZaListuKvizova[] newArray(int size) {
+            return new AdapterZaListuKvizova[size];
+        }
+    };
+
     @Override
     public int getCount() {
         // TODO Auto-generated method stub
@@ -85,6 +100,5 @@ public class AdapterZaListuKvizova extends BaseAdapter implements View.OnClickLi
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-
     }
 }

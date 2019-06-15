@@ -171,94 +171,7 @@ public class PitanjeFrag extends Fragment {
                                 }
                                 if( kvizGotov ){
                                     try {
-                                        RangLista fragmentRangLista = new RangLista();
-                                        Bundle bundle = new Bundle();
-                                        bundle.putSerializable("trenutniKviz", trenutniKviz);
-                                        fragmentRangLista.setArguments(bundle);
-                                        FragmentTransaction ft = fm.beginTransaction();
-                                        ft.replace(R.id.pitanjePlace, fragmentRangLista);
-                                        ft.commit();
-                                        //OVDJE IDE ALERT DIALOG
-
-                                        AlertDialog.Builder alertDialog = new AlertDialog.Builder(CONTEXT);
-                                        alertDialog.setTitle("\"" + trenutniKviz.getNaziv() + "\" uspjesno zavrsen!");
-                                        alertDialog.setMessage("Ime igraca");
-                                        final EditText input = new EditText(CONTEXT);
-                                        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                                                LinearLayout.LayoutParams.MATCH_PARENT,
-                                                LinearLayout.LayoutParams.MATCH_PARENT);
-                                        input.setLayoutParams(lp);
-                                        alertDialog.setView(input); // uncomment this line
-                                        alertDialog.setPositiveButton("Potvrdi",
-                                                new DialogInterface.OnClickListener() {
-                                                    public void onClick(DialogInterface dialog, int which) {
-                                                        String text = input.getText().toString();
-                                                        if (text.equals("")) {
-                                                            Toast.makeText(CONTEXT,
-                                                                    "Unesite ime igraca!", Toast.LENGTH_SHORT).show();
-                                                        } else {
-                                                            Pair<String, Double> ubacivanjePokusaja = new Pair<>(text, POSTOTAK_KVIZA);
-                                                            for (int i = 0; i < RANG_LISTE.size(); i++)
-                                                                if (RANG_LISTE.get(i).getNazivKviza().equals(trenutniKviz.getNaziv())) {
-                                                                    RANG_LISTE.get(i).registrujKorisnika(ubacivanjePokusaja);
-                                                                    EditujRanglistu edit = new EditujRanglistu(CONTEXT, trenutniKviz, RANG_LISTE.get(i));
-                                                                    edit.execute();
-                                                                }
-                                                            dialog.cancel();
-                                                        }
-                                                    }
-                                                });
-
-                                        alertDialog.setNegativeButton("Ponisti",
-                                                new DialogInterface.OnClickListener() {
-                                                    public void onClick(DialogInterface dialog, int which) {
-                                                        dialog.cancel();
-                                                        RangLista fragmentRangLista = new RangLista();
-                                                        Bundle bundle = new Bundle();
-                                                        bundle.putSerializable("trenutniKviz", trenutniKviz);
-                                                        fragmentRangLista.setArguments(bundle);
-                                                        FragmentTransaction ft = fm.beginTransaction();
-                                                        ft.replace(R.id.pitanjePlace, fragmentRangLista);
-                                                        ft.commit();
-                                                    }
-                                                });
-
-                                        AlertDialog alert = alertDialog.create();
-
-
-                                        alertReady = false;
-                                        alert.setOnShowListener(new DialogInterface.OnShowListener() {
-                                            @Override
-                                            public void onShow(DialogInterface dialog) {
-                                                if (alertReady == false) {
-                                                    Button button = alert.getButton(DialogInterface.BUTTON_POSITIVE);
-                                                    button.setOnClickListener(new View.OnClickListener() {
-                                                        @Override
-                                                        public void onClick(View v) {
-                                                            String text = input.getText().toString();
-                                                            if (text.equals("")) {
-                                                                Toast.makeText(CONTEXT,
-                                                                        "Unesite ime igraca!", Toast.LENGTH_SHORT).show();
-                                                            } else {
-                                                                Pair<String, Double> ubacivanjePokusaja = new Pair<>(text, POSTOTAK_KVIZA);
-                                                                for (int i = 0; i < RANG_LISTE.size(); i++)
-                                                                    if (RANG_LISTE.get(i).getNazivKviza().equals(trenutniKviz.getNaziv())) {
-
-                                                                            RANG_LISTE.get(i).registrujKorisnika(ubacivanjePokusaja);
-                                                                            EditujRanglistu edit = new EditujRanglistu(CONTEXT, trenutniKviz, RANG_LISTE.get(i));
-                                                                            edit.execute();
-
-                                                                    }
-                                                                dialog.cancel();
-                                                            }
-                                                        }
-                                                    });
-                                                    alertReady = true;
-                                                }
-                                            }
-                                        });
-
-                                        alert.show();
+                                        pokreniFormuZaRegistrovanjeURangListu();
                                     }
                                     catch (Exception e){
                                         //Ignored
@@ -360,6 +273,100 @@ public class PitanjeFrag extends Fragment {
             ft.commit();
         }
 
+    }
+
+    public void pokreniFormuZaRegistrovanjeURangListu(){
+        RangLista fragmentRangLista = new RangLista();
+        Bundle bundle = new Bundle();
+        bundle.putSerializable("trenutniKviz", trenutniKviz);
+        fragmentRangLista.setArguments(bundle);
+        FragmentTransaction ft = fm.beginTransaction();
+        ft.replace(R.id.pitanjePlace, fragmentRangLista);
+        ft.commit();
+        //OVDJE IDE ALERT DIALOG
+
+
+
+
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(CONTEXT);
+        alertDialog.setTitle("\"" + trenutniKviz.getNaziv() + "\" uspjesno zavrsen!\nDa li zelite registrovati vas rezultat?");
+        alertDialog.setMessage("Ime igraca");
+        final EditText input = new EditText(CONTEXT);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT);
+        input.setLayoutParams(lp);
+        alertDialog.setView(input); // uncomment this line
+        alertDialog.setPositiveButton("Potvrdi",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        String text = input.getText().toString();
+                        if (text.equals("")) {
+                            Toast.makeText(CONTEXT,
+                                    "Unesite ime igraca!", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Pair<String, Double> ubacivanjePokusaja = new Pair<>(text, POSTOTAK_KVIZA);
+                            for (int i = 0; i < RANG_LISTE.size(); i++)
+                                if (RANG_LISTE.get(i).getNazivKviza().equals(trenutniKviz.getNaziv())) {
+                                    RANG_LISTE.get(i).registrujKorisnika(ubacivanjePokusaja);
+                                    EditujRanglistu edit = new EditujRanglistu(CONTEXT, trenutniKviz, RANG_LISTE.get(i));
+                                    edit.execute();
+                                }
+                            dialog.cancel();
+                        }
+                    }
+                });
+
+        alertDialog.setNegativeButton("Ponisti",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                        RangLista fragmentRangLista = new RangLista();
+                        Bundle bundle = new Bundle();
+                        bundle.putSerializable("trenutniKviz", trenutniKviz);
+                        fragmentRangLista.setArguments(bundle);
+                        FragmentTransaction ft = fm.beginTransaction();
+                        ft.replace(R.id.pitanjePlace, fragmentRangLista);
+                        ft.commit();
+                    }
+                });
+
+        AlertDialog alert = alertDialog.create();
+
+
+        alertReady = false;
+        alert.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialog) {
+                if (alertReady == false) {
+                    Button button = alert.getButton(DialogInterface.BUTTON_POSITIVE);
+                    button.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            String text = input.getText().toString();
+                            if (text.equals("")) {
+                                Toast.makeText(CONTEXT,
+                                        "Unesite ime igraca!", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Pair<String, Double> ubacivanjePokusaja = new Pair<>(text, POSTOTAK_KVIZA);
+                                for (int i = 0; i < RANG_LISTE.size(); i++)
+                                    if (RANG_LISTE.get(i).getNazivKviza().equals(trenutniKviz.getNaziv())) {
+
+                                        RANG_LISTE.get(i).registrujKorisnika(ubacivanjePokusaja);
+                                        EditujRanglistu edit = new EditujRanglistu(CONTEXT, trenutniKviz, RANG_LISTE.get(i));
+                                        edit.execute();
+
+                                    }
+                                dialog.cancel();
+                            }
+                        }
+                    });
+                    alertReady = true;
+                }
+            }
+        });
+
+        alert.show();
     }
 
 }

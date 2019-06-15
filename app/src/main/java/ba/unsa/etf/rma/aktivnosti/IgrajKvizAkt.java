@@ -1,9 +1,13 @@
 package ba.unsa.etf.rma.aktivnosti;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.provider.AlarmClock;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
+
+import java.util.Date;
 
 import ba.unsa.etf.rma.R;
 import ba.unsa.etf.rma.fragmenti.InformacijeFrag;
@@ -20,11 +24,22 @@ public class IgrajKvizAkt extends AppCompatActivity implements PitanjeFrag.OnPit
         setContentView(R.layout.activity_igraj_kviz_akt);
         Bundle bundle = new Bundle();
         Kviz k = (Kviz)getIntent().getSerializableExtra("odabraniKviz");
+        Date vrijemeAlarma = (Date)getIntent().getSerializableExtra("vrijemeAlarma");
+        Intent alarm = new Intent(AlarmClock.ACTION_SET_ALARM);
+        alarm.putExtra(AlarmClock.EXTRA_MESSAGE, "Alarm za kraj igranja kviza \"" + k.getNaziv() + "\"");
+        alarm.putExtra(AlarmClock.EXTRA_HOUR, vrijemeAlarma.getHours());
+        alarm.putExtra(AlarmClock.EXTRA_MINUTES, vrijemeAlarma.getMinutes());
+        alarm.putExtra(AlarmClock.EXTRA_SKIP_UI, true);
+        IgrajKvizAkt.this.startActivity(alarm);
         bundle.putSerializable( "trenutniKviz", k  );
         informacijeFrag = new InformacijeFrag();
         pitanjeFrag = new PitanjeFrag();
         informacijeFrag.setArguments( bundle );
         pitanjeFrag.setArguments( bundle );
+
+        //Ovdje setujemo alarm!!!
+
+
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.add( R.id.informacijePlace, informacijeFrag );

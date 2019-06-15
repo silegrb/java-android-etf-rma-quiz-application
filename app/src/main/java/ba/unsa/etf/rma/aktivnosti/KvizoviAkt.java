@@ -1,13 +1,17 @@
 package ba.unsa.etf.rma.aktivnosti;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -37,6 +41,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
@@ -46,6 +52,7 @@ import ba.unsa.etf.rma.fragmenti.DetailFrag;
 import ba.unsa.etf.rma.fragmenti.ListaFrag;
 import ba.unsa.etf.rma.klase.AdapterZaListuKvizova;
 import ba.unsa.etf.rma.klase.FirebasePitanja;
+import ba.unsa.etf.rma.klase.KalendarEventi;
 import ba.unsa.etf.rma.klase.Kategorija;
 import ba.unsa.etf.rma.klase.Kviz;
 import ba.unsa.etf.rma.klase.Pitanje;
@@ -189,9 +196,71 @@ public int check;
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                         Kviz k = (Kviz) parent.getItemAtPosition(position);
                         if (!k.getNaziv().equals("Dodaj kviz")) {
-                            Intent intent = new Intent(KvizoviAkt.this, IgrajKvizAkt.class);
-                            intent.putExtra("odabraniKviz", k);
-                            startActivity(intent);
+
+                            if( k.getPitanja().size() != 0 ){
+                                int trajanjeKvizaUMinutama = k.getPitanja().size()/2;
+                                if( k.getPitanja().size() % 2 == 1 ) trajanjeKvizaUMinutama++;
+                                final long ONE_MINUTE_IN_MILLIS=60000;
+                                Calendar calendar = Calendar.getInstance();
+                                long pocetak = calendar.getTimeInMillis();
+                                long kraj = pocetak;
+                                kraj += trajanjeKvizaUMinutama*ONE_MINUTE_IN_MILLIS;
+                                Date vrijemeAlarma = new Date(kraj);
+                                if (ContextCompat.checkSelfPermission(KvizoviAkt.this, Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
+                                    // Permission is not granted
+                                    ActivityCompat.requestPermissions(KvizoviAkt.this, new String[]{Manifest.permission.READ_CALENDAR}, 0);
+                                }
+                                KalendarEventi kalendarEventi = new KalendarEventi(KvizoviAkt.this,pocetak,kraj);
+                                Pair<Pair<Boolean,String>,Pair<Long,String>> povratniInfoKalendara = kalendarEventi.provjeriEvente();
+
+                                if( povratniInfoKalendara.first.first ) {
+                                    if( povratniInfoKalendara.first.second.equals("Will start") ){
+                                        android.support.v7.app.AlertDialog alertDialog = new android.support.v7.app.AlertDialog.Builder(KvizoviAkt.this).create();
+                                        alertDialog.setTitle("Upozorenje");
+                                        long temp = povratniInfoKalendara.second.first/60000;
+                                        alertDialog.setMessage("Imate dogadjaj za " + String.valueOf(temp) + " minuta!");
+                                        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
+                                                new DialogInterface.OnClickListener() {
+                                                    public void onClick(DialogInterface dialog, int which) {
+                                                        dialog.dismiss();
+                                                    }
+                                                });
+
+                                        alertDialog.show();
+                                    }
+                                    else if( povratniInfoKalendara.first.second.equals("In progress") ){
+                                        android.support.v7.app.AlertDialog alertDialog = new android.support.v7.app.AlertDialog.Builder(KvizoviAkt.this).create();
+                                        alertDialog.setTitle("Upozorenje");
+                                        String naslovDogadjaja = povratniInfoKalendara.second.second;
+                                        String porukaZaAlert = "Dogadjaj bez naslova jos traje!";
+                                        if( !naslovDogadjaja.equals("") ){
+                                            porukaZaAlert = "Dogadjaj " + naslovDogadjaja + " jos traje!";
+                                        }
+                                        alertDialog.setMessage(porukaZaAlert);
+                                        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
+                                                new DialogInterface.OnClickListener() {
+                                                    public void onClick(DialogInterface dialog, int which) {
+                                                        dialog.dismiss();
+                                                    }
+                                                });
+
+                                        alertDialog.show();
+                                    }
+                                }
+                                else{
+
+                                    Intent intent = new Intent(KvizoviAkt.this, IgrajKvizAkt.class);
+                                    intent.putExtra("odabraniKviz", k);
+                                    intent.putExtra("vrijemeAlarma",vrijemeAlarma);
+                                    startActivity(intent);
+
+
+                            }
+
+
+
+                            }
+
                         }
                     }
                 });
@@ -893,6 +962,7 @@ public int check;
         protected void onPreExecute() {
             super.onPreExecute();
             RANG_LISTE.clear();
+
         }
 
         @Override
