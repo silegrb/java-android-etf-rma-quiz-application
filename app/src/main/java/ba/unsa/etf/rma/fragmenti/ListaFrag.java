@@ -1,6 +1,7 @@
 package ba.unsa.etf.rma.fragmenti;
 
 import android.content.Context;
+import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -193,8 +194,16 @@ public class ListaFrag extends Fragment {
 
     public void funkty(){
 
+        if( imaInterneta()) {
             PokupiFirebaseKategorije pokupiFirebaseKategorije = new PokupiFirebaseKategorije(getContext());
             pokupiFirebaseKategorije.execute();
+        }
+        adapterZaListuKategorija.notifyDataSetChanged();
+    }
 
+    public boolean imaInterneta() {
+        ConnectivityManager cm = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        return cm.getActiveNetworkInfo() != null;
     }
 }

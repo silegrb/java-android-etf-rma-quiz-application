@@ -71,15 +71,34 @@ public class KvizoviAkt extends AppCompatActivity implements ListaFrag.OnListaFr
     private Spinner spinnerKategorije;
     public static boolean USPRAVAN_DISPLEJ = false;
     public static boolean POSTOJI_LI_KATEGORIJA = true;
-    public static SQLiteBaza db;
+    public SQLiteBaza db = new SQLiteBaza(this);
     public final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             if( imaInterneta() ){
-                FilterKvizova filterKvizova = new FilterKvizova(getApplicationContext(),"Svi");
+                Toast.makeText(KvizoviAkt.this, "ONLINE MODE", Toast.LENGTH_SHORT).show();
+                RANG_LISTE.clear();
+                db.pokupiRangliste();
+                for( int i = 0; i < RANG_LISTE.size(); i++ ){
+                    Kviz k = new Kviz();
+                    for( int j = 0; j < kvizovi.size(); j++ ) {
+                        if (RANG_LISTE.get(i).getNazivKviza().equals(kvizovi.get(j).getNaziv())) {
+                            k.setNEPROMJENJIVI_ID(kvizovi.get(j).getNEPROMJENJIVI_ID());
+                            k.setNaziv(kvizovi.get(j).getNaziv());
+                            k.setPitanja(kvizovi.get(j).getPitanja());
+                            k.setKategorija(kvizovi.get(j).getKategorija());
+                        }
+                    }
+                    DodajEditujRangListu edituj = new DodajEditujRangListu(getApplicationContext(),k,RANG_LISTE.get(i),false);
+                    edituj.execute();
+                }
+
             }
             else{
-                //Ignored
+                RANG_LISTE.clear();
+                db.pokupiRangliste();
+                Toast.makeText(KvizoviAkt.this, "OFFLINE MODE", Toast.LENGTH_SHORT).show();
+
             }
         }
     };
@@ -91,6 +110,7 @@ public class KvizoviAkt extends AppCompatActivity implements ListaFrag.OnListaFr
     //dok se lista 'prikazaniKvizovi' koristi za prikazivanje svih/filtriranih kvizova.
     public static ArrayList<Kviz> kvizovi = new ArrayList<>();
     public static ArrayList<RangListaKlasa> RANG_LISTE = new ArrayList<>();
+    //  public static ArrayList<RangListaKlasa> LOKALNE_RANG_LISTE = new ArrayList<>();
     public static ArrayList<Pitanje> firebasePitanja = new ArrayList<>();
     public static ArrayList<Kviz> prikazaniKvizovi = new ArrayList<>();
     public static ArrayList<Kategorija> kategorije = new ArrayList<>();
@@ -100,227 +120,244 @@ public class KvizoviAkt extends AppCompatActivity implements ListaFrag.OnListaFr
     public static int pozicijaKviza;
     DetailFrag detailFrag;
     ListaFrag listaFrag;
-public int check;
+    public int check;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        db = new SQLiteBaza(KvizoviAkt.this);
+
         check = 0;
-            FragmentManager fragmentManager = getSupportFragmentManager();
-            FrameLayout layoutDetalji = (FrameLayout) findViewById(R.id.detailPlace);
-            if (layoutDetalji != null) {
-                USPRAVAN_DISPLEJ = false;
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        FrameLayout layoutDetalji = (FrameLayout) findViewById(R.id.detailPlace);
+        if (layoutDetalji != null) {
+            USPRAVAN_DISPLEJ = false;
+            if( imaInterneta() ) {
                 kvizovi.clear();
                 kategorije.clear();
                 prikazaniKvizoviFragment.clear();
-                listaFrag = new ListaFrag();
-                detailFrag = new DetailFrag();
-                FragmentManager fragmentManagerFinal = getSupportFragmentManager();
-                FragmentTransaction fragmentTransaction = fragmentManagerFinal.beginTransaction();
-                fragmentTransaction.replace(R.id.listPlace, listaFrag);
-                fragmentTransaction.replace(R.id.detailPlace, detailFrag);
-                fragmentTransaction.commit();
-            } else {
-                USPRAVAN_DISPLEJ = true;
-                //Prvo svima skinemo vrijednosti!
+            }
+            else{
                 kvizovi.clear();
-                prikazaniKvizovi.clear();
                 kategorije.clear();
-                adapterZaSpinner = null;
-                adapterZaListuKvizova = null;
-                spinnerOdabir = null;
+                firebasePitanja.clear();
+                RANG_LISTE.clear();
+                db.pokupiKategorije();
+                db.pokupiPitanja();
+                db.pokupiKvizove();
+                db.pokupiRangliste();
+                //    RANG_LISTE.addAll( LOKALNE_RANG_LISTE );
+            }
+            listaFrag = new ListaFrag();
+            detailFrag = new DetailFrag();
+            FragmentManager fragmentManagerFinal = getSupportFragmentManager();
+            FragmentTransaction fragmentTransaction = fragmentManagerFinal.beginTransaction();
+            fragmentTransaction.replace(R.id.listPlace, listaFrag);
+            fragmentTransaction.replace(R.id.detailPlace, detailFrag);
+            fragmentTransaction.commit();
+        } else {
+            USPRAVAN_DISPLEJ = true;
+            //Prvo svima skinemo vrijednosti!
+            kvizovi.clear();
+            prikazaniKvizovi.clear();
+            kategorije.clear();
+            adapterZaSpinner = null;
+            adapterZaListuKvizova = null;
+            spinnerOdabir = null;
 
-                //Potrebno je dodijeliti sve vrijednosti pomocu id-a.
-                listaKvizova = (ListView) findViewById(R.id.lvKvizovi);
-                spinnerKategorije = (Spinner) findViewById(R.id.spPostojeceKategorije);
+            //Potrebno je dodijeliti sve vrijednosti pomocu id-a.
+            listaKvizova = (ListView) findViewById(R.id.lvKvizovi);
+            spinnerKategorije = (Spinner) findViewById(R.id.spPostojeceKategorije);
 
-                //Postavljanje adaptera.
-                adapterZaSpinner = new ArrayAdapter<Kategorija>(this, android.R.layout.simple_list_item_1, kategorije);
-                spinnerKategorije.setAdapter(adapterZaSpinner);
-                adapterZaListuKvizova = new AdapterZaListuKvizova(this, prikazaniKvizovi);
-                listaKvizova.setAdapter(adapterZaListuKvizova);
+            //Postavljanje adaptera.
+            adapterZaSpinner = new ArrayAdapter<Kategorija>(this, android.R.layout.simple_list_item_1, kategorije);
+            spinnerKategorije.setAdapter(adapterZaSpinner);
+            adapterZaListuKvizova = new AdapterZaListuKvizova(this, prikazaniKvizovi);
+            listaKvizova.setAdapter(adapterZaListuKvizova);
 
-                //Aplikacija se na pocetku ne puni nikakvim podacima, osim onim potrebnim za sam rad aplikacije.
-                inicijalizirajApp();
-                if( USPRAVAN_DISPLEJ ) {
-                        if( imaInterneta() ) {
-                            PokupiFirebaseKategorije pokupiFirebaseKategorije = new PokupiFirebaseKategorije(getApplicationContext());
-                            pokupiFirebaseKategorije.execute();
-                        }
-                        else{
-                            kvizovi.clear();
-                            kategorije.clear();
-                            firebasePitanja.clear();
-                            RANG_LISTE.clear();
-                            db.pokupiKategorije();
-                            adapterZaSpinner.notifyDataSetChanged();
-                            db.pokupiPitanja();
-                            db.pokupiKvizove();
-                            adapterZaListuKvizova.notifyDataSetChanged();
-                            db.pokupiRangliste();
-                        }
+            //Aplikacija se na pocetku ne puni nikakvim podacima, osim onim potrebnim za sam rad aplikacije.
+            inicijalizirajApp();
+            if( USPRAVAN_DISPLEJ ) {
+                if( imaInterneta() ) {
+                    // LOKALNE_RANG_LISTE.clear();
+                    db.pokupiRangliste();
+                    PokupiFirebaseKategorije pokupiFirebaseKategorije = new PokupiFirebaseKategorije(getApplicationContext());
+                    pokupiFirebaseKategorije.execute();
 
                 }
+                else{
+                    kvizovi.clear();
+                    kategorije.clear();
+                    firebasePitanja.clear();
+                    RANG_LISTE.clear();
+                    db.pokupiKategorije();
+                    adapterZaSpinner.notifyDataSetChanged();
+                    db.pokupiPitanja();
+                    db.pokupiKvizove();
+                    adapterZaListuKvizova.notifyDataSetChanged();
+                    db.pokupiRangliste();
+                    //    RANG_LISTE.addAll( LOKALNE_RANG_LISTE );
+                }
 
-                //Slusac koji vrsi filtriranje listView-a svih kvizova na osnovu odabrane kategorije
-                //u spinneru, prikazivanje Toast poruke za korisnika, npr. "Odabrano: Svi".
-                spinnerKategorije.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                    @Override
-                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                        if( imaInterneta() ) {
-                            adapterZaSpinner.notifyDataSetChanged();
-                            //Stvaranje string vrijednosti za Toast poruku.
-                            String text = parent.getItemAtPosition(position).toString();
-                            spinnerOdabir = text;
-                            String textBezRazmaka = text.replaceAll(" ", "_RAZMAK_");
-                            String textBezKosihBezRazmaka = textBezRazmaka.replaceAll("/", "_KOSA_CRTA_");
-                            Toast.makeText(parent.getContext(), "Odabrano: " + text, Toast.LENGTH_SHORT).show();
-                            if (++check > 1) {
-
-                                FilterKvizova filter = new FilterKvizova(getApplicationContext(), textBezKosihBezRazmaka);
-                                filter.execute();
-
-                            }
-                        }
-                        else{
-                            adapterZaSpinner.notifyDataSetChanged();
-                            prikazaniKvizovi.clear();
-                            String text = parent.getItemAtPosition(position).toString();
-                            if( text.equals("Svi") )
-                                prikazaniKvizovi.addAll(kvizovi);
-                            else {
-                                for (int i = 0; i < kvizovi.size(); i++)
-                                    if (kvizovi.get(i).getKategorija().getNaziv().equals(text))
-                                        prikazaniKvizovi.add(kvizovi.get(i));
-                            }
-                            Kviz k = new Kviz();
-                            k.setNaziv("Dodaj kviz");
-                            prikazaniKvizovi.add( k );
-                            adapterZaListuKvizova.notifyDataSetChanged();
-
-                        }
-                    }
-
-                    @Override
-                    public void onNothingSelected(AdapterView<?> parent) {
-                        //Ukoliko ne selektujemo nista, nista se nece desiti.
-                    }
-                });
-
-                //Ukoliko kliknemo DUGO na neki od elemenata kviza, otvara se nova aktivnost za kreiranje novog kviza
-                //ukoliko je odabran element "Dodaj kviz", odnosno za uredjivanje ukoliko je odabran bilo koji drugi element.
-                listaKvizova.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-                    @Override
-                    public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                        if( imaInterneta() ) {
-                            Kviz trenutniKviz = new Kviz();
-                            trenutniKviz.setNaziv("Dodaj kviz");
-                            trenutniKviz.setKategorija((Kategorija) spinnerKategorije.getSelectedItem());
-                            Intent dodajKvizAkt = new Intent(KvizoviAkt.this, DodajKvizAkt.class);
-                            for (int i = 0; i < kvizovi.size(); i++)
-                                if (kvizovi.get(i).getNaziv().equals(((Kviz) parent.getItemAtPosition(position)).getNaziv())) {
-                                    if (!((Kviz) parent.getItemAtPosition(position)).getNaziv().equals("Dodaj kviz")) {
-                                        trenutniKviz.setNaziv(kvizovi.get(i).getNaziv());
-                                        trenutniKviz.setKategorija(kvizovi.get(i).getKategorija());
-                                        trenutniKviz.setPitanja(kvizovi.get(i).getPitanja());
-                                        trenutniKviz.setNEPROMJENJIVI_ID(kvizovi.get(i).getNEPROMJENJIVI_ID());
-                                    }
-                                    pozicijaKviza = i;
-                                }
-                            dodajKvizAkt.putExtra("sviKvizovi", kvizovi);
-                            dodajKvizAkt.putExtra("trenutniKviz", trenutniKviz);
-                            dodajKvizAkt.putExtra("sveKategorije", kategorije);
-
-                            KvizoviAkt.this.startActivityForResult(dodajKvizAkt, pozicijaKviza);
-
-                        }
-                        else{
-
-                            Toast.makeText(parent.getContext(), "OFFLINE MODE - Ne mozete dodavati/uredjivati kvizove", Toast.LENGTH_SHORT).show();
-                        }
-                        return true;
-                    }
-                });
-
-                listaKvizova.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                        Kviz k = (Kviz) parent.getItemAtPosition(position);
-                        if (!k.getNaziv().equals("Dodaj kviz")) {
-
-                            if( k.getPitanja().size() != 0 ){
-                                int trajanjeKvizaUMinutama = k.getPitanja().size()/2;
-                                if( k.getPitanja().size() % 2 == 1 ) trajanjeKvizaUMinutama++;
-                                final long ONE_MINUTE_IN_MILLIS=60000;
-                                Calendar calendar = Calendar.getInstance();
-                                long pocetak = calendar.getTimeInMillis();
-                                long kraj = pocetak;
-                                kraj += trajanjeKvizaUMinutama*ONE_MINUTE_IN_MILLIS;
-                                Date vrijemeAlarma = new Date(kraj);
-                                if (ContextCompat.checkSelfPermission(KvizoviAkt.this, Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
-                                    // Permission is not granted
-                                    ActivityCompat.requestPermissions(KvizoviAkt.this, new String[]{Manifest.permission.READ_CALENDAR}, 0);
-                                }
-                                KalendarEventi kalendarEventi = new KalendarEventi(KvizoviAkt.this,pocetak,kraj);
-                                Pair<Pair<Boolean,String>,Pair<Long,String>> povratniInfoKalendara = kalendarEventi.provjeriEvente();
-
-                                if( povratniInfoKalendara.first.first ) {
-                                    if( povratniInfoKalendara.first.second.equals("Will start") ){
-                                        android.support.v7.app.AlertDialog alertDialog = new android.support.v7.app.AlertDialog.Builder(KvizoviAkt.this).create();
-                                        alertDialog.setTitle("Upozorenje");
-                                        long temp = povratniInfoKalendara.second.first/60000;
-                                        alertDialog.setMessage("Imate dogadjaj za " + String.valueOf(temp) + " minuta!");
-                                        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
-                                                new DialogInterface.OnClickListener() {
-                                                    public void onClick(DialogInterface dialog, int which) {
-                                                        dialog.dismiss();
-                                                    }
-                                                });
-
-                                        alertDialog.show();
-                                    }
-                                    else if( povratniInfoKalendara.first.second.equals("In progress") ){
-                                        android.support.v7.app.AlertDialog alertDialog = new android.support.v7.app.AlertDialog.Builder(KvizoviAkt.this).create();
-                                        alertDialog.setTitle("Upozorenje");
-                                        String naslovDogadjaja = povratniInfoKalendara.second.second;
-                                        String porukaZaAlert = "Dogadjaj bez naslova jos traje!";
-                                        if( !naslovDogadjaja.equals("") ){
-                                            porukaZaAlert = "Dogadjaj " + naslovDogadjaja + " jos traje!";
-                                        }
-                                        alertDialog.setMessage(porukaZaAlert);
-                                        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
-                                                new DialogInterface.OnClickListener() {
-                                                    public void onClick(DialogInterface dialog, int which) {
-                                                        dialog.dismiss();
-                                                    }
-                                                });
-
-                                        alertDialog.show();
-                                    }
-                                }
-                                else{
-
-                                    Intent intent = new Intent(KvizoviAkt.this, IgrajKvizAkt.class);
-                                    intent.putExtra("odabraniKviz", k);
-                                    intent.putExtra("vrijemeAlarma",vrijemeAlarma);
-                                    startActivity(intent);
-
-
-                            }
-
-
-
-                            }
-
-                        }
-                    }
-                });
             }
+
+            //Slusac koji vrsi filtriranje listView-a svih kvizova na osnovu odabrane kategorije
+            //u spinneru, prikazivanje Toast poruke za korisnika, npr. "Odabrano: Svi".
+            spinnerKategorije.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    if( imaInterneta() ) {
+                        adapterZaSpinner.notifyDataSetChanged();
+                        //Stvaranje string vrijednosti za Toast poruku.
+                        String text = parent.getItemAtPosition(position).toString();
+                        spinnerOdabir = text;
+                        String textBezRazmaka = text.replaceAll(" ", "_RAZMAK_");
+                        String textBezKosihBezRazmaka = textBezRazmaka.replaceAll("/", "_KOSA_CRTA_");
+                        Toast.makeText(parent.getContext(), "Odabrano: " + text, Toast.LENGTH_SHORT).show();
+                        if (++check > 1) {
+
+                            FilterKvizova filter = new FilterKvizova(getApplicationContext(), textBezKosihBezRazmaka);
+                            filter.execute();
+
+                        }
+                    }
+                    else{
+                        adapterZaSpinner.notifyDataSetChanged();
+                        prikazaniKvizovi.clear();
+                        String text = parent.getItemAtPosition(position).toString();
+                        if( text.equals("Svi") )
+                            prikazaniKvizovi.addAll(kvizovi);
+                        else {
+                            for (int i = 0; i < kvizovi.size(); i++)
+                                if (kvizovi.get(i).getKategorija().getNaziv().equals(text))
+                                    prikazaniKvizovi.add(kvizovi.get(i));
+                        }
+                        Kviz k = new Kviz();
+                        k.setNaziv("Dodaj kviz");
+                        prikazaniKvizovi.add( k );
+                        adapterZaListuKvizova.notifyDataSetChanged();
+
+                    }
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {
+                    //Ukoliko ne selektujemo nista, nista se nece desiti.
+                }
+            });
+
+            //Ukoliko kliknemo DUGO na neki od elemenata kviza, otvara se nova aktivnost za kreiranje novog kviza
+            //ukoliko je odabran element "Dodaj kviz", odnosno za uredjivanje ukoliko je odabran bilo koji drugi element.
+            listaKvizova.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+                @Override
+                public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                    if( imaInterneta() ) {
+                        Kviz trenutniKviz = new Kviz();
+                        trenutniKviz.setNaziv("Dodaj kviz");
+                        trenutniKviz.setKategorija((Kategorija) spinnerKategorije.getSelectedItem());
+                        Intent dodajKvizAkt = new Intent(KvizoviAkt.this, DodajKvizAkt.class);
+                        for (int i = 0; i < kvizovi.size(); i++)
+                            if (kvizovi.get(i).getNaziv().equals(((Kviz) parent.getItemAtPosition(position)).getNaziv())) {
+                                if (!((Kviz) parent.getItemAtPosition(position)).getNaziv().equals("Dodaj kviz")) {
+                                    trenutniKviz.setNaziv(kvizovi.get(i).getNaziv());
+                                    trenutniKviz.setKategorija(kvizovi.get(i).getKategorija());
+                                    trenutniKviz.setPitanja(kvizovi.get(i).getPitanja());
+                                    trenutniKviz.setNEPROMJENJIVI_ID(kvizovi.get(i).getNEPROMJENJIVI_ID());
+                                }
+                                pozicijaKviza = i;
+                            }
+                        dodajKvizAkt.putExtra("sviKvizovi", kvizovi);
+                        dodajKvizAkt.putExtra("trenutniKviz", trenutniKviz);
+                        dodajKvizAkt.putExtra("sveKategorije", kategorije);
+
+                        KvizoviAkt.this.startActivityForResult(dodajKvizAkt, pozicijaKviza);
+
+                    }
+                    else{
+
+                        Toast.makeText(parent.getContext(), "OFFLINE MODE - Ne mozete dodavati/uredjivati kvizove", Toast.LENGTH_SHORT).show();
+                    }
+                    return true;
+                }
+            });
+
+            listaKvizova.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    Kviz k = (Kviz) parent.getItemAtPosition(position);
+                    if (!k.getNaziv().equals("Dodaj kviz")) {
+
+                        if( k.getPitanja().size() != 0 ){
+                            int trajanjeKvizaUMinutama = k.getPitanja().size()/2;
+                            if( k.getPitanja().size() % 2 == 1 ) trajanjeKvizaUMinutama++;
+                            final long ONE_MINUTE_IN_MILLIS=60000;
+                            Calendar calendar = Calendar.getInstance();
+                            long pocetak = calendar.getTimeInMillis();
+                            long kraj = pocetak;
+                            kraj += trajanjeKvizaUMinutama*ONE_MINUTE_IN_MILLIS;
+                            Date vrijemeAlarma = new Date(kraj);
+                            if (ContextCompat.checkSelfPermission(KvizoviAkt.this, Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
+                                // Permission is not granted
+                                ActivityCompat.requestPermissions(KvizoviAkt.this, new String[]{Manifest.permission.READ_CALENDAR}, 0);
+                            }
+                            KalendarEventi kalendarEventi = new KalendarEventi(KvizoviAkt.this,pocetak,kraj);
+                            Pair<Pair<Boolean,String>,Pair<Long,String>> povratniInfoKalendara = kalendarEventi.provjeriEvente();
+
+                            if( povratniInfoKalendara.first.first ) {
+                                if( povratniInfoKalendara.first.second.equals("Will start") ){
+                                    android.support.v7.app.AlertDialog alertDialog = new android.support.v7.app.AlertDialog.Builder(KvizoviAkt.this).create();
+                                    alertDialog.setTitle("Upozorenje");
+                                    long temp = povratniInfoKalendara.second.first/60000;
+                                    alertDialog.setMessage("Imate dogadjaj za " + String.valueOf(temp) + " minuta!");
+                                    alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
+                                            new DialogInterface.OnClickListener() {
+                                                public void onClick(DialogInterface dialog, int which) {
+                                                    dialog.dismiss();
+                                                }
+                                            });
+
+                                    alertDialog.show();
+                                }
+                                else if( povratniInfoKalendara.first.second.equals("In progress") ){
+                                    android.support.v7.app.AlertDialog alertDialog = new android.support.v7.app.AlertDialog.Builder(KvizoviAkt.this).create();
+                                    alertDialog.setTitle("Upozorenje");
+                                    String naslovDogadjaja = povratniInfoKalendara.second.second;
+                                    String porukaZaAlert = "Dogadjaj bez naslova jos traje!";
+                                    if( !naslovDogadjaja.equals("") ){
+                                        porukaZaAlert = "Dogadjaj " + naslovDogadjaja + " jos traje!";
+                                    }
+                                    alertDialog.setMessage(porukaZaAlert);
+                                    alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
+                                            new DialogInterface.OnClickListener() {
+                                                public void onClick(DialogInterface dialog, int which) {
+                                                    dialog.dismiss();
+                                                }
+                                            });
+
+                                    alertDialog.show();
+                                }
+                            }
+                            else{
+
+                                Intent intent = new Intent(KvizoviAkt.this, IgrajKvizAkt.class);
+                                intent.putExtra("odabraniKviz", k);
+                                intent.putExtra("vrijemeAlarma",vrijemeAlarma);
+                                startActivity(intent);
+
+
+                            }
+
+
+
+                        }
+
+                    }
+                }
+            });
+        }
         IntentFilter intentFilter =new IntentFilter("android.net.conn.CONNECTIVITY_CHANGE");
-            registerReceiver(broadcastReceiver,intentFilter);
+        registerReceiver(broadcastReceiver,intentFilter);
 
     }
 
@@ -349,23 +386,23 @@ public int check;
                 boolean dodajNovi = (boolean)data.getExtras().get("dodajNoviKviz");
                 if( dodajNovi ) {
 
-                        DodajEditujKviz dodaj = new DodajEditujKviz(getApplicationContext(), kvizZaDodati, dodajNovi);
-                        dodaj.execute();
+                    DodajEditujKviz dodaj = new DodajEditujKviz(getApplicationContext(), kvizZaDodati, dodajNovi);
+                    dodaj.execute();
                 }
                 else{
 
-                        DodajEditujKviz edituj = new DodajEditujKviz(getApplicationContext(), kvizZaDodati, dodajNovi);
-                        edituj.execute();
+                    DodajEditujKviz edituj = new DodajEditujKviz(getApplicationContext(), kvizZaDodati, dodajNovi);
+                    edituj.execute();
 
                 }
-                }
-                else{
-                  //  spinnerKategorije.setSelection(0);
-                    adapterZaSpinner.notifyDataSetChanged();
-                }
-
             }
+            else{
+                //  spinnerKategorije.setSelection(0);
+                adapterZaSpinner.notifyDataSetChanged();
+            }
+
         }
+    }
 
 
     @Override
@@ -631,10 +668,10 @@ public int check;
                 RangListaKlasa rangListaKlasa = new RangListaKlasa();
                 rangListaKlasa.setNazivKviza(kviz.getNaziv());
                 db.dodajKviz(kviz,rangListaKlasa);
-                    DodajEditujRangListu dodaj = new DodajEditujRangListu(getApplicationContext(), kviz, rangListaKlasa, true);
-                    dodaj.execute();
-                    FilterKvizova filter = new FilterKvizova(getApplicationContext(), "Svi");
-                    filter.execute();
+                DodajEditujRangListu dodaj = new DodajEditujRangListu(getApplicationContext(), kviz, rangListaKlasa, true);
+                dodaj.execute();
+                FilterKvizova filter = new FilterKvizova(getApplicationContext(), "Svi");
+                filter.execute();
 
             } else {
                 String tekstObavjestenja = "KVIZ USPJESNO UREDJEN!\n\n";
@@ -656,285 +693,285 @@ public int check;
                 for (int i = 0; i < RANG_LISTE.size(); i++)
                     if (RANG_LISTE.get(i).getNazivKviza().equals(stariNaziv))
                         RANG_LISTE.get(i).setNazivKviza(noviNaziv);
-                    RangListaKlasa rangListaKlasa = new RangListaKlasa();
-                    for (int i = 0; i < RANG_LISTE.size(); i++)
-                        if (RANG_LISTE.get(i).getNazivKviza().equals(noviNaziv))
-                            rangListaKlasa = RANG_LISTE.get(i);
+                RangListaKlasa rangListaKlasa = new RangListaKlasa();
+                for (int i = 0; i < RANG_LISTE.size(); i++)
+                    if (RANG_LISTE.get(i).getNazivKviza().equals(noviNaziv))
+                        rangListaKlasa = RANG_LISTE.get(i);
 
-                            DodajEditujRangListu edituj = new DodajEditujRangListu(getApplicationContext(), kviz, rangListaKlasa, false);
-                            edituj.execute();
+                DodajEditujRangListu edituj = new DodajEditujRangListu(getApplicationContext(), kviz, rangListaKlasa, false);
+                edituj.execute();
 
-                    AlertDialog alertDialog = new AlertDialog.Builder(KvizoviAkt.this).create();
-                    alertDialog.setTitle("Obavijest");
-                    alertDialog.setMessage(tekstObavjestenja);
-                    alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                }
-                            });
-
-                    alertDialog.show();
-                        db.editujKviz(kviz);
-                        FilterKvizova filter = new FilterKvizova(getApplicationContext(), ((Kategorija) spinnerKategorije.getSelectedItem()).getNaziv());
-                        filter.execute();
-
-                }
-            }
-
-        }
-
-
-        public class PokupiFirebasePitanja extends AsyncTask<String, Void, Void> {
-
-            private Context context;
-
-            public PokupiFirebasePitanja(Context context) {
-                this.context = context;
-            }
-
-            @Override
-            protected void onPreExecute() {
-                firebasePitanja.clear();
-            }
-
-            @Override
-            protected Void doInBackground(String... strings) {
-                //Provjeriti da li je vec u bazi.
-                GoogleCredential credential;
-                try {
-
-                    InputStream secretStream = context.getResources().openRawResource(R.raw.secret);
-                    credential = GoogleCredential.fromStream(secretStream).createScoped(Lists.newArrayList("https://www.googleapis.com/auth/datastore"));
-                    credential.refreshToken();
-                    String TOKEN = credential.getAccessToken();
-                    String URL = "https://firestore.googleapis.com/v1/projects/rma19sisicfaris31-97b17/databases/(default)/documents/Pitanja?access_token=";
-                    java.net.URL urlOBJ = new URL(URL + URLEncoder.encode(TOKEN, "UTF-8"));
-                    HttpURLConnection CONNECTION = (HttpURLConnection) urlOBJ.openConnection();
-                    InputStream inputStream = new BufferedInputStream(CONNECTION.getInputStream());
-                    String result = FirebasePitanja.streamToStringConversion(inputStream);
-                    JSONObject jo = new JSONObject(result);
-                    JSONArray dokumentovanaPitanja;
-                    try {
-                        dokumentovanaPitanja = jo.getJSONArray("documents");
-                    } catch (Exception e) {
-                        return null;
-                    }
-                    for (int i = 0; i < dokumentovanaPitanja.length(); i++) {
-                        JSONObject dokument = dokumentovanaPitanja.getJSONObject(i);
-                        JSONObject field = dokument.getJSONObject("fields");
-                        JSONObject nazivOBJEKAT = field.getJSONObject("naziv");
-                        String nazivString = nazivOBJEKAT.getString("stringValue");
-                        JSONObject indexTacnogOBJEKAT = field.getJSONObject("indexTacnog");
-                        int indexTacnogINT = indexTacnogOBJEKAT.getInt("integerValue");
-                        JSONObject odgovoriOBJEKAT = field.getJSONObject("odgovori");
-                        JSONObject odgovoriARRAY = odgovoriOBJEKAT.getJSONObject("arrayValue");
-                        JSONArray odgovori = odgovoriARRAY.getJSONArray("values");
-                        ArrayList<String> odgovoriLista = new ArrayList<>();
-                        for (int j = 0; j < odgovori.length(); j++) {
-                            try {
-                                JSONObject stringValue = odgovori.getJSONObject(j);
-                                String odgovor = stringValue.getString("stringValue");
-                                odgovoriLista.add(odgovor);
-                            } catch (JSONException e) {
-                                //Ignore
+                AlertDialog alertDialog = new AlertDialog.Builder(KvizoviAkt.this).create();
+                alertDialog.setTitle("Obavijest");
+                alertDialog.setMessage(tekstObavjestenja);
+                alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
                             }
-                        }
-                        Pitanje novoPitanje = new Pitanje();
-                        novoPitanje.setNaziv(nazivString);
-                        novoPitanje.setTacan(odgovoriLista.get(indexTacnogINT));
-                        novoPitanje.setOdgovori(odgovoriLista);
-                        firebasePitanja.add(novoPitanje);
-                    }
+                        });
 
-                    CONNECTION.disconnect();
-                } catch (IOException | JSONException e) {
-                    e.printStackTrace();
-                }
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(Void result) {
-                super.onPostExecute(result);
-
-                    PokupiFirebaseKvizove pokupiFirebaseKvizove = new PokupiFirebaseKvizove(getApplicationContext());
-                    pokupiFirebaseKvizove.execute();
+                alertDialog.show();
+                db.editujKviz(kviz);
+                FilterKvizova filter = new FilterKvizova(getApplicationContext(), ((Kategorija) spinnerKategorije.getSelectedItem()).getNaziv());
+                filter.execute();
 
             }
-
         }
 
-        public class PokupiFirebaseKvizove extends AsyncTask<String, Void, Void> {
+    }
 
-            private Context context;
 
-            public PokupiFirebaseKvizove(Context context) {
-                this.context = context;
-            }
+    public class PokupiFirebasePitanja extends AsyncTask<String, Void, Void> {
 
-            @Override
-            protected void onPreExecute() {
-                super.onPreExecute();
-                kvizovi.clear();
-            }
+        private Context context;
 
-            @Override
-            protected Void doInBackground(String... strings) {
-                //Provjeriti da li je vec u bazi.
-                GoogleCredential credential;
+        public PokupiFirebasePitanja(Context context) {
+            this.context = context;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            firebasePitanja.clear();
+        }
+
+        @Override
+        protected Void doInBackground(String... strings) {
+            //Provjeriti da li je vec u bazi.
+            GoogleCredential credential;
+            try {
+
+                InputStream secretStream = context.getResources().openRawResource(R.raw.secret);
+                credential = GoogleCredential.fromStream(secretStream).createScoped(Lists.newArrayList("https://www.googleapis.com/auth/datastore"));
+                credential.refreshToken();
+                String TOKEN = credential.getAccessToken();
+                String URL = "https://firestore.googleapis.com/v1/projects/rma19sisicfaris31-97b17/databases/(default)/documents/Pitanja?access_token=";
+                java.net.URL urlOBJ = new URL(URL + URLEncoder.encode(TOKEN, "UTF-8"));
+                HttpURLConnection CONNECTION = (HttpURLConnection) urlOBJ.openConnection();
+                InputStream inputStream = new BufferedInputStream(CONNECTION.getInputStream());
+                String result = FirebasePitanja.streamToStringConversion(inputStream);
+                JSONObject jo = new JSONObject(result);
+                JSONArray dokumentovanaPitanja;
                 try {
-                    InputStream secretStream = context.getResources().openRawResource(R.raw.secret);
-                    credential = GoogleCredential.fromStream(secretStream).createScoped(Lists.newArrayList("https://www.googleapis.com/auth/datastore"));
-                    credential.refreshToken();
-                    String TOKEN = credential.getAccessToken();
-                    String URL = "https://firestore.googleapis.com/v1/projects/rma19sisicfaris31-97b17/databases/(default)/documents/Kvizovi?access_token=";
-                    java.net.URL urlOBJ = new URL(URL + URLEncoder.encode(TOKEN, "UTF-8"));
-                    HttpURLConnection CONNECTION = (HttpURLConnection) urlOBJ.openConnection();
-                    InputStream inputStream = new BufferedInputStream(CONNECTION.getInputStream());
-                    String result = streamToStringConversion(inputStream);
-                    JSONObject jo = new JSONObject(result);
-                    JSONArray dokumentovaniKvizovi;
-                    try {
-                        dokumentovaniKvizovi = jo.getJSONArray("documents");
-                    } catch (Exception e) {
-                        return null;
-                    }
-                    //Prvo napunimo kvizove.
-                    for (int i = 0; i < dokumentovaniKvizovi.length(); i++) {
-                        JSONObject dokument = dokumentovaniKvizovi.getJSONObject(i);
-                        JSONObject field = dokument.getJSONObject("fields");
-                        JSONObject nazivOBJEKAT = field.getJSONObject("naziv");
-                        JSONObject idOBJEKAT = field.getJSONObject("id");
-                        String id = idOBJEKAT.getString("stringValue");
-                        String nazivString = nazivOBJEKAT.getString("stringValue");
-                        JSONObject idKategorijeOBJEKAT = field.getJSONObject("idKategorije");
-                        String idKategorijeString_NIJE_DEKODIRAN = idKategorijeOBJEKAT.getString("stringValue");
-                        String idKategorijeString_DEKODIRAN_KOSIM = idKategorijeString_NIJE_DEKODIRAN.replaceAll("_KOSA_CRTA_", "/");
-                        String idKategorijeString_DEKODIRAN_RAZMACIMA = idKategorijeString_DEKODIRAN_KOSIM.replaceAll("_RAZMAK_", " ");
-                        JSONObject pitanjaOBJECT = field.getJSONObject("pitanja");
-                        JSONObject pitanjaARRAY = pitanjaOBJECT.getJSONObject("arrayValue");
-                        ArrayList<String> pitanjaLista = new ArrayList<>();
+                    dokumentovanaPitanja = jo.getJSONArray("documents");
+                } catch (Exception e) {
+                    return null;
+                }
+                for (int i = 0; i < dokumentovanaPitanja.length(); i++) {
+                    JSONObject dokument = dokumentovanaPitanja.getJSONObject(i);
+                    JSONObject field = dokument.getJSONObject("fields");
+                    JSONObject nazivOBJEKAT = field.getJSONObject("naziv");
+                    String nazivString = nazivOBJEKAT.getString("stringValue");
+                    JSONObject indexTacnogOBJEKAT = field.getJSONObject("indexTacnog");
+                    int indexTacnogINT = indexTacnogOBJEKAT.getInt("integerValue");
+                    JSONObject odgovoriOBJEKAT = field.getJSONObject("odgovori");
+                    JSONObject odgovoriARRAY = odgovoriOBJEKAT.getJSONObject("arrayValue");
+                    JSONArray odgovori = odgovoriARRAY.getJSONArray("values");
+                    ArrayList<String> odgovoriLista = new ArrayList<>();
+                    for (int j = 0; j < odgovori.length(); j++) {
                         try {
-                            JSONArray pitanja = pitanjaARRAY.getJSONArray("values");
-                            for (int j = 0; j < pitanja.length(); j++) {
-                                JSONObject stringValue = pitanja.getJSONObject(j);
-                                String string = stringValue.getString("stringValue");
-                                pitanjaLista.add(string);
-                            }
-                        } catch (Exception e) {
-
+                            JSONObject stringValue = odgovori.getJSONObject(j);
+                            String odgovor = stringValue.getString("stringValue");
+                            odgovoriLista.add(odgovor);
+                        } catch (JSONException e) {
+                            //Ignore
                         }
-                        ArrayList<Pitanje> pitanjaZaKviz = new ArrayList<>();
-                        for (int k = 0; k < firebasePitanja.size(); k++)
-                            for (int l = 0; l < pitanjaLista.size(); l++)
-                                if (pitanjaLista.get(l).equals(firebasePitanja.get(k).getNaziv()))
-                                    pitanjaZaKviz.add(firebasePitanja.get(k));
-                        Kviz noviKviz = new Kviz();
-                        noviKviz.setNaziv(nazivString);
-                        for (int m = 0; m < kategorije.size(); m++)
-                            if (kategorije.get(m).getNaziv().equals(idKategorijeString_DEKODIRAN_RAZMACIMA))
-                                noviKviz.setKategorija(kategorije.get(m));
-                        noviKviz.setPitanja(pitanjaZaKviz);
-                        noviKviz.setNEPROMJENJIVI_ID(id);
-                        kvizovi.add(kvizovi.size(), noviKviz);
                     }
-                    CONNECTION.disconnect();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                    Pitanje novoPitanje = new Pitanje();
+                    novoPitanje.setNaziv(nazivString);
+                    novoPitanje.setTacan(odgovoriLista.get(indexTacnogINT));
+                    novoPitanje.setOdgovori(odgovoriLista);
+                    firebasePitanja.add(novoPitanje);
                 }
-                return null;
+
+                CONNECTION.disconnect();
+            } catch (IOException | JSONException e) {
+                e.printStackTrace();
             }
-
-            @Override
-            protected void onPostExecute(Void result) {
-                super.onPostExecute(result);
-                prikazaniKvizovi.addAll(kvizovi);
-                Kviz k = new Kviz();
-                k.setNaziv("Dodaj kviz");
-                prikazaniKvizovi.add(k);
-                adapterZaListuKvizova.notifyDataSetChanged();
-
-                    PokupiFirebaseRangliste pokupiFirebaseRangliste = new PokupiFirebaseRangliste(getApplicationContext());
-                    pokupiFirebaseRangliste.execute();
-
-            }
+            return null;
         }
 
-        public class PokupiFirebaseKategorije extends AsyncTask<String, Void, Void> {
+        @Override
+        protected void onPostExecute(Void result) {
+            super.onPostExecute(result);
 
-            private Context context;
+            PokupiFirebaseKvizove pokupiFirebaseKvizove = new PokupiFirebaseKvizove(getApplicationContext());
+            pokupiFirebaseKvizove.execute();
 
-            public PokupiFirebaseKategorije(Context context) {
-                this.context = context;
-            }
+        }
 
-            @Override
-            protected void onPreExecute() {
-                kategorije.clear();
-                Kategorija kategorijaSvi = new Kategorija();
-                kategorijaSvi.setNaziv("Svi");
-                kategorijaSvi.setId("5");
-                kategorije.add(kategorijaSvi);
-            }
+    }
 
-            @Override
-            protected Void doInBackground(String... strings) {
-                //Provjeriti da li je vec u bazi.
-                GoogleCredential credential;
+    public class PokupiFirebaseKvizove extends AsyncTask<String, Void, Void> {
+
+        private Context context;
+
+        public PokupiFirebaseKvizove(Context context) {
+            this.context = context;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            kvizovi.clear();
+        }
+
+        @Override
+        protected Void doInBackground(String... strings) {
+            //Provjeriti da li je vec u bazi.
+            GoogleCredential credential;
+            try {
+                InputStream secretStream = context.getResources().openRawResource(R.raw.secret);
+                credential = GoogleCredential.fromStream(secretStream).createScoped(Lists.newArrayList("https://www.googleapis.com/auth/datastore"));
+                credential.refreshToken();
+                String TOKEN = credential.getAccessToken();
+                String URL = "https://firestore.googleapis.com/v1/projects/rma19sisicfaris31-97b17/databases/(default)/documents/Kvizovi?access_token=";
+                java.net.URL urlOBJ = new URL(URL + URLEncoder.encode(TOKEN, "UTF-8"));
+                HttpURLConnection CONNECTION = (HttpURLConnection) urlOBJ.openConnection();
+                InputStream inputStream = new BufferedInputStream(CONNECTION.getInputStream());
+                String result = streamToStringConversion(inputStream);
+                JSONObject jo = new JSONObject(result);
+                JSONArray dokumentovaniKvizovi;
                 try {
-
-                    InputStream secretStream = context.getResources().openRawResource(R.raw.secret);
-                    credential = GoogleCredential.fromStream(secretStream).createScoped(Lists.newArrayList("https://www.googleapis.com/auth/datastore"));
-                    credential.refreshToken();
-                    String TOKEN = credential.getAccessToken();
-                    String URL = "https://firestore.googleapis.com/v1/projects/rma19sisicfaris31-97b17/databases/(default)/documents/Kategorije?access_token=";
-                    java.net.URL urlOBJ = new URL(URL + URLEncoder.encode(TOKEN, "UTF-8"));
-                    HttpURLConnection CONNECTION = (HttpURLConnection) urlOBJ.openConnection();
-                    InputStream inputStream = new BufferedInputStream(CONNECTION.getInputStream());
-                    String result = streamToStringConversion(inputStream);
-                    JSONObject jo = new JSONObject(result);
-                    JSONArray dokumentovaneRangliste;
-                    try {
-                        dokumentovaneRangliste = jo.getJSONArray("documents");
-                    } catch (Exception e) {
-                        return null;
-                    }
-
-                    for (int i = 0; i < dokumentovaneRangliste.length(); i++) {
-                        JSONObject dokument = dokumentovaneRangliste.getJSONObject(i);
-                        JSONObject field = dokument.getJSONObject("fields");
-                        JSONObject nazivOBJEKAT = field.getJSONObject("naziv");
-                        String nazivString = nazivOBJEKAT.getString("stringValue");
-                        JSONObject idIkoniceOBJEKAT = field.getJSONObject("idIkonice");
-                        int idIkoniceINT = idIkoniceOBJEKAT.getInt("integerValue");
-                        String idIkonice = String.valueOf(idIkoniceINT);
-                        Kategorija novaKategorija = new Kategorija();
-                        novaKategorija.setNaziv(nazivString);
-                        novaKategorija.setId(idIkonice);
-                        kategorije.add(novaKategorija);
-                    }
-
-                    CONNECTION.disconnect();
-                } catch (IOException | JSONException e) {
-                    e.printStackTrace();
+                    dokumentovaniKvizovi = jo.getJSONArray("documents");
+                } catch (Exception e) {
+                    return null;
                 }
-                return null;
+                //Prvo napunimo kvizove.
+                for (int i = 0; i < dokumentovaniKvizovi.length(); i++) {
+                    JSONObject dokument = dokumentovaniKvizovi.getJSONObject(i);
+                    JSONObject field = dokument.getJSONObject("fields");
+                    JSONObject nazivOBJEKAT = field.getJSONObject("naziv");
+                    JSONObject idOBJEKAT = field.getJSONObject("id");
+                    String id = idOBJEKAT.getString("stringValue");
+                    String nazivString = nazivOBJEKAT.getString("stringValue");
+                    JSONObject idKategorijeOBJEKAT = field.getJSONObject("idKategorije");
+                    String idKategorijeString_NIJE_DEKODIRAN = idKategorijeOBJEKAT.getString("stringValue");
+                    String idKategorijeString_DEKODIRAN_KOSIM = idKategorijeString_NIJE_DEKODIRAN.replaceAll("_KOSA_CRTA_", "/");
+                    String idKategorijeString_DEKODIRAN_RAZMACIMA = idKategorijeString_DEKODIRAN_KOSIM.replaceAll("_RAZMAK_", " ");
+                    JSONObject pitanjaOBJECT = field.getJSONObject("pitanja");
+                    JSONObject pitanjaARRAY = pitanjaOBJECT.getJSONObject("arrayValue");
+                    ArrayList<String> pitanjaLista = new ArrayList<>();
+                    try {
+                        JSONArray pitanja = pitanjaARRAY.getJSONArray("values");
+                        for (int j = 0; j < pitanja.length(); j++) {
+                            JSONObject stringValue = pitanja.getJSONObject(j);
+                            String string = stringValue.getString("stringValue");
+                            pitanjaLista.add(string);
+                        }
+                    } catch (Exception e) {
 
+                    }
+                    ArrayList<Pitanje> pitanjaZaKviz = new ArrayList<>();
+                    for (int k = 0; k < firebasePitanja.size(); k++)
+                        for (int l = 0; l < pitanjaLista.size(); l++)
+                            if (pitanjaLista.get(l).equals(firebasePitanja.get(k).getNaziv()))
+                                pitanjaZaKviz.add(firebasePitanja.get(k));
+                    Kviz noviKviz = new Kviz();
+                    noviKviz.setNaziv(nazivString);
+                    for (int m = 0; m < kategorije.size(); m++)
+                        if (kategorije.get(m).getNaziv().equals(idKategorijeString_DEKODIRAN_RAZMACIMA))
+                            noviKviz.setKategorija(kategorije.get(m));
+                    noviKviz.setPitanja(pitanjaZaKviz);
+                    noviKviz.setNEPROMJENJIVI_ID(id);
+                    kvizovi.add(kvizovi.size(), noviKviz);
+                }
+                CONNECTION.disconnect();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
-
-            @Override
-            protected void onPostExecute(Void result) {
-                super.onPostExecute(result);
-
-                    PokupiFirebasePitanja pokupiFirebasePitanja = new PokupiFirebasePitanja(getApplicationContext());
-                    pokupiFirebasePitanja.execute();
-
-                adapterZaSpinner.notifyDataSetChanged();
-            }
+            return null;
         }
+
+        @Override
+        protected void onPostExecute(Void result) {
+            super.onPostExecute(result);
+            prikazaniKvizovi.addAll(kvizovi);
+            Kviz k = new Kviz();
+            k.setNaziv("Dodaj kviz");
+            prikazaniKvizovi.add(k);
+            adapterZaListuKvizova.notifyDataSetChanged();
+
+            PokupiFirebaseRangliste pokupiFirebaseRangliste = new PokupiFirebaseRangliste(getApplicationContext());
+            pokupiFirebaseRangliste.execute();
+
+        }
+    }
+
+    public class PokupiFirebaseKategorije extends AsyncTask<String, Void, Void> {
+
+        private Context context;
+
+        public PokupiFirebaseKategorije(Context context) {
+            this.context = context;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            kategorije.clear();
+            Kategorija kategorijaSvi = new Kategorija();
+            kategorijaSvi.setNaziv("Svi");
+            kategorijaSvi.setId("5");
+            kategorije.add(kategorijaSvi);
+        }
+
+        @Override
+        protected Void doInBackground(String... strings) {
+            //Provjeriti da li je vec u bazi.
+            GoogleCredential credential;
+            try {
+
+                InputStream secretStream = context.getResources().openRawResource(R.raw.secret);
+                credential = GoogleCredential.fromStream(secretStream).createScoped(Lists.newArrayList("https://www.googleapis.com/auth/datastore"));
+                credential.refreshToken();
+                String TOKEN = credential.getAccessToken();
+                String URL = "https://firestore.googleapis.com/v1/projects/rma19sisicfaris31-97b17/databases/(default)/documents/Kategorije?access_token=";
+                java.net.URL urlOBJ = new URL(URL + URLEncoder.encode(TOKEN, "UTF-8"));
+                HttpURLConnection CONNECTION = (HttpURLConnection) urlOBJ.openConnection();
+                InputStream inputStream = new BufferedInputStream(CONNECTION.getInputStream());
+                String result = streamToStringConversion(inputStream);
+                JSONObject jo = new JSONObject(result);
+                JSONArray dokumentovaneRangliste;
+                try {
+                    dokumentovaneRangliste = jo.getJSONArray("documents");
+                } catch (Exception e) {
+                    return null;
+                }
+
+                for (int i = 0; i < dokumentovaneRangliste.length(); i++) {
+                    JSONObject dokument = dokumentovaneRangliste.getJSONObject(i);
+                    JSONObject field = dokument.getJSONObject("fields");
+                    JSONObject nazivOBJEKAT = field.getJSONObject("naziv");
+                    String nazivString = nazivOBJEKAT.getString("stringValue");
+                    JSONObject idIkoniceOBJEKAT = field.getJSONObject("idIkonice");
+                    int idIkoniceINT = idIkoniceOBJEKAT.getInt("integerValue");
+                    String idIkonice = String.valueOf(idIkoniceINT);
+                    Kategorija novaKategorija = new Kategorija();
+                    novaKategorija.setNaziv(nazivString);
+                    novaKategorija.setId(idIkonice);
+                    kategorije.add(novaKategorija);
+                }
+
+                CONNECTION.disconnect();
+            } catch (IOException | JSONException e) {
+                e.printStackTrace();
+            }
+            return null;
+
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+            super.onPostExecute(result);
+
+            PokupiFirebasePitanja pokupiFirebasePitanja = new PokupiFirebasePitanja(getApplicationContext());
+            pokupiFirebasePitanja.execute();
+
+            adapterZaSpinner.notifyDataSetChanged();
+        }
+    }
 
     public class DodajEditujRangListu extends AsyncTask<String,Void,Void> {
 
@@ -1106,6 +1143,21 @@ public int check;
         @Override
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);
+            RANG_LISTE.clear();
+            db.pokupiRangliste();
+            for( int i = 0; i < RANG_LISTE.size(); i++ ){
+                Kviz k = new Kviz();
+                for( int j = 0; j < kvizovi.size(); j++ ) {
+                    if (RANG_LISTE.get(i).getNazivKviza().equals(kvizovi.get(j).getNaziv())) {
+                        k.setNEPROMJENJIVI_ID(kvizovi.get(j).getNEPROMJENJIVI_ID());
+                        k.setNaziv(kvizovi.get(j).getNaziv());
+                        k.setPitanja(kvizovi.get(j).getPitanja());
+                        k.setKategorija(kvizovi.get(j).getKategorija());
+                    }
+                }
+                DodajEditujRangListu edituj = new DodajEditujRangListu(getApplicationContext(),k,RANG_LISTE.get(i),false);
+                edituj.execute();
+            }
         }
     }
 
@@ -1114,18 +1166,18 @@ public int check;
 
         return cm.getActiveNetworkInfo() != null;
     }
-   @Override
+    @Override
     protected void onStop(){
         super.onStop();
         unregisterReceiver(broadcastReceiver);
-   }
+    }
 
-   @Override
+    @Override
     protected void onRestart(){
         super.onRestart();
         IntentFilter intentFilter = new IntentFilter("android.net.conn.CONNECTIVITY_CHANGE");
         registerReceiver(broadcastReceiver,intentFilter);
-   }
+    }
 }
 
 

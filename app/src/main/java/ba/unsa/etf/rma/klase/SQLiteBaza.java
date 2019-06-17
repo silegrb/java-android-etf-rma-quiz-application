@@ -32,13 +32,31 @@ public class SQLiteBaza extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        kreirajTabele(db);
+        query = "CREATE TABLE Kategorije ( _id TEXT PRIMARY KEY, idIkonice TEXT NOT NULL );";
+        db.execSQL(query);
+        query = "CREATE TABLE Kvizovi ( _id TEXT PRIMARY KEY,nazivKviza TEXT NOT NULL, idKategorije TEXT NOT NULL, CONSTRAINT constr_idKatKviza FOREIGN KEY ( idKategorije ) REFERENCES Kategorije ( _id ) );";
+        db.execSQL(query);
+        query = "CREATE TABLE Pitanja ( _id TEXT PRIMARY KEY, indexTacnogOdgovora INTEGER NOT NULL, odgovori TEXT NOT NULL);";
+        db.execSQL(query);
+        query = "CREATE TABLE RangListe ( _id TEXT PRIMARY KEY, igraci TEXT NOT NULL, rezultati TEXT NOT NULL, idKviza TEXT NOT NULL, CONSTRAINT constr_idKvizaRL FOREIGN KEY ( idKviza ) REFERENCES Kvizovi ( _id ) );";
+        db.execSQL(query);
+        query = "CREATE TABLE PitanjeUKvizu ( idKviza TEXT NOT NULL, idPitanja TEXT NOT NULL, CONSTRAINT constr_idKviza FOREIGN KEY ( idKviza ) REFERENCES Kvizovi ( _id ), CONSTRAINT constr_idPitanja FOREIGN KEY ( idPitanja ) REFERENCES Pitanje ( _id ) );";
+        db.execSQL(query);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         pobrisiTabele(db);
-        kreirajTabele(db);
+        query = "CREATE TABLE Kategorije ( _id TEXT PRIMARY KEY, idIkonice TEXT NOT NULL );";
+        db.execSQL(query);
+        query = "CREATE TABLE Kvizovi ( _id TEXT PRIMARY KEY,nazivKviza TEXT NOT NULL, idKategorije TEXT NOT NULL, CONSTRAINT constr_idKatKviza FOREIGN KEY ( idKategorije ) REFERENCES Kategorije ( _id ) );";
+        db.execSQL(query);
+        query = "CREATE TABLE Pitanja ( _id TEXT PRIMARY KEY, indexTacnogOdgovora INTEGER NOT NULL, odgovori TEXT NOT NULL);";
+        db.execSQL(query);
+        query = "CREATE TABLE RangListe ( _id TEXT PRIMARY KEY, igraci TEXT NOT NULL, rezultati TEXT NOT NULL, idKviza TEXT NOT NULL, CONSTRAINT constr_idKvizaRL FOREIGN KEY ( idKviza ) REFERENCES Kvizovi ( _id ) );";
+        db.execSQL(query);
+        query = "CREATE TABLE PitanjeUKvizu ( idKviza TEXT NOT NULL, idPitanja TEXT NOT NULL, CONSTRAINT constr_idKviza FOREIGN KEY ( idKviza ) REFERENCES Kvizovi ( _id ), CONSTRAINT constr_idPitanja FOREIGN KEY ( idPitanja ) REFERENCES Pitanje ( _id ) );";
+        db.execSQL(query);
     }
 
     public void kreirajTabele(SQLiteDatabase db){
@@ -70,35 +88,35 @@ public class SQLiteBaza extends SQLiteOpenHelper {
 
     public void dodajKategoriju( Kategorija k ){
 
-            String nazivKategorije = k.getNaziv();
-            String nazivKategorijeNemaKoseRazmake = nazivKategorije.replaceAll( " ", "_RAZMAK_" );
-            String nazivKategorijeNemaKoseRazmakeNemaKoseCrte = nazivKategorijeNemaKoseRazmake.replaceAll( "/", "_KOSA_CRTA_" );
-            ContentValues contentValues = new ContentValues();
-            contentValues.put("_id", nazivKategorijeNemaKoseRazmakeNemaKoseCrte );
-            contentValues.put("idIkonice", k.getId() );
-            SQLiteDatabase db = this.getWritableDatabase();
-            db.insert("Kategorije", null, contentValues);
+        String nazivKategorije = k.getNaziv();
+        String nazivKategorijeNemaKoseRazmake = nazivKategorije.replaceAll( " ", "_RAZMAK_" );
+        String nazivKategorijeNemaKoseRazmakeNemaKoseCrte = nazivKategorijeNemaKoseRazmake.replaceAll( "/", "_KOSA_CRTA_" );
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("_id", nazivKategorijeNemaKoseRazmakeNemaKoseCrte );
+        contentValues.put("idIkonice", k.getId() );
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.insert("Kategorije", null, contentValues);
     }
 
     public void dodajPitanje( Pitanje p ){
 
-                String nazivPitanja = p.getNaziv();
-                String nazivPitanjaNemaKoseRazmake = nazivPitanja.replaceAll( " ", "_RAZMAK_" );
-                String nazivPitanjaNemaKoseRazmakeNemaKoseCrte = nazivPitanjaNemaKoseRazmake.replaceAll( "/", "_KOSA_CRTA_" );
-                int indexTacnogOdgovora = -1;
-                String odgovori = "";
-                for( int i = 0; i < p.getOdgovori().size(); i++ ) {
-                    odgovori += p.getOdgovori().get(i);
-                    if( i < p.getOdgovori().size() - 1 ) odgovori += ";";
-                    if (p.getOdgovori().get(i).equals(p.getTacan()))
-                        indexTacnogOdgovora = i;
-                }
-                ContentValues contentValues = new ContentValues();
-                contentValues.put("_id", nazivPitanjaNemaKoseRazmakeNemaKoseCrte);
-                contentValues.put("indexTacnogOdgovora", indexTacnogOdgovora);
-                contentValues.put("odgovori", odgovori);
-                SQLiteDatabase db = this.getWritableDatabase();
-                db.insert("Pitanja", null, contentValues);
+        String nazivPitanja = p.getNaziv();
+        String nazivPitanjaNemaKoseRazmake = nazivPitanja.replaceAll( " ", "_RAZMAK_" );
+        String nazivPitanjaNemaKoseRazmakeNemaKoseCrte = nazivPitanjaNemaKoseRazmake.replaceAll( "/", "_KOSA_CRTA_" );
+        int indexTacnogOdgovora = -1;
+        String odgovori = "";
+        for( int i = 0; i < p.getOdgovori().size(); i++ ) {
+            odgovori += p.getOdgovori().get(i);
+            if( i < p.getOdgovori().size() - 1 ) odgovori += ";";
+            if (p.getOdgovori().get(i).equals(p.getTacan()))
+                indexTacnogOdgovora = i;
+        }
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("_id", nazivPitanjaNemaKoseRazmakeNemaKoseCrte);
+        contentValues.put("indexTacnogOdgovora", indexTacnogOdgovora);
+        contentValues.put("odgovori", odgovori);
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.insert("Pitanja", null, contentValues);
     }
 
     public void dodajKviz( Kviz k, RangListaKlasa rangListaKlasa ){
@@ -126,7 +144,6 @@ public class SQLiteBaza extends SQLiteOpenHelper {
             contentValues.put("idPitanja",nazivPitanjaNemaRazmakeNemaKoseCrte);
             db.insert("PitanjeUKvizu",null,contentValues);
         }
-
     }
 
     public void dodajPitanja(ArrayList<Pitanje> pitanja){
@@ -186,31 +203,31 @@ public class SQLiteBaza extends SQLiteOpenHelper {
 
     public void pokupiKategorije() {
 
-            String[] kategorijeKolone = new String[]{"_id", "idIkonice"};
-            SQLiteDatabase db = this.getReadableDatabase();
-            Kategorija kategorijaSvi = new Kategorija();
-            kategorijaSvi.setNaziv("Svi");
-            kategorijaSvi.setId("5");
-            kategorije.add(kategorijaSvi);
+        String[] kategorijeKolone = new String[]{"_id", "idIkonice"};
+        SQLiteDatabase db = this.getReadableDatabase();
+        Kategorija kategorijaSvi = new Kategorija();
+        kategorijaSvi.setNaziv("Svi");
+        kategorijaSvi.setId("5");
+        kategorije.add(kategorijaSvi);
 
-            Cursor cursor = null;
-            try {
-                cursor = db.query("Kategorije", kategorijeKolone, null, null, null, null, null);
-                while (cursor.moveToNext()) {
-                    Kategorija pokupljenaKategorija = new Kategorija();
-                    String nazivPokupljeneKategorije = cursor.getString( cursor.getColumnIndexOrThrow("_id")  );
-                    String nazivKategorijeSaKosimCrtama = nazivPokupljeneKategorije.replaceAll( "_KOSA_CRTA_", "/" );
-                    String nazivKategorijeSaKosimCrtamaSaRazmacima = nazivKategorijeSaKosimCrtama.replaceAll( "_RAZMAK_", " " );
-                    String idIkonicePokupljeneKategorije = cursor.getString( cursor.getColumnIndexOrThrow("idIkonice") );
-                    pokupljenaKategorija.setNaziv( nazivKategorijeSaKosimCrtamaSaRazmacima );
-                    pokupljenaKategorija.setId( idIkonicePokupljeneKategorije );
-                    KvizoviAkt.kategorije.add( pokupljenaKategorija );
-                }
-                cursor.close();
+        Cursor cursor = null;
+        try {
+            cursor = db.query("Kategorije", kategorijeKolone, null, null, null, null, null);
+            while (cursor.moveToNext()) {
+                Kategorija pokupljenaKategorija = new Kategorija();
+                String nazivPokupljeneKategorije = cursor.getString( cursor.getColumnIndexOrThrow("_id")  );
+                String nazivKategorijeSaKosimCrtama = nazivPokupljeneKategorije.replaceAll( "_KOSA_CRTA_", "/" );
+                String nazivKategorijeSaKosimCrtamaSaRazmacima = nazivKategorijeSaKosimCrtama.replaceAll( "_RAZMAK_", " " );
+                String idIkonicePokupljeneKategorije = cursor.getString( cursor.getColumnIndexOrThrow("idIkonice") );
+                pokupljenaKategorija.setNaziv( nazivKategorijeSaKosimCrtamaSaRazmacima );
+                pokupljenaKategorija.setId( idIkonicePokupljeneKategorije );
+                KvizoviAkt.kategorije.add( pokupljenaKategorija );
             }
-            catch (Exception e){
-                e.printStackTrace();
-            }
+            cursor.close();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     public void pokupiPitanja() {
@@ -275,6 +292,7 @@ public class SQLiteBaza extends SQLiteOpenHelper {
                 kvizovi.add( pokupljeniKviz );
             }
             cursor.close();
+            //pobrisiTabele(db);
         }
         catch (Exception e){
             e.printStackTrace();
@@ -289,7 +307,7 @@ public class SQLiteBaza extends SQLiteOpenHelper {
         try{
             cursor = db.rawQuery(query, null);
             while( cursor.moveToNext() ){
-                String idPitanja = cursor.getString( cursor.getColumnIndexOrThrow("_id")  );
+                String idPitanja = cursor.getString( cursor.getColumnIndexOrThrow("idPitanja")  );
                 String idPitanjaSaKosimCrtama = idPitanja.replaceAll( "_KOSA_CRTA_", "/" );
                 String idPitanjaSaKosimCrtamaSaRazmacima = idPitanjaSaKosimCrtama.replaceAll( "_RAZMAK_", " " );
                 pripadajucaPitanja.add( idPitanjaSaKosimCrtamaSaRazmacima );
@@ -323,8 +341,10 @@ public class SQLiteBaza extends SQLiteOpenHelper {
                 ArrayList<Pair<String,Double>> igracRezultat = new ArrayList<>();
 
                 for( int i = 0; i < igraci_SPLIT.length; i++ ){
-                    Pair<String,Double> par = new Pair<>( igraci_SPLIT[i], Double.valueOf( rezultati_SPLIT[i] ) );
-                    igracRezultat.add( par );
+                    if(!igraci_SPLIT[i].equals("") && !rezultati_SPLIT[i].equals("")){
+                        Pair<String,Double> par = new Pair<>( igraci_SPLIT[i], Double.valueOf( rezultati_SPLIT[i] ) );
+                        igracRezultat.add( par );
+                    }
                 }
 
                 Map<Integer,Pair<String,Double>> mojaMapa = new TreeMap<>();

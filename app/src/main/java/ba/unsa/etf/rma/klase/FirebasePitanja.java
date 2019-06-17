@@ -24,6 +24,11 @@ import static ba.unsa.etf.rma.aktivnosti.KvizoviAkt.firebasePitanja;
 
 public class FirebasePitanja {
 
+    private Context context;
+
+    public FirebasePitanja(Context context) {
+        this.context = context;
+    }
 
     public static void dodajPitanje(Pitanje pitanje, Context context) throws ExecutionException, InterruptedException {
         new AsyncTask<String, Void, Void>() {
@@ -83,6 +88,8 @@ public class FirebasePitanja {
                 }
                 return null;
             }
+
+
 
         }.execute();
     }
@@ -174,7 +181,13 @@ public class FirebasePitanja {
                 return null;
             }
 
+            @Override
+            protected void onPostExecute(Void result){
+                super.onPostExecute(result);
+                SQLiteBaza db = new SQLiteBaza(context);
+                db.dodajPitanja(pitanja);
 
+            }
         }.execute();
 
     }

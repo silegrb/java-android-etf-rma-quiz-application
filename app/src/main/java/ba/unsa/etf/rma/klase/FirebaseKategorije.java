@@ -29,6 +29,12 @@ import static ba.unsa.etf.rma.aktivnosti.KvizoviAkt.kategorije;
 
 public class FirebaseKategorije {
 
+    private Context context;
+
+    public FirebaseKategorije(Context context){
+        this.context = context;
+    }
+
     public static void dodajKategoriju(Kategorija kategorija, Context context) throws ExecutionException, InterruptedException {
         new AsyncTask<String, Void, Void>() {
 
@@ -68,7 +74,7 @@ public class FirebaseKategorije {
                         }
                         Log.d("ODGOVOR", response.toString());
                     }
-                   kategorije.add(kategorije.size(), kategorija);
+                    kategorije.add(kategorije.size(), kategorija);
                     CONNECTION.disconnect();
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -76,7 +82,17 @@ public class FirebaseKategorije {
                 return null;
             }
 
+            @Override
+            protected void onPostExecute(Void result){
+                super.onPostExecute(result);
+                SQLiteBaza db = new SQLiteBaza(context);
+                db.dodajKategoriju(kategorija);
+            }
+
+
         }.execute();
+
+
     }
 
     public static String streamToStringConversion(InputStream is) {

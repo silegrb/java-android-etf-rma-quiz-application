@@ -139,8 +139,8 @@ public class DodajKvizAkt extends AppCompatActivity {
         adapterZaListuTrenutnihPitanja.notifyDataSetChanged();
 
 
-            PokupiMogucaPitanja pokupiMogucaPitanja = new PokupiMogucaPitanja(getApplicationContext());
-            pokupiMogucaPitanja.execute();
+        PokupiMogucaPitanja pokupiMogucaPitanja = new PokupiMogucaPitanja(getApplicationContext());
+        pokupiMogucaPitanja.execute();
 
 
 
@@ -543,9 +543,10 @@ public class DodajKvizAkt extends AppCompatActivity {
                             }
 
                             if( importuj ) {
-                                    FirebasePitanja.dodajPitanja(pitanja, getApplicationContext());
-                                    ProvjeriPostojanjeKategorije provjera = new ProvjeriPostojanjeKategorije(getApplicationContext(), prviRed[1]);
-                                    provjera.execute();
+                                FirebasePitanja fp = new FirebasePitanja(DodajKvizAkt.this);
+                                fp.dodajPitanja(pitanja, getApplicationContext());
+                                ProvjeriPostojanjeKategorije provjera = new ProvjeriPostojanjeKategorije(getApplicationContext(), prviRed[1]);
+                                provjera.execute();
 
                                 etNaziv.getText().clear();
                                 etNaziv.setText(prviRed[0]);
@@ -555,8 +556,8 @@ public class DodajKvizAkt extends AppCompatActivity {
                                 pDp.setNaziv("Dodaj pitanje");
                                 alTrenutnaPitanja.add(pDp);
                                 importUradjen = true;
-                                    PokupiMogucaPitanja pokupiMogucaPitanja = new PokupiMogucaPitanja(getApplicationContext());
-                                    pokupiMogucaPitanja.execute();
+                                PokupiMogucaPitanja pokupiMogucaPitanja = new PokupiMogucaPitanja(getApplicationContext());
+                                pokupiMogucaPitanja.execute();
 
                                 adapterZaListuTrenutnihPitanja.notifyDataSetChanged();
                                 adapterZaSpinner.notifyDataSetChanged();
@@ -691,8 +692,8 @@ public class DodajKvizAkt extends AppCompatActivity {
                     povratniKviz.setNaziv(etNaziv.getText().toString());
                     povratniKviz.setPitanja(alTrenutnaPitanja);
                     Intent resIntent = new Intent();
-                   resIntent.putExtra("noviKviz", povratniKviz);
-                   resIntent.putExtra("dodajNoviKviz", true);
+                    resIntent.putExtra("noviKviz", povratniKviz);
+                    resIntent.putExtra("dodajNoviKviz", true);
                     setResult(RESULT_OK, resIntent);
                     finish();
                 }
@@ -792,24 +793,24 @@ public class DodajKvizAkt extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(Void result){
-                alMogucaPitanja.addAll(firebasePitanja);
-                if( !trenutniKviz.getNaziv().equals("Dodaj kviz") ) {
-                    for (int i = 0; i < trenutniKviz.getPitanja().size(); i++)
-                        for (int j = 0; j < alMogucaPitanja.size(); j++)
-                            if (trenutniKviz.getPitanja().get(i).getNaziv().equals(alMogucaPitanja.get(j).getNaziv())) {
-                                alMogucaPitanja.remove(j);
-                                j--;
-                            }
-                }
-                if( importUradjen ){
-                    for (int i = 0; i < alTrenutnaPitanja.size(); i++)
-                        for (int j = 0; j < alMogucaPitanja.size(); j++)
-                            if (alTrenutnaPitanja.get(i).getNaziv().equals(alMogucaPitanja.get(j).getNaziv())) {
-                                alMogucaPitanja.remove(j);
-                                j--;
-                            }
-                            importUradjen = false;
-                }
+            alMogucaPitanja.addAll(firebasePitanja);
+            if( !trenutniKviz.getNaziv().equals("Dodaj kviz") ) {
+                for (int i = 0; i < trenutniKviz.getPitanja().size(); i++)
+                    for (int j = 0; j < alMogucaPitanja.size(); j++)
+                        if (trenutniKviz.getPitanja().get(i).getNaziv().equals(alMogucaPitanja.get(j).getNaziv())) {
+                            alMogucaPitanja.remove(j);
+                            j--;
+                        }
+            }
+            if( importUradjen ){
+                for (int i = 0; i < alTrenutnaPitanja.size(); i++)
+                    for (int j = 0; j < alMogucaPitanja.size(); j++)
+                        if (alTrenutnaPitanja.get(i).getNaziv().equals(alMogucaPitanja.get(j).getNaziv())) {
+                            alMogucaPitanja.remove(j);
+                            j--;
+                        }
+                importUradjen = false;
+            }
             adapterZaListuMogucihPitanja.notifyDataSetChanged();
 
         }
@@ -987,8 +988,8 @@ public class DodajKvizAkt extends AppCompatActivity {
                 kategorije.add(kategorije.size() - 1, kategorija);
                 if( !naziv.equals("Svi") && !naziv.equals("Dodaj kategoriju") ) {
                     try {
-
-                        FirebaseKategorije.dodajKategoriju(kategorija,getApplicationContext());
+                        FirebaseKategorije fb = new FirebaseKategorije(DodajKvizAkt.this);
+                        fb.dodajKategoriju(kategorija,getApplicationContext());
 
                     } catch (ExecutionException | InterruptedException e) {
                         e.printStackTrace();

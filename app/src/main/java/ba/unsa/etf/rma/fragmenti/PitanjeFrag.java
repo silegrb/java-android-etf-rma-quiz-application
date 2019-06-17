@@ -1,8 +1,10 @@
 package ba.unsa.etf.rma.fragmenti;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Color;
+import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -45,8 +47,10 @@ import ba.unsa.etf.rma.R;
 import ba.unsa.etf.rma.klase.Kviz;
 import ba.unsa.etf.rma.klase.Pitanje;
 import ba.unsa.etf.rma.klase.RangListaKlasa;
+import ba.unsa.etf.rma.klase.SQLiteBaza;
 
 import static ba.unsa.etf.rma.aktivnosti.KvizoviAkt.RANG_LISTE;
+
 
 
 public class PitanjeFrag extends Fragment {
@@ -67,6 +71,8 @@ public class PitanjeFrag extends Fragment {
     private  boolean alertReady = false;
     private  boolean kvizGotov = false;
     public static double POSTOTAK_KVIZA = 0;
+    private SQLiteBaza db;
+
 
     @Override
     public void onAttach(Context context) {
@@ -85,6 +91,7 @@ public class PitanjeFrag extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_pitanje, container, false);
+        db = new SQLiteBaza(getActivity());
         tekstPitanja = (TextView)rootView.findViewById(R.id.tekstPitanja);
         odgovoriPitanja = (ListView) rootView.findViewById(R.id.odgovoriPitanja);
         trenutniKviz = (Kviz)getArguments().getSerializable("trenutniKviz");
@@ -114,74 +121,74 @@ public class PitanjeFrag extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-                    if( !pitanjeOdgovoreno ) {
+                if( !pitanjeOdgovoreno ) {
 
-                        pitanjeOdgovoreno = true;
-                        kvizGotov = false;
+                    pitanjeOdgovoreno = true;
+                    kvizGotov = false;
 
-                        if (alPitanja.size() == 0) {
-                            adapter.notifyDataSetChanged();
-                            callback.messageFromGreenFragment(alPitanja.size(), alPitanja.size() - brPreostalihPitanja, brTacnihOdgovora);
-                            RangLista fragmentRangLista = new RangLista();
-                            Bundle bundle = new Bundle();
-                            bundle.putSerializable( "trenutniKviz", trenutniKviz  );
-                            fragmentRangLista.setArguments(bundle);
-                            FragmentTransaction ft = fm.beginTransaction();
-                            ft.replace( R.id.pitanjePlace, fragmentRangLista);
-                            ft.commit();
-                        } else {
+                    if (alPitanja.size() == 0) {
+                        adapter.notifyDataSetChanged();
+                        callback.messageFromGreenFragment(alPitanja.size(), alPitanja.size() - brPreostalihPitanja, brTacnihOdgovora);
+                        RangLista fragmentRangLista = new RangLista();
+                        Bundle bundle = new Bundle();
+                        bundle.putSerializable( "trenutniKviz", trenutniKviz  );
+                        fragmentRangLista.setArguments(bundle);
+                        FragmentTransaction ft = fm.beginTransaction();
+                        ft.replace( R.id.pitanjePlace, fragmentRangLista);
+                        ft.commit();
+                    } else {
 
-                            int pozicijaTacnog = -1;
-                            for( int i = 0; i < trenutnoPitanje.getOdgovori().size(); i++ )
-                                if( trenutnoPitanje.getOdgovori().get(i).equals( trenutnoPitanje.getTacan() ) )
-                                    pozicijaTacnog = i;
-                            if( position != pozicijaTacnog )
-                                view.setBackgroundResource( R.color.crvena );
-                            else {
-                                view.setBackgroundResource(R.color.zelena);
-                                brTacnihOdgovora++;
+                        int pozicijaTacnog = -1;
+                        for( int i = 0; i < trenutnoPitanje.getOdgovori().size(); i++ )
+                            if( trenutnoPitanje.getOdgovori().get(i).equals( trenutnoPitanje.getTacan() ) )
+                                pozicijaTacnog = i;
+                        if( position != pozicijaTacnog )
+                            view.setBackgroundResource( R.color.crvena );
+                        else {
+                            view.setBackgroundResource(R.color.zelena);
+                            brTacnihOdgovora++;
+                        }
+                        //Provjera vidljivosti
+                        if( (TextView)odgovoriPitanja.getChildAt( pozicijaTacnog - odgovoriPitanja.getFirstVisiblePosition() ) != null )
+                            odgovoriPitanja.getChildAt(pozicijaTacnog - odgovoriPitanja.getFirstVisiblePosition()).setBackgroundResource( R.color.zelena );
+
+                        odgovoriPitanja.setEnabled(false);
+                        alPitanja.remove(trenutnoPitanje);
+                        brPreostalihPitanja--;
+                        (new Handler()).postDelayed(() -> {
+                            for (int i = 0; i < parent.getChildCount(); i++)
+                                parent.getChildAt(i).setBackgroundColor(Color.WHITE);
+
+                            if (alPitanja.size() == 0) {
+                                kvizGotov = true;
+
+                            } else {
+                                trenutnoPitanje = alPitanja.get(0);
+                                tekstPitanja.setText(trenutnoPitanje.getNaziv());
+                                alOdgovori.clear();
+                                alOdgovori.addAll(trenutnoPitanje.dajRandomOdgovore());
+                                adapter.notifyDataSetChanged();
                             }
-                            //Provjera vidljivosti
-                            if( (TextView)odgovoriPitanja.getChildAt( pozicijaTacnog - odgovoriPitanja.getFirstVisiblePosition() ) != null )
-                                odgovoriPitanja.getChildAt(pozicijaTacnog - odgovoriPitanja.getFirstVisiblePosition()).setBackgroundResource( R.color.zelena );
-
-                            odgovoriPitanja.setEnabled(false);
-                            alPitanja.remove(trenutnoPitanje);
-                            brPreostalihPitanja--;
-                            (new Handler()).postDelayed(() -> {
-                                for (int i = 0; i < parent.getChildCount(); i++)
-                                    parent.getChildAt(i).setBackgroundColor(Color.WHITE);
-
-                                if (alPitanja.size() == 0) {
-                                   kvizGotov = true;
-
-                                } else {
-                                    trenutnoPitanje = alPitanja.get(0);
-                                    tekstPitanja.setText(trenutnoPitanje.getNaziv());
-                                    alOdgovori.clear();
-                                    alOdgovori.addAll(trenutnoPitanje.dajRandomOdgovore());
-                                    adapter.notifyDataSetChanged();
-                                }
-                                pitanjeOdgovoreno = false;
+                            pitanjeOdgovoreno = false;
+                            try {
+                                callback.messageFromGreenFragment(alPitanja.size() - 1, trenutniKviz.getPitanja().size() - brPreostalihPitanja, brTacnihOdgovora);
+                            }
+                            catch (Exception e){
+                                e.printStackTrace();
+                            }
+                            if( kvizGotov ){
                                 try {
-                                    callback.messageFromGreenFragment(alPitanja.size() - 1, trenutniKviz.getPitanja().size() - brPreostalihPitanja, brTacnihOdgovora);
+                                    pokreniFormuZaRegistrovanjeURangListu();
                                 }
                                 catch (Exception e){
-                                    e.printStackTrace();
+                                    //Ignored
                                 }
-                                if( kvizGotov ){
-                                    try {
-                                        pokreniFormuZaRegistrovanjeURangListu();
-                                    }
-                                    catch (Exception e){
-                                        //Ignored
-                                    }
-                                }
-                                odgovoriPitanja.setEnabled(true);
-                            }, 2000);
+                            }
+                            odgovoriPitanja.setEnabled(true);
+                        }, 2000);
 
-                        }
                     }
+                }
             }
         });
 
@@ -264,6 +271,7 @@ public class PitanjeFrag extends Fragment {
         @Override
         protected void onPostExecute(Void result){
             super.onPostExecute(result);
+            db.registrujRezultatIgranjaKviza(trenutniKviz,rangListaKlasa);
             RangLista fragmentRangLista = new RangLista();
             Bundle bundle = new Bundle();
             bundle.putSerializable( "trenutniKviz", trenutniKviz  );
@@ -309,8 +317,21 @@ public class PitanjeFrag extends Fragment {
                             for (int i = 0; i < RANG_LISTE.size(); i++)
                                 if (RANG_LISTE.get(i).getNazivKviza().equals(trenutniKviz.getNaziv())) {
                                     RANG_LISTE.get(i).registrujKorisnika(ubacivanjePokusaja);
-                                    EditujRanglistu edit = new EditujRanglistu(CONTEXT, trenutniKviz, RANG_LISTE.get(i));
-                                    edit.execute();
+                                    if( imaInterneta() ) {
+                                        EditujRanglistu edit = new EditujRanglistu(CONTEXT, trenutniKviz, RANG_LISTE.get(i));
+                                        edit.execute();
+                                    }
+                                    else{
+                                        db.registrujRezultatIgranjaKviza(trenutniKviz,RANG_LISTE.get(i));
+                                        RangLista fragmentRangLista = new RangLista();
+                                        Bundle bundle = new Bundle();
+                                        bundle.putSerializable( "trenutniKviz", trenutniKviz  );
+                                        fragmentRangLista.setArguments(bundle);
+                                        FragmentTransaction ft = fm.beginTransaction();
+                                        ft.replace( R.id.pitanjePlace, fragmentRangLista);
+                                        ft.commit();
+                                    }
+
                                 }
                             dialog.cancel();
                         }
@@ -369,4 +390,9 @@ public class PitanjeFrag extends Fragment {
         alert.show();
     }
 
+    public boolean imaInterneta() {
+        Activity currentActivity = getActivity();
+        ConnectivityManager cm = (ConnectivityManager) currentActivity.getSystemService(Context.CONNECTIVITY_SERVICE);
+        return cm.getActiveNetworkInfo() != null;
+    }
 }

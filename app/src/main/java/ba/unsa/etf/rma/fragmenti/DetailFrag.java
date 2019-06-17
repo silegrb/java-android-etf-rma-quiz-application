@@ -1,13 +1,18 @@
 package ba.unsa.etf.rma.fragmenti;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.util.Pair;
@@ -16,6 +21,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.Toast;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.common.collect.Lists;
@@ -34,6 +40,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
@@ -43,10 +51,12 @@ import ba.unsa.etf.rma.aktivnosti.DodajKvizAkt;
 import ba.unsa.etf.rma.aktivnosti.IgrajKvizAkt;
 import ba.unsa.etf.rma.klase.AdapterZaListuKvizovaW550;
 import ba.unsa.etf.rma.klase.FirebasePitanja;
+import ba.unsa.etf.rma.klase.KalendarEventi;
 import ba.unsa.etf.rma.klase.Kategorija;
 import ba.unsa.etf.rma.klase.Kviz;
 import ba.unsa.etf.rma.klase.Pitanje;
 import ba.unsa.etf.rma.klase.RangListaKlasa;
+import ba.unsa.etf.rma.klase.SQLiteBaza;
 
 import static android.app.Activity.RESULT_OK;
 import static ba.unsa.etf.rma.aktivnosti.KvizoviAkt.RANG_LISTE;
@@ -73,19 +83,81 @@ public class DetailFrag extends Fragment {
         gridKvizovi = (GridView) rootView.findViewById( R.id.gridKvizovi );
         adapterZaListuKvizovaW550 = new AdapterZaListuKvizovaW550( context, prikazaniKvizoviFragment);
         gridKvizovi.setAdapter( adapterZaListuKvizovaW550 );
-        kvizovi.clear();
-        prikazaniKvizoviFragment.clear();
+        if( imaInterneta() ) {
+            kvizovi.clear();
+            prikazaniKvizoviFragment.clear();
+        }
+        else{
+            prikazaniKvizoviFragment.addAll(kvizovi);
+            Kviz k = new Kviz();
+            k.setNaziv("Dodaj kviz");
+            prikazaniKvizoviFragment.add(k);
+        }
         adapterZaListuKvizovaW550.notifyDataSetChanged();
         zapocniPreuzimanje = true;
-        RANG_LISTE.size();
         gridKvizovi.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Kviz k = (Kviz)parent.getItemAtPosition(position);
                 if( !k.getNaziv().equals("Dodaj kviz") ){
-                    Intent intent = new Intent(context, IgrajKvizAkt.class);
-                    intent.putExtra("odabraniKviz", k );
-                    startActivity(intent);
+                    int trajanjeKvizaUMinutama = k.getPitanja().size()/2;
+                    if( k.getPitanja().size() % 2 == 1 ) trajanjeKvizaUMinutama++;
+                    final long ONE_MINUTE_IN_MILLIS=60000;
+                    Calendar calendar = Calendar.getInstance();
+                    long pocetak = calendar.getTimeInMillis();
+                    long kraj = pocetak;
+                    kraj += trajanjeKvizaUMinutama*ONE_MINUTE_IN_MILLIS;
+                    Date vrijemeAlarma = new Date(kraj);
+                    if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
+                        // Permission is not granted
+                        ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.READ_CALENDAR}, 0);
+                    }
+                    KalendarEventi kalendarEventi = new KalendarEventi(getActivity(),pocetak,kraj);
+                    Pair<Pair<Boolean,String>,Pair<Long,String>> povratniInfoKalendara = kalendarEventi.provjeriEvente();
+
+                    if( povratniInfoKalendara.first.first ) {
+                        if( povratniInfoKalendara.first.second.equals("Will start") ){
+                            android.support.v7.app.AlertDialog alertDialog = new android.support.v7.app.AlertDialog.Builder(getActivity()).create();
+                            alertDialog.setTitle("Upozorenje");
+                            long temp = povratniInfoKalendara.second.first/60000;
+                            alertDialog.setMessage("Imate dogadjaj za " + String.valueOf(temp) + " minuta!");
+                            alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
+                                    new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            dialog.dismiss();
+                                        }
+                                    });
+
+                            alertDialog.show();
+                        }
+                        else if( povratniInfoKalendara.first.second.equals("In progress") ){
+                            android.support.v7.app.AlertDialog alertDialog = new android.support.v7.app.AlertDialog.Builder(getActivity()).create();
+                            alertDialog.setTitle("Upozorenje");
+                            String naslovDogadjaja = povratniInfoKalendara.second.second;
+                            String porukaZaAlert = "Dogadjaj bez naslova jos traje!";
+                            if( !naslovDogadjaja.equals("") ){
+                                porukaZaAlert = "Dogadjaj " + naslovDogadjaja + " jos traje!";
+                            }
+                            alertDialog.setMessage(porukaZaAlert);
+                            alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
+                                    new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            dialog.dismiss();
+                                        }
+                                    });
+
+                            alertDialog.show();
+                        }
+                    }
+                    else{
+
+                        Intent intent = new Intent(getActivity(), IgrajKvizAkt.class);
+                        intent.putExtra("odabraniKviz", k);
+                        intent.putExtra("vrijemeAlarma",vrijemeAlarma);
+                        startActivity(intent);
+
+
+                    }
                 }
             }
         });
@@ -93,21 +165,27 @@ public class DetailFrag extends Fragment {
         gridKvizovi.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent dodajKvizAkt = new Intent( context, DodajKvizAkt.class );
-                Kviz odabraniKviz = (Kviz)parent.getItemAtPosition(position);
-                if( odabraniKviz.getNaziv().equals("Dodaj kviz") ){
-                    Kategorija kategorija = new Kategorija();
-                    kategorija.setNaziv("Svi");
-                    kategorija.setId("5");
-                    odabraniKviz.setKategorija(kategorija);
+                if( imaInterneta() ) {
+                    Intent dodajKvizAkt = new Intent(context, DodajKvizAkt.class);
+                    Kviz odabraniKviz = (Kviz) parent.getItemAtPosition(position);
+                    if (odabraniKviz.getNaziv().equals("Dodaj kviz")) {
+                        Kategorija kategorija = new Kategorija();
+                        kategorija.setNaziv("Svi");
+                        kategorija.setId("5");
+                        odabraniKviz.setKategorija(kategorija);
+                    }
+                    dodajKvizAkt.putExtra("sviKvizovi", kvizovi);
+                    dodajKvizAkt.putExtra("trenutniKviz", odabraniKviz);
+                    dodajKvizAkt.putExtra("sveKategorije", kategorije);
+                    for (int i = 0; i < kvizovi.size(); i++)
+                        if (kvizovi.get(i).getNaziv().equals(((Kviz) parent.getItemAtPosition(position)).getNaziv()))
+                            pozicijaKviza = i;
+                    startActivityForResult(dodajKvizAkt, pozicijaKviza);
                 }
-                dodajKvizAkt.putExtra( "sviKvizovi", kvizovi );
-                dodajKvizAkt.putExtra("trenutniKviz", odabraniKviz );
-                dodajKvizAkt.putExtra( "sveKategorije", kategorije );
-                for( int i = 0; i < kvizovi.size(); i++ )
-                    if( kvizovi.get(i).getNaziv().equals( ((Kviz) parent.getItemAtPosition(position)).getNaziv() ) )
-                        pozicijaKviza = i;
-                startActivityForResult( dodajKvizAkt, pozicijaKviza );
+                else{
+                    Toast.makeText(parent.getContext(), "OFFLINE MODE - Ne mozete dodavati/uredjivati kvizove", Toast.LENGTH_SHORT).show();
+
+                }
                 return true;
             }
         });
@@ -117,15 +195,33 @@ public class DetailFrag extends Fragment {
 
     public void primiNotifikaciju(String odabir) throws ExecutionException, InterruptedException {
 
+        if( imaInterneta() ) {
             FilterKvizova filter = new FilterKvizova(context, odabir);
             filter.execute();
+        }
+        else{
+            prikazaniKvizoviFragment.clear();
+            if( odabir.equals("Svi") ) prikazaniKvizoviFragment.addAll( kvizovi );
+            else {
+                for (int i = 0; i < kvizovi.size(); i++) {
+                    if (kvizovi.get(i).getKategorija().getNaziv().equals(odabir))
+                        prikazaniKvizoviFragment.add(kvizovi.get(i));
+                }
+            }
+            Kviz k = new Kviz();
+            k.setNaziv("Dodaj kviz");
+            prikazaniKvizoviFragment.add(k);
+            adapterZaListuKvizovaW550.notifyDataSetChanged();
+        }
 
     }
 
     public void zapocniPreuzimanje(){
 
+        if( imaInterneta() ) {
             PokupiFirebasePitanja pokupiFirebasePitanja = new PokupiFirebasePitanja(context);
             pokupiFirebasePitanja.execute();
+        }
 
     }
 
@@ -139,14 +235,14 @@ public class DetailFrag extends Fragment {
                 boolean dodajNovi = (boolean)data.getExtras().get("dodajNoviKviz");
                 if( dodajNovi ) {
 
-                        DodajEditujKviz dodaj = new DodajEditujKviz(context, kvizZaDodati, dodajNovi);
-                        dodaj.execute();
+                    DodajEditujKviz dodaj = new DodajEditujKviz(context, kvizZaDodati, dodajNovi);
+                    dodaj.execute();
 
                 }
                 else{
 
-                        DodajEditujKviz edituj = new DodajEditujKviz(context, kvizZaDodati, dodajNovi);
-                        edituj.execute();
+                    DodajEditujKviz edituj = new DodajEditujKviz(context, kvizZaDodati, dodajNovi);
+                    edituj.execute();
 
                 }
             }
@@ -210,12 +306,15 @@ public class DetailFrag extends Fragment {
     public void onAttach(Context context) {
         super.onAttach(context);
         this.context = context;
-        kvizovi.clear();
-        firebasePitanja.clear();
-        RANG_LISTE.clear();
-        kategorije.clear();
+        if( imaInterneta() ) {
+            kvizovi.clear();
+            firebasePitanja.clear();
+            RANG_LISTE.clear();
+            kategorije.clear();
+            prikazaniKvizovi.clear();
+        }
         prikazaniKvizoviFragment.clear();
-        prikazaniKvizovi.clear();
+
         if (context instanceof DetailFrag.OnDetailFragmentListener) {
             callback = (DetailFrag.OnDetailFragmentListener) context;
         } else {
@@ -228,12 +327,15 @@ public class DetailFrag extends Fragment {
     public void onDetach() {
         super.onDetach();
         callback = null;
-        kvizovi.clear();
+        if(imaInterneta()) {
+            kvizovi.clear();
+
+            kategorije.clear();
+            firebasePitanja.clear();
+            RANG_LISTE.clear();
+            prikazaniKvizovi.clear();
+        }
         prikazaniKvizoviFragment.clear();
-        kategorije.clear();
-        firebasePitanja.clear();
-        RANG_LISTE.clear();
-        prikazaniKvizovi.clear();
     }
 
     public final class FilterKvizova extends AsyncTask<String,Void,Void> {
@@ -458,8 +560,8 @@ public class DetailFrag extends Fragment {
         protected void onPostExecute(Void result){
             super.onPostExecute(result);
 
-                PokupiFirebaseKvizove pokupiFirebaseKvizove = new PokupiFirebaseKvizove(context);
-                pokupiFirebaseKvizove.execute();
+            PokupiFirebaseKvizove pokupiFirebaseKvizove = new PokupiFirebaseKvizove(context);
+            pokupiFirebaseKvizove.execute();
 
         }
 
@@ -552,10 +654,10 @@ public class DetailFrag extends Fragment {
         protected void onPostExecute(Void result){
             super.onPostExecute(result);
 
-                FilterKvizova filterKvizova = new FilterKvizova(context, "Svi");
-                filterKvizova.execute();
-                PokupiFirebaseRangliste pokupiFirebaseRangliste = new PokupiFirebaseRangliste(context);
-                pokupiFirebaseRangliste.execute();
+            FilterKvizova filterKvizova = new FilterKvizova(context, "Svi");
+            filterKvizova.execute();
+            PokupiFirebaseRangliste pokupiFirebaseRangliste = new PokupiFirebaseRangliste(context);
+            pokupiFirebaseRangliste.execute();
 
         }
     }
@@ -653,14 +755,16 @@ public class DetailFrag extends Fragment {
 
                 alertDialog.show();
 
-                    FilterKvizova filter = new FilterKvizova(context, "Svi");
-                    filter.execute();
+                FilterKvizova filter = new FilterKvizova(context, "Svi");
+                filter.execute();
 
                 RangListaKlasa rangListaKlasa = new RangListaKlasa();
                 rangListaKlasa.setNazivKviza(kviz.getNaziv());
 
-                    DodajEditujRanglistu dodaj = new DodajEditujRanglistu(context, kviz, rangListaKlasa, true);
-                    dodaj.execute();
+                DodajEditujRanglistu dodaj = new DodajEditujRanglistu(context, kviz, rangListaKlasa, true);
+                dodaj.execute();
+                SQLiteBaza db = new SQLiteBaza(getActivity());
+                db.dodajKviz(kviz, rangListaKlasa);
 
             }
             else {
@@ -687,8 +791,10 @@ public class DetailFrag extends Fragment {
                     if (RANG_LISTE.get(i).getNazivKviza().equals(noviNaziv))
                         rangListaKlasa = RANG_LISTE.get(i);
 
-                        DodajEditujRanglistu edituj = new DodajEditujRanglistu(context, kviz, rangListaKlasa, false);
-                        edituj.execute();
+                DodajEditujRanglistu edituj = new DodajEditujRanglistu(context, kviz, rangListaKlasa, false);
+                edituj.execute();
+                SQLiteBaza db = new SQLiteBaza(getActivity());
+                db.editujKviz(kviz);
 
                 AlertDialog alertDialog = new AlertDialog.Builder(context).create();
                 alertDialog.setTitle("Obavijest");
@@ -702,8 +808,8 @@ public class DetailFrag extends Fragment {
 
                 alertDialog.show();
 
-                    FilterKvizova filter = new FilterKvizova(context, "Svi");
-                    filter.execute();
+                FilterKvizova filter = new FilterKvizova(context, "Svi");
+                filter.execute();
 
 
             }
@@ -884,6 +990,10 @@ public class DetailFrag extends Fragment {
 
     }
 
+    public boolean imaInterneta() {
+        ConnectivityManager cm = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
 
+        return cm.getActiveNetworkInfo() != null;
+    }
 
 }

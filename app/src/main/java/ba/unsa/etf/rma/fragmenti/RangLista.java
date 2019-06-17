@@ -1,6 +1,7 @@
 package ba.unsa.etf.rma.fragmenti;
 
 import android.content.Context;
+import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -58,8 +59,28 @@ public class RangLista extends Fragment {
         rangListaKviza.setAdapter(adapter);
         adapter.notifyDataSetChanged();
 
+        if(imaInterneta()) {
             PreuzmiRanglistu preuzmiRanglistu = new PreuzmiRanglistu(CONTEXT, idRangListe);
             preuzmiRanglistu.execute();
+        }
+        else{
+            RangListaKlasa rangListaKlasa = new RangListaKlasa();
+            for( int i = 0; i < RANG_LISTE.size(); i++ ){
+                if( RANG_LISTE.get(i).getNEPROMJENJIVI_ID().equals(idRangListe) ){
+                    rangListaKlasa.setNazivKviza( RANG_LISTE.get(i).getNazivKviza() );
+                    rangListaKlasa.setMapa( RANG_LISTE.get(i).getMapa() );
+                    rangListaKlasa.setNEPROMJENJIVI_ID( RANG_LISTE.get(i).getNEPROMJENJIVI_ID() );
+                }
+            }
+
+            for(Map.Entry<Integer,Pair<String,Double>> entry : rangListaKlasa.getMapa().entrySet()) {
+                Integer pozicijaPokusaja = entry.getKey();
+                Pair<String, Double> podaciOPokusaju = entry.getValue();
+                rezultati.add( String.valueOf(pozicijaPokusaja) + ". " + podaciOPokusaju.first + " (" + String.valueOf(podaciOPokusaju.second) + "%)" );
+            }
+            adapter.notifyDataSetChanged();
+
+        }
 
         return rootView;
     }
@@ -175,4 +196,9 @@ public class RangLista extends Fragment {
         this.CONTEXT = context;
     }
 
+    public boolean imaInterneta() {
+        ConnectivityManager cm = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        return cm.getActiveNetworkInfo() != null;
+    }
 }
