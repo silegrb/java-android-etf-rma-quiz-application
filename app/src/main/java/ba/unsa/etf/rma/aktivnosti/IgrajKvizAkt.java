@@ -37,9 +37,6 @@ public class IgrajKvizAkt extends AppCompatActivity implements PitanjeFrag.OnPit
         informacijeFrag.setArguments( bundle );
         pitanjeFrag.setArguments( bundle );
 
-        //Ovdje setujemo alarm!!!
-
-
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.add( R.id.informacijePlace, informacijeFrag );

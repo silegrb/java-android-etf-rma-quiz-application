@@ -1,10 +1,13 @@
 package ba.unsa.etf.rma.aktivnosti;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -57,6 +60,7 @@ import ba.unsa.etf.rma.klase.Kategorija;
 import ba.unsa.etf.rma.klase.Kviz;
 import ba.unsa.etf.rma.klase.Pitanje;
 import ba.unsa.etf.rma.klase.RangListaKlasa;
+import ba.unsa.etf.rma.klase.SQLiteBaza;
 
 import static ba.unsa.etf.rma.fragmenti.DetailFrag.prikazaniKvizoviFragment;
 import static ba.unsa.etf.rma.klase.FirebaseKvizovi.streamToStringConversion;
@@ -67,6 +71,18 @@ public class KvizoviAkt extends AppCompatActivity implements ListaFrag.OnListaFr
     private Spinner spinnerKategorije;
     public static boolean USPRAVAN_DISPLEJ = false;
     public static boolean POSTOJI_LI_KATEGORIJA = true;
+    public static SQLiteBaza db;
+    public final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if( imaInterneta() ){
+                FilterKvizova filterKvizova = new FilterKvizova(getApplicationContext(),"Svi");
+            }
+            else{
+                //Ignored
+            }
+        }
+    };
 
 
 
@@ -91,6 +107,7 @@ public int check;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        db = new SQLiteBaza(KvizoviAkt.this);
         check = 0;
             FragmentManager fragmentManager = getSupportFragmentManager();
             FrameLayout layoutDetalji = (FrameLayout) findViewById(R.id.detailPlace);
@@ -129,9 +146,22 @@ public int check;
                 //Aplikacija se na pocetku ne puni nikakvim podacima, osim onim potrebnim za sam rad aplikacije.
                 inicijalizirajApp();
                 if( USPRAVAN_DISPLEJ ) {
-
-                        PokupiFirebaseKategorije pokupiFirebaseKategorije = new PokupiFirebaseKategorije(getApplicationContext());
-                        pokupiFirebaseKategorije.execute();
+                        if( imaInterneta() ) {
+                            PokupiFirebaseKategorije pokupiFirebaseKategorije = new PokupiFirebaseKategorije(getApplicationContext());
+                            pokupiFirebaseKategorije.execute();
+                        }
+                        else{
+                            kvizovi.clear();
+                            kategorije.clear();
+                            firebasePitanja.clear();
+                            RANG_LISTE.clear();
+                            db.pokupiKategorije();
+                            adapterZaSpinner.notifyDataSetChanged();
+                            db.pokupiPitanja();
+                            db.pokupiKvizove();
+                            adapterZaListuKvizova.notifyDataSetChanged();
+                            db.pokupiRangliste();
+                        }
 
                 }
 
@@ -140,21 +170,38 @@ public int check;
                 spinnerKategorije.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                     @Override
                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                        adapterZaSpinner.notifyDataSetChanged();
-                        //Stvaranje string vrijednosti za Toast poruku.
-                        String text = parent.getItemAtPosition(position).toString();
-                        spinnerOdabir = text;
-                        String textBezRazmaka = text.replaceAll(" ","_RAZMAK_");
-                        String textBezKosihBezRazmaka = textBezRazmaka.replaceAll("/","_KOSA_CRTA_");
-                        Toast.makeText(parent.getContext(), "Odabrano: " + text, Toast.LENGTH_SHORT).show();
-                        if( ++check>1 ) {
+                        if( imaInterneta() ) {
+                            adapterZaSpinner.notifyDataSetChanged();
+                            //Stvaranje string vrijednosti za Toast poruku.
+                            String text = parent.getItemAtPosition(position).toString();
+                            spinnerOdabir = text;
+                            String textBezRazmaka = text.replaceAll(" ", "_RAZMAK_");
+                            String textBezKosihBezRazmaka = textBezRazmaka.replaceAll("/", "_KOSA_CRTA_");
+                            Toast.makeText(parent.getContext(), "Odabrano: " + text, Toast.LENGTH_SHORT).show();
+                            if (++check > 1) {
 
                                 FilterKvizova filter = new FilterKvizova(getApplicationContext(), textBezKosihBezRazmaka);
                                 filter.execute();
 
+                            }
                         }
+                        else{
+                            adapterZaSpinner.notifyDataSetChanged();
+                            prikazaniKvizovi.clear();
+                            String text = parent.getItemAtPosition(position).toString();
+                            if( text.equals("Svi") )
+                                prikazaniKvizovi.addAll(kvizovi);
+                            else {
+                                for (int i = 0; i < kvizovi.size(); i++)
+                                    if (kvizovi.get(i).getKategorija().getNaziv().equals(text))
+                                        prikazaniKvizovi.add(kvizovi.get(i));
+                            }
+                            Kviz k = new Kviz();
+                            k.setNaziv("Dodaj kviz");
+                            prikazaniKvizovi.add( k );
+                            adapterZaListuKvizova.notifyDataSetChanged();
 
-
+                        }
                     }
 
                     @Override
@@ -168,25 +215,32 @@ public int check;
                 listaKvizova.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
                     @Override
                     public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                        Kviz trenutniKviz = new Kviz();
-                        trenutniKviz.setNaziv("Dodaj kviz");
-                        trenutniKviz.setKategorija( (Kategorija)spinnerKategorije.getSelectedItem() );
-                        Intent dodajKvizAkt = new Intent(KvizoviAkt.this, DodajKvizAkt.class);
-                        for (int i = 0; i < kvizovi.size(); i++)
-                            if (kvizovi.get(i).getNaziv().equals(((Kviz) parent.getItemAtPosition(position)).getNaziv())) {
-                                if( !((Kviz) parent.getItemAtPosition(position)).getNaziv().equals("Dodaj kviz") ) {
-                                    trenutniKviz.setNaziv(kvizovi.get(i).getNaziv());
-                                    trenutniKviz.setKategorija(kvizovi.get(i).getKategorija());
-                                    trenutniKviz.setPitanja(kvizovi.get(i).getPitanja());
-                                    trenutniKviz.setNEPROMJENJIVI_ID( kvizovi.get(i).getNEPROMJENJIVI_ID() );
+                        if( imaInterneta() ) {
+                            Kviz trenutniKviz = new Kviz();
+                            trenutniKviz.setNaziv("Dodaj kviz");
+                            trenutniKviz.setKategorija((Kategorija) spinnerKategorije.getSelectedItem());
+                            Intent dodajKvizAkt = new Intent(KvizoviAkt.this, DodajKvizAkt.class);
+                            for (int i = 0; i < kvizovi.size(); i++)
+                                if (kvizovi.get(i).getNaziv().equals(((Kviz) parent.getItemAtPosition(position)).getNaziv())) {
+                                    if (!((Kviz) parent.getItemAtPosition(position)).getNaziv().equals("Dodaj kviz")) {
+                                        trenutniKviz.setNaziv(kvizovi.get(i).getNaziv());
+                                        trenutniKviz.setKategorija(kvizovi.get(i).getKategorija());
+                                        trenutniKviz.setPitanja(kvizovi.get(i).getPitanja());
+                                        trenutniKviz.setNEPROMJENJIVI_ID(kvizovi.get(i).getNEPROMJENJIVI_ID());
+                                    }
+                                    pozicijaKviza = i;
                                 }
-                                pozicijaKviza = i;
-                            }
-                        dodajKvizAkt.putExtra("sviKvizovi", kvizovi);
-                        dodajKvizAkt.putExtra("trenutniKviz", trenutniKviz );
-                        dodajKvizAkt.putExtra("sveKategorije", kategorije);
+                            dodajKvizAkt.putExtra("sviKvizovi", kvizovi);
+                            dodajKvizAkt.putExtra("trenutniKviz", trenutniKviz);
+                            dodajKvizAkt.putExtra("sveKategorije", kategorije);
 
-                        KvizoviAkt.this.startActivityForResult(dodajKvizAkt, pozicijaKviza);
+                            KvizoviAkt.this.startActivityForResult(dodajKvizAkt, pozicijaKviza);
+
+                        }
+                        else{
+
+                            Toast.makeText(parent.getContext(), "OFFLINE MODE - Ne mozete dodavati/uredjivati kvizove", Toast.LENGTH_SHORT).show();
+                        }
                         return true;
                     }
                 });
@@ -265,6 +319,9 @@ public int check;
                     }
                 });
             }
+        IntentFilter intentFilter =new IntentFilter("android.net.conn.CONNECTIVITY_CHANGE");
+            registerReceiver(broadcastReceiver,intentFilter);
+
     }
 
     private void inicijalizirajApp(){
@@ -294,7 +351,6 @@ public int check;
 
                         DodajEditujKviz dodaj = new DodajEditujKviz(getApplicationContext(), kvizZaDodati, dodajNovi);
                         dodaj.execute();
-
                 }
                 else{
 
@@ -574,7 +630,7 @@ public int check;
                 alertDialog.show();
                 RangListaKlasa rangListaKlasa = new RangListaKlasa();
                 rangListaKlasa.setNazivKviza(kviz.getNaziv());
-
+                db.dodajKviz(kviz,rangListaKlasa);
                     DodajEditujRangListu dodaj = new DodajEditujRangListu(getApplicationContext(), kviz, rangListaKlasa, true);
                     dodaj.execute();
                     FilterKvizova filter = new FilterKvizova(getApplicationContext(), "Svi");
@@ -619,7 +675,7 @@ public int check;
                             });
 
                     alertDialog.show();
-
+                        db.editujKviz(kviz);
                         FilterKvizova filter = new FilterKvizova(getApplicationContext(), ((Kategorija) spinnerKategorije.getSelectedItem()).getNaziv());
                         filter.execute();
 
@@ -1053,6 +1109,23 @@ public int check;
         }
     }
 
+    public boolean imaInterneta() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        return cm.getActiveNetworkInfo() != null;
+    }
+   @Override
+    protected void onStop(){
+        super.onStop();
+        unregisterReceiver(broadcastReceiver);
+   }
+
+   @Override
+    protected void onRestart(){
+        super.onRestart();
+        IntentFilter intentFilter = new IntentFilter("android.net.conn.CONNECTIVITY_CHANGE");
+        registerReceiver(broadcastReceiver,intentFilter);
+   }
 }
 
 

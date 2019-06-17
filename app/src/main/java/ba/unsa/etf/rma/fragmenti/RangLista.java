@@ -160,7 +160,6 @@ public class RangLista extends Fragment {
         @Override
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);
-            Map<Integer,Pair<String,Double>> novaMapa = new TreeMap<Integer, Pair<String,Double>>();
             for(Map.Entry<Integer,Pair<String,Double>> entry : rangListaKlasa.getMapa().entrySet()) {
                 Integer pozicijaPokusaja = entry.getKey();
                 Pair<String, Double> podaciOPokusaju = entry.getValue();

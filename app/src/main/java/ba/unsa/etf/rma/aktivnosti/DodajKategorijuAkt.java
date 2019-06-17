@@ -3,6 +3,7 @@ package ba.unsa.etf.rma.aktivnosti;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -34,6 +35,7 @@ import java.util.concurrent.ExecutionException;
 import ba.unsa.etf.rma.R;
 import ba.unsa.etf.rma.klase.FirebaseKategorije;
 import ba.unsa.etf.rma.klase.Kategorija;
+import ba.unsa.etf.rma.klase.SQLiteBaza;
 
 import static ba.unsa.etf.rma.klase.FirebaseKategorije.streamToStringConversion;
 
@@ -46,10 +48,12 @@ public class DodajKategorijuAkt extends AppCompatActivity implements IconDialog.
     private ArrayList<Kategorija> kategorije;
     private Icon[] selectedIcons;
     public static boolean dodajKat = false;
+    private SQLiteBaza db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        db = new SQLiteBaza(DodajKategorijuAkt.this);
         setContentView(R.layout.activity_dodaj_kategoriju_akt);
         etNaziv = (EditText) findViewById(R.id.etNaziv);
         etIkona = (EditText) findViewById(R.id.etIkona);
@@ -93,9 +97,13 @@ public class DodajKategorijuAkt extends AppCompatActivity implements IconDialog.
         dodajKategoriju.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                if( imaInterneta() ) {
                     ProvjeriPostojanjeKategorije provjera = new ProvjeriPostojanjeKategorije(getApplicationContext(), etNaziv.getText().toString());
                     provjera.execute();
+                }
+                else{
+                    Toast.makeText(DodajKategorijuAkt.this, "OFFLINE MODE - Ne mozete dodavati kategoriju", Toast.LENGTH_SHORT).show();
+                }
 
             }
         });
@@ -213,7 +221,7 @@ public class DodajKategorijuAkt extends AppCompatActivity implements IconDialog.
                 if (ikona.equals("")) ikona = "958";
                 k.setId(ikona);
                 try {
-
+                    db.dodajKategoriju(k);
                     FirebaseKategorije.dodajKategoriju(k, getApplicationContext());
 
                 } catch (ExecutionException | InterruptedException e) {
@@ -230,5 +238,9 @@ public class DodajKategorijuAkt extends AppCompatActivity implements IconDialog.
     }
 
 
+    public boolean imaInterneta() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 
+        return cm.getActiveNetworkInfo() != null;
+    }
 }

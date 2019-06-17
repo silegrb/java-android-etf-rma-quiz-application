@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -49,6 +50,7 @@ import ba.unsa.etf.rma.klase.FirebasePitanja;
 import ba.unsa.etf.rma.klase.Kategorija;
 import ba.unsa.etf.rma.klase.Kviz;
 import ba.unsa.etf.rma.klase.Pitanje;
+import ba.unsa.etf.rma.klase.SQLiteBaza;
 
 import static ba.unsa.etf.rma.aktivnosti.KvizoviAkt.firebasePitanja;
 import static ba.unsa.etf.rma.klase.FirebasePitanja.streamToStringConversion;
@@ -76,12 +78,13 @@ public class DodajKvizAkt extends AppCompatActivity {
     private static boolean POSTOJI_LI_KATEGORIJA = false;
     private static boolean importuj = true;
     private static boolean importUradjen = false;
+    private SQLiteBaza db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dodaj_kviz_akt);
-
+        db = new SQLiteBaza(DodajKvizAkt.this);
         //Dodajmo sve vrijednosti koristeci id.
         etNaziv = (EditText) findViewById(R.id.etNaziv);
         btnDodajKviz = (Button) findViewById(R.id.btnDodajKviz);
@@ -150,11 +153,17 @@ public class DodajKvizAkt extends AppCompatActivity {
                     alTrenutnaPitanja.remove(odabrano);
                     alMogucaPitanja.add(odabrano);
                 } else {
-                    Intent dodajPitanjeAkt = new Intent(DodajKvizAkt.this, DodajPitanjeAkt.class);
-                    dodajPitanjeAkt.putExtra("trenutniKviz", trenutniKviz);
-                    dodajPitanjeAkt.putExtra("trenutnaPitanja", alTrenutnaPitanja);
-                    dodajPitanjeAkt.putExtra("mogucaPitanja", alMogucaPitanja);
-                    DodajKvizAkt.this.startActivityForResult(dodajPitanjeAkt, 777);
+                    if( imaInterneta() ) {
+                        Intent dodajPitanjeAkt = new Intent(DodajKvizAkt.this, DodajPitanjeAkt.class);
+                        dodajPitanjeAkt.putExtra("trenutniKviz", trenutniKviz);
+                        dodajPitanjeAkt.putExtra("trenutnaPitanja", alTrenutnaPitanja);
+                        dodajPitanjeAkt.putExtra("mogucaPitanja", alMogucaPitanja);
+                        DodajKvizAkt.this.startActivityForResult(dodajPitanjeAkt, 777);
+                    }
+                    else{
+                        Toast.makeText(DodajKvizAkt.this, "OFFLINE MODE - Ne mozete dodavati pitanja", Toast.LENGTH_SHORT).show();
+
+                    }
                 }
                 adapterZaListuMogucihPitanja.notifyDataSetChanged();
                 adapterZaListuTrenutnihPitanja.notifyDataSetChanged();
@@ -179,27 +188,31 @@ public class DodajKvizAkt extends AppCompatActivity {
         btnDodajKviz.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if( trenutniKviz.getNaziv().equals( "Dodaj kviz" ) ) {
-                    String naziv = etNaziv.getText().toString();
+                if( imaInterneta() ){
+                    if (trenutniKviz.getNaziv().equals("Dodaj kviz")) {
+                        String naziv = etNaziv.getText().toString();
 
                         ProvjeriPostojanjeKviza provjera = new ProvjeriPostojanjeKviza(getApplicationContext(), naziv, false);
                         provjera.execute();
-                }
-                else{
-                    if( trenutniKviz.getNaziv().equals( etNaziv.getText().toString() ) ){
-                        String naziv = etNaziv.getText().toString();
+                    } else {
+                        if (trenutniKviz.getNaziv().equals(etNaziv.getText().toString())) {
+                            String naziv = etNaziv.getText().toString();
 
                             ProvjeriPostojanjeKviza provjera = new ProvjeriPostojanjeKviza(getApplicationContext(), naziv, true);
                             provjera.execute();
 
-                    }
-                    else{
-                        String naziv = etNaziv.getText().toString();
+                        } else {
+                            String naziv = etNaziv.getText().toString();
 
                             ProvjeriPostojanjeKviza provjera = new ProvjeriPostojanjeKviza(getApplicationContext(), naziv, false);
                             provjera.execute();
 
+                        }
                     }
+                }
+                else{
+                    Toast.makeText(DodajKvizAkt.this, "OFFLINE MODE - Ne mozete dodavati/uredjivati kviz", Toast.LENGTH_SHORT).show();
+
                 }
             }
         });
@@ -207,10 +220,15 @@ public class DodajKvizAkt extends AppCompatActivity {
         btnImportKviz.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-                intent.addCategory(Intent.CATEGORY_OPENABLE);
-                intent.setType("text/*");
-                startActivityForResult(intent, READ_REQUEST_CODE);
+                if( imaInterneta() ) {
+                    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                    intent.addCategory(Intent.CATEGORY_OPENABLE);
+                    intent.setType("text/*");
+                    startActivityForResult(intent, READ_REQUEST_CODE);
+                }
+                else{
+                    Toast.makeText(DodajKvizAkt.this, "OFFLINE MODE - Ne mozete importovati kviz", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -237,10 +255,17 @@ public class DodajKvizAkt extends AppCompatActivity {
         kategorijeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if (parent.getItemAtPosition(position).toString().equals("Dodaj kategoriju")) {
-                    Intent dodajKategorijuAkt = new Intent(DodajKvizAkt.this, DodajKategorijuAkt.class);
-                    dodajKategorijuAkt.putExtra("sveKategorije", kategorije);
-                    DodajKvizAkt.this.startActivityForResult(dodajKategorijuAkt, 69);
+                if( imaInterneta() ) {
+                    if (parent.getItemAtPosition(position).toString().equals("Dodaj kategoriju")) {
+                        Intent dodajKategorijuAkt = new Intent(DodajKvizAkt.this, DodajKategorijuAkt.class);
+                        dodajKategorijuAkt.putExtra("sveKategorije", kategorije);
+                        DodajKvizAkt.this.startActivityForResult(dodajKategorijuAkt, 69);
+                    }
+                }
+                else{
+                    Toast.makeText(DodajKvizAkt.this, "OFFLINE MODE - Ne mozete dodavati kategoriju", Toast.LENGTH_SHORT).show();
+                    kategorijeSpinner.setSelection(0);
+                    adapterZaSpinner.notifyDataSetChanged();
                 }
             }
 
@@ -974,6 +999,12 @@ public class DodajKvizAkt extends AppCompatActivity {
             }
             POSTOJI_LI_KATEGORIJA = true;
         }
+    }
+
+    public boolean imaInterneta() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        return cm.getActiveNetworkInfo() != null;
     }
 
 }

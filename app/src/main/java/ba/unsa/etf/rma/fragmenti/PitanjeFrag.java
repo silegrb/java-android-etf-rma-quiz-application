@@ -141,7 +141,7 @@ public class PitanjeFrag extends Fragment {
                                 view.setBackgroundResource(R.color.zelena);
                                 brTacnihOdgovora++;
                             }
-                            //Provjera vidljivost
+                            //Provjera vidljivosti
                             if( (TextView)odgovoriPitanja.getChildAt( pozicijaTacnog - odgovoriPitanja.getFirstVisiblePosition() ) != null )
                                 odgovoriPitanja.getChildAt(pozicijaTacnog - odgovoriPitanja.getFirstVisiblePosition()).setBackgroundResource( R.color.zelena );
 

@@ -3,6 +3,7 @@ package ba.unsa.etf.rma.aktivnosti;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -36,6 +37,7 @@ import ba.unsa.etf.rma.klase.AdapterZaListuOdgovora;
 import ba.unsa.etf.rma.klase.FirebasePitanja;
 import ba.unsa.etf.rma.klase.Kviz;
 import ba.unsa.etf.rma.klase.Pitanje;
+import ba.unsa.etf.rma.klase.SQLiteBaza;
 
 import static ba.unsa.etf.rma.klase.FirebasePitanja.streamToStringConversion;
 
@@ -157,10 +159,13 @@ public class DodajPitanjeAkt extends AppCompatActivity {
                     pokreni = false;
                 }
                 if (pokreni) {
+                    if( imaInterneta() ) {
                         ProvjeriPostojanjePitanja provjera = new ProvjeriPostojanjePitanja(getApplicationContext(), etNaziv.getText().toString());
                         provjera.execute();
-
-
+                    }
+                    else{
+                        Toast.makeText(DodajPitanjeAkt.this, "OFFLINE MODE - Ne mozete dodavati pitanja", Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
         });
@@ -297,6 +302,8 @@ public class DodajPitanjeAkt extends AppCompatActivity {
                 try {
 
                     FirebasePitanja.dodajPitanje( pitanje, getApplicationContext() );
+                    SQLiteBaza db = new SQLiteBaza(getApplicationContext());
+                    db.dodajPitanje( pitanje );
 
                 } catch (ExecutionException | InterruptedException e) {
                     e.printStackTrace();
@@ -308,6 +315,11 @@ public class DodajPitanjeAkt extends AppCompatActivity {
             }
             POSTOJI_LI_PITANJE = true;
         }
+    }
+
+    public boolean imaInterneta() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        return cm.getActiveNetworkInfo() != null;
     }
 
 }
